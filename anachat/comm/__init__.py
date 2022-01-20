@@ -1,5 +1,5 @@
 """Anachat Kernel analysis"""
-from .ana import AnaKernel
+from .anacomm import AnaComm
 
 COMM = None
 
@@ -7,5 +7,6 @@ def init():
     """Init Ana"""
     # pylint: disable=undefined-variable, global-statement
     global COMM
-    COMM = AnaKernel(get_ipython())
+    if COMM is None:
+        COMM = AnaComm(get_ipython())
     COMM.register()

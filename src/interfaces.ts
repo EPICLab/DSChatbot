@@ -17,10 +17,6 @@ export const GenericMatcher: IKernelMatcher = {
   evalue: null
 };
 
-export interface IQueryResult {
-  todo?: string;
-}
-
 export interface IChatMessage {
   text: string;
   type: 'user' | 'bot' | 'error';

@@ -1,44 +1,34 @@
 import { JSONObject } from '@lumino/coreutils';
 import { ISessionContext } from '@jupyterlab/apputils';
-import { Signal, ISignal } from '@lumino/signaling';
+import { Signal } from '@lumino/signaling';
 import { KernelMessage } from '@jupyterlab/services';
 import {
   IComm,
   IKernelConnection
 } from '@jupyterlab/services/lib/kernel/kernel';
-import { IErrorMsg, IInfoReply } from '@jupyterlab/services/lib/kernel/messages';
 import {
-  GenericMatcher,
-  IChatMessage,
-  IKernelMatcher,
-  IQueryResult
-} from './interfaces';
+  IErrorMsg,
+  IInfoReply
+} from '@jupyterlab/services/lib/kernel/messages';
+import { GenericMatcher, IChatMessage, IKernelMatcher } from './interfaces';
 import { IDisposable } from '@lumino/disposable';
 import { NotebookPanel } from '@jupyterlab/notebook';
 import { ErrorHandler } from './errorhandler';
-
-export interface IAnaChatKernelUpdate {
-  status: string;
-  kernelName?: string;
-  result?: IQueryResult;
-}
 
 export class NotebookComm implements IDisposable {
   private _language: IKernelMatcher | null;
 
   private _kernelRestarted = new Signal<this, Promise<void>>(this);
-  private _disposed = new Signal<this, void>(this);
-  private _inspected = new Signal<this, IAnaChatKernelUpdate>(this);
   private _isDisposed = false;
   private _nbPanel: NotebookPanel;
   private _session: ISessionContext;
   private _ready: Promise<void>;
   private _update: () => void;
+  private _addChatMessage: (message: IChatMessage) => void;
   private _eh: ErrorHandler;
   private _icomm: IComm | null;
   private _chatHistory: IChatMessage[];
 
-  public update: IQueryResult | null;
   public hasKernel: boolean;
 
   _boundQueryCall: (
@@ -50,16 +40,17 @@ export class NotebookComm implements IDisposable {
     session: ISessionContext,
     nbPanel: NotebookPanel,
     eh: ErrorHandler,
-    update: () => void
+    update: () => void,
+    addChatMessage: (message: IChatMessage) => void
   ) {
     this._eh = eh;
     try {
-      this.update = {};
       this.hasKernel = false;
 
       this._session = session;
       this._nbPanel = nbPanel;
       this._update = update;
+      this._addChatMessage = addChatMessage;
       this._ready = new Promise((resolve, reject) => {
         // Empty function
       });
@@ -75,41 +66,7 @@ export class NotebookComm implements IDisposable {
         }
       );
 
-      this._chatHistory = [
-        { text: 'Hello, my name is Ana', type: 'bot', timestamp: 1642628785575 },
-        { text: 'Can you load data from text.csv', type: 'user', timestamp: 1642628785576 },
-        { text: 'Sure', type: 'bot', timestamp: 1642628785577 },
-        { text: 'Would you like to do anything else?', type: 'bot', timestamp: 1642628785578 },
-        /*{ text: 'Error - Could not load Ana', type: 'error', timestamp: 1642628785579 },
-        { text: 'Hello, my name is Ana', type: 'bot', timestamp: 1642628785580 },
-        { text: 'Can you load data from text.csv', type: 'user', timestamp: 1642628785581 },
-        { text: 'Sure', type: 'bot', timestamp: 1642628785582 },
-        { text: 'Would you like to do anything else?', type: 'bot', timestamp: 1642628785582 },
-        { text: 'Hello, my name is Ana', type: 'bot', timestamp: 1642628785583 },
-        { text: 'Can you load data from text.csv', type: 'user', timestamp: 1642628785584 },
-        { text: 'Sure', type: 'bot', timestamp: 1642628785585 },
-        { text: 'Would you like to do anything else?', type: 'bot', timestamp: 1642628785586 },
-        { text: 'Hello, my name is Ana', type: 'bot', timestamp: 1642628785587 },
-        { text: 'Can you load data from text.csv', type: 'user', timestamp: 1642628785588 },
-        { text: 'Sure', type: 'bot', timestamp: 1642628785589 },
-        { text: 'Would you like to do anything else?', type: 'bot', timestamp: 1642628785590 },
-        { text: 'Hello, my name is Ana', type: 'bot', timestamp: 1642628785591 },
-        { text: 'Can you load data from text.csv', type: 'user', timestamp: 1642628785592 },
-        { text: 'Sure', type: 'bot', timestamp: 1642628785593 },
-        { text: 'Would you like to do anything else?', type: 'bot', timestamp: 1642628785594 },
-        { text: 'Hello, my name is Ana', type: 'bot', timestamp: 1642628785595 },
-        { text: 'Can you load data from text.csv', type: 'user', timestamp: 1642628785596 },
-        { text: 'Sure', type: 'bot', timestamp: 1642628785597 },
-        { text: 'Would you like to do anything else?', type: 'bot', timestamp: 1642628785598 },
-        { text: 'Hello, my name is Ana', type: 'bot', timestamp: 1642628785599 },
-        { text: 'Can you load data from text.csv', type: 'user', timestamp: 1642628785600 },
-        { text: 'Sure', type: 'bot', timestamp: 1642628785601 },
-        { text: 'Would you like to do anything else?', type: 'bot', timestamp: 1642628785602 },
-        { text: 'Hello, my name is Ana', type: 'bot', timestamp: 1642628785603 },
-        { text: 'Can you load data from text.csv', type: 'user', timestamp: 1642628785604 },
-        { text: 'Sure', type: 'bot', timestamp: 1642628785605 },
-        { text: 'Would you like to do anything else?', type: 'bot', timestamp: 1642628785606 }*/
-      ];
+      this._chatHistory = [];
     } catch (error) {
       throw this._report(error, 'constructor', [nbPanel.title.label]);
     }
@@ -139,8 +96,8 @@ export class NotebookComm implements IDisposable {
       if (kernelName.match('python') || languageName.match('python')) {
         resolve({
           language: 'python',
-          initScript: 'import anachat.kernel; anachat.kernel.init()',
-          evalue: "No module named 'anachat.kernel'"
+          initScript: 'import anachat.comm; anachat.comm.init()',
+          evalue: "No module named 'anachat.comm'"
         });
         return;
       }
@@ -180,10 +137,8 @@ export class NotebookComm implements IDisposable {
 
       this._kernelRestarted.connect(
         (sender: any, kernelReady: Promise<void>) => {
-          this._inspected.emit({
-            status: 'Restarting Kernel...'
-          } as IAnaChatKernelUpdate);
-          // Emit restarting
+          this.hasKernel = false; // Restarting...
+          this._update();
 
           this._ready = kernelReady.then(() => {
             this.createComm();
@@ -196,28 +151,9 @@ export class NotebookComm implements IDisposable {
     }
   }
 
-  disconnectHandler(): void {
-    try {
-      this.inspected.disconnect(this.onQueryUpdate, this);
-      this.disposed.disconnect(this.onSourceDisposed, this);
-    } catch (error) {
-      throw this._report(error, 'disconnectHandler', []);
-    }
-  }
-
-  connectHandler(): void {
-    try {
-      this.inspected.connect(this.onQueryUpdate, this);
-      this.disposed.connect(this.onSourceDisposed, this);
-      this.sendMoveInKernel();
-    } catch (error) {
-      throw this._report(error, 'connectHandler', []);
-    }
-  }
-
   addMessage(newMessage: IChatMessage): void {
     this._chatHistory.push(newMessage);
-    this._update();
+    this._addChatMessage(newMessage);
     this.sendMessageKernel(newMessage);
   }
 
@@ -233,26 +169,12 @@ export class NotebookComm implements IDisposable {
     return this._nbPanel;
   }
 
-  /**
-   * A signal emitted when the handler is disposed.
-   */
-  get disposed(): ISignal<NotebookComm, void> {
-    return this._disposed;
-  }
-
   get isDisposed(): boolean {
     return this._isDisposed;
   }
 
   get ready(): Promise<void> {
     return this._ready;
-  }
-
-  /**
-   * A signal emitted when an inspector value is generated.
-   */
-  get inspected(): ISignal<NotebookComm, IAnaChatKernelUpdate> {
-    return this._inspected;
   }
 
   /**
@@ -264,7 +186,6 @@ export class NotebookComm implements IDisposable {
         return;
       }
       this._isDisposed = true;
-      this._disposed.emit(void 0);
       Signal.clearData(this);
     } catch (error) {
       throw this._report(error, 'dispose', []);
@@ -360,15 +281,6 @@ export class NotebookComm implements IDisposable {
   }
 
   /**
-   * Send a movein command to the kernel
-   */
-  public sendMoveInKernel(): void {
-    this.send({
-      operation: 'movein'
-    });
-  }
-
-  /**
    * Send a cell execution command to the kernel
    */
   public sendExecKernel(): void {
@@ -404,28 +316,23 @@ export class NotebookComm implements IDisposable {
   ): void | PromiseLike<void> {
     try {
       const operation = msg.content.data.operation;
+      console.log('Receive op', operation);
       if (operation === 'init' || operation === 'refresh') {
-        this._inspected.emit({
-          status: '',
-          kernelName: this._session.kernelDisplayName || ''
-        });
-        this._chatHistory = msg.content.data.history as unknown as IChatMessage[];
+        this.hasKernel = true;
+        this._chatHistory = msg.content.data
+          .history as unknown as IChatMessage[];
         this._update();
       } else if (operation === 'reply') {
-        this._inspected.emit({
-          status: '',
-          kernelName: this._session.kernelDisplayName || ''
-        });
-        this._chatHistory.push(
-          msg.content.data.message as unknown as IChatMessage
-        );
-        this._update();
+        this.hasKernel = true;
+        const message: IChatMessage = msg.content.data
+          .message as unknown as IChatMessage;
+        this._chatHistory.push(message);
+        this._addChatMessage(message);
       } else if (operation === 'error') {
-        this._eh.report(
-          'Failed to run ICOMM command',
-          'NotebookHandler:_receiveJulynterQuery',
-          [msg]
-        );
+        this._report('Failed to run ICOMM command', '_receiveAnaChatQuery', [
+          msg.content.data.command,
+          msg.content.data.message
+        ]);
       }
     } catch (error) {
       throw this._report(error, '_receiveAnaChatQuery', [msg]);
@@ -453,29 +360,5 @@ export class NotebookComm implements IDisposable {
     } catch (error) {
       throw this._report(error, '_queryCall', [args.content]);
     }
-  }
-
-  /**
-   * Handle kernel signals.
-   */
-  protected onQueryUpdate(
-    sender: NotebookComm,
-    update: IAnaChatKernelUpdate
-  ): void {
-    if (update.status !== '') {
-      this.update = {};
-      this.hasKernel = false;
-    } else {
-      this.hasKernel = true;
-      this.update = update.result || {};
-    }
-    this._update();
-  }
-
-  /**
-   * Handle disposed signals.
-   */
-  protected onSourceDisposed(sender: NotebookComm, args: void): void {
-    return;
   }
 }

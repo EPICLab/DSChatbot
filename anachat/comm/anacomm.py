@@ -1,8 +1,10 @@
 """Define a Comm for Ana"""
 import traceback
 from datetime import datetime
+import weakref
 
 from ipykernel.comm import Comm
+
 
 class AnaComm(object):
     """Ana comm hadler"""
@@ -13,17 +15,21 @@ class AnaComm(object):
         self.name = "anachat.comm"
         self.comm = None
 
-        self.history = []
-
-    def register(self):
-        """Register comm"""
-        self.comm = Comm(self.name)
-        self.comm.on_msg(self.receive)
         self.history = [{
             "text": "Hello, my name is Ana. How can I help you?",
             "type": "bot",
             "timestamp": datetime.timestamp(datetime.now()),
         }]
+
+    @property
+    def core(self):
+        from .. import core
+        return core.CURRENT
+
+    def register(self):
+        """Register comm"""
+        self.comm = Comm(self.name)
+        self.comm.on_msg(self.receive)
         self.send({
             "operation": "init",
             "history": self.history,
@@ -37,8 +43,9 @@ class AnaComm(object):
             if operation == "message":
                 self.receive_message(data.get("message"))
             elif operation == "refresh":
-                self.refresh()
+                self.core.refresh(self)
         except Exception:
+            print(traceback.format_exc())
             self.send({
                 "operation": "error",
                 "command": operation,
@@ -47,7 +54,7 @@ class AnaComm(object):
 
     def receive_message(self, message):
         self.history.append(message)
-        self.process_message(message.get("text"))
+        self.core.process_message(self, message.get("text"))
 
     def send(self, data):
         """Receive send results"""
@@ -63,10 +70,4 @@ class AnaComm(object):
         self.send({
             "operation": "reply",
             "message": message
-        })
-
-    def refresh(self):
-        self.send({
-            "operation": "refresh",
-            "history": self.history,
         })

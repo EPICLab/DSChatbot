@@ -1,7 +1,7 @@
 import { ActivityMonitor } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
-import { Message } from '@lumino/messaging';
+//import { Message } from '@lumino/messaging';
 
 import { Panel, Widget } from '@lumino/widgets';
 import { ErrorHandler } from './errorhandler';
@@ -10,6 +10,7 @@ import { IAnaChatStatus, IChatMessage, IKernelMatcher } from './interfaces';
 import { NotebookComm } from './notebookcomm';
 import { ChatWidget } from './view/chatwidget';
 import { HeaderWidget } from './view/headerwidget';
+import { InputWidget } from './view/inputwidget';
 import { KERNEL_CONNECTED, statusMessage } from './view/statusrenderer';
 
 /**
@@ -30,6 +31,7 @@ export class AnaChat extends Panel {
   private _tracker: INotebookTracker | null;
   private _status: IAnaChatStatus;
   private _eh: ErrorHandler;
+  private _chatWidget: ChatWidget | null;
   public handlers: { [id: string]: Promise<NotebookComm> };
 
   constructor(
@@ -54,7 +56,9 @@ export class AnaChat extends Panel {
     this._currentHandler = null;
     this._currentWidget = null;
     this._visibleWidget = null;
+    this._chatWidget = null;
     this._monitor = null;
+    this.refreshInterfaceFully();
   }
 
   private _report(error: any, func: string, params: any): any {
@@ -66,10 +70,17 @@ export class AnaChat extends Panel {
     //A promise that resolves after the initialization of the handler is done.
     try {
       const handlers = this.handlers;
-      const update = this.update.bind(this);
+      const update = this.monitorUpdate2.bind(this);
+      const addChatMessage = this.addChatMessage.bind(this);
       this.handlers[nbPanel.id] = new Promise((resolve, reject) => {
         const session = nbPanel.sessionContext;
-        const handler = new NotebookComm(session, nbPanel, this._eh, update);
+        const handler = new NotebookComm(
+          session,
+          nbPanel,
+          this._eh,
+          update,
+          addChatMessage
+        );
         const scripts = session.ready.then(
           handler.getKernelLanguage.bind(handler)
         );
@@ -108,25 +119,9 @@ export class AnaChat extends Panel {
     }
   }
 
-  refreshAnaChat(): void {
-    if (this.currentHandler) {
-      this.currentHandler.sendRefreshKernel();
-    }
-    this.updateAnaChat();
-  }
-
-  sendText(text: string): void {
-    if (this.currentHandler) {
-      this.currentHandler.addMessage({
-        text: text,
-        type: 'user',
-        timestamp: +new Date()
-      });
-    }
-  }
-
-  updateAnaChat(): void {
+  refreshInterfaceFully(): void {
     try {
+      console.log('!!!!!! UPDATE')
       if (this._mainWidget !== null && this.contains(this._mainWidget)) {
         this._mainWidget.dispose();
         this._mainWidget = null;
@@ -177,27 +172,52 @@ export class AnaChat extends Panel {
         this._eh,
         this.refreshAnaChat.bind(this)
       );
-      const chatWidget = new ChatWidget({
-        messages,
-        showInput,
-        sendText: this.sendText.bind(this)
-      });
+      this._chatWidget = new ChatWidget({ messages });
       this._mainWidget = new Panel();
       this._mainWidget.addClass('jp-AnaChat');
       this._mainWidget.addWidget(headerWidget);
-      this._mainWidget.addWidget(chatWidget);
+      this._mainWidget.addWidget(this._chatWidget);
+      if (showInput) {
+        this._mainWidget.addWidget(new InputWidget(this.sendText.bind(this)));
+      }
       this.addWidget(this._mainWidget);
     } catch (error) {
       throw this._report(error, 'update', []);
     }
   }
 
+  refreshAnaChat(): void {
+    if (this.currentHandler) {
+      this.currentHandler.sendRefreshKernel();
+    }
+    console.log('refreshAnaChat');
+    this.refreshInterfaceFully();
+  }
+
+  sendText(text: string): void {
+    if (this.currentHandler) {
+      this.currentHandler.addMessage({
+        text: text,
+        type: 'user',
+        timestamp: +new Date()
+      });
+    }
+  }
+
+  addChatMessage(message: IChatMessage): void {
+    if (this._chatWidget) {
+      console.log('Add chat message');
+      this._chatWidget.addMessage(message);
+    }
+  }
+
   /**
    * Rerender after showing.
-   */
+   
   protected onAfterShow(msg: Message): void {
     try {
-      this.update();
+      console.log('onAfterShow');
+      //this.update();
     } catch (error) {
       throw this._report(error, 'onAfterShow', []);
     }
@@ -205,21 +225,18 @@ export class AnaChat extends Panel {
 
   protected onUpdateRequest(msg: Message): void {
     try {
-      this.updateAnaChat();
+      console.log('onUpdateRequest');
     } catch (error) {
       throw this._report(error, 'onUpdateRequest', []);
     }
-  }
+  }*/
 
   dispose(): void {
     try {
       if (this.isDisposed) {
         return;
       }
-      if (this._currentHandler) {
-        this._currentHandler.disconnectHandler();
-        this._currentHandler = null;
-      }
+      this._currentHandler = null;
       super.dispose();
     } catch (error) {
       throw this._report(error, 'dispose', []);
@@ -233,17 +250,10 @@ export class AnaChat extends Panel {
   set currentHandler(newHandler: NotebookComm | null) {
     try {
       const widget = this._currentWidget;
-      if (this._currentHandler !== newHandler) {
-        if (this._currentHandler !== null) {
-          this._currentHandler.disconnectHandler();
-        }
-        this._currentHandler = newHandler;
-        if (this._currentHandler !== null) {
-          this._currentHandler.connectHandler();
-        }
-      }
+      this._currentHandler = newHandler;
       if (!newHandler || widget !== newHandler.nbPanel) {
-        this.updateAnaChat();
+        console.log('set currentHandler 1');
+        this.refreshInterfaceFully();
         return;
       }
       if (
@@ -268,11 +278,22 @@ export class AnaChat extends Panel {
           signal: context.model.contentChanged,
           timeout: RENDER_TIMEOUT
         });
-        this._monitor.activityStopped.connect(this.update, this);
+        this._monitor.activityStopped.connect(this.monitorUpdate, this);
       }
-      this.updateAnaChat();
+      console.log('set currentHandler 2');
+      this.refreshInterfaceFully();
     } catch (error) {
       throw this._report(error, 'set currentHandler', [newHandler?.name]);
     }
+  }
+
+  monitorUpdate(): void {
+    console.log("monitorupdate");
+    this.refreshInterfaceFully();
+  }
+
+  monitorUpdate2(): void {
+    console.log("monitorupdate2");
+    this.refreshInterfaceFully();
   }
 }
