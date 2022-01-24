@@ -1,7 +1,7 @@
 """Define a Comm for Ana"""
 import traceback
 from datetime import datetime
-import weakref
+from anachat.comm.core_loader import BaseLoader
 
 from ipykernel.comm import Comm
 
@@ -10,10 +10,11 @@ class AnaComm(object):
     """Ana comm hadler"""
     # pylint: disable=useless-object-inheritance
 
-    def __init__(self, shell=None):
+    def __init__(self, shell=None, core_loader=BaseLoader):
         self.shell = shell
         self.name = "anachat.comm"
         self.comm = None
+        self.core_loader = core_loader(self)
 
         self.history = [{
             "text": "Hello, my name is Ana. How can I help you?",
@@ -23,8 +24,7 @@ class AnaComm(object):
 
     @property
     def core(self):
-        from .. import core
-        return core.CURRENT
+        return self.core_loader.core.CURRENT
 
     def register(self):
         """Register comm"""

@@ -9,16 +9,3 @@ class AnaCore(object):
 
     def process_message(self, comm, text):
         comm.reply(text + ", ditto")
-
-
-"""
-Changing the core live inside jupyter:
-
->>> import anachat.core
->>> 
->>> class NewCore(anachat.core.AnaCore):
->>>     def process_message(self, comm, text):
->>>         comm.reply(text + ", ditto2")
->>> 
->>> anachat.core.CURRENT = NewCore()
-"""
