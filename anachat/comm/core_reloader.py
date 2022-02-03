@@ -37,16 +37,17 @@ class CoreReloader(BaseLoader):
     def set_module_hash(self, fname):
         self.modulehashes[fname] = self.get_file_hash(fname)
 
-    def check_recursive_change(self, module=None):
+    def check_recursive_change(self, module=None, comm=None):
         module = module or self.core
         result = []
-        mpath = module.__file__
-        for attribute_name in dir(module):
-            attribute = getattr(module, attribute_name)
-            if type(attribute) is ModuleType:
-                result.extend(self.check_recursive_change(attribute))
-        if result or (mpath.startswith(self.basedir) and self.get_file_hash(mpath) != self.modulehashes.get(mpath)):
-            result.append(module)
+        if hasattr(module, "__file__") and module.__file__.startswith(self.basedir):
+            mpath = module.__file__
+            for attribute_name in dir(module):
+                attribute = getattr(module, attribute_name)
+                if type(attribute) is ModuleType:
+                    result.extend(self.check_recursive_change(attribute, comm=comm))
+            if result or (self.get_file_hash(mpath) != self.modulehashes.get(mpath)):
+                result.append(module)
         return result
 
     def reload_list(self, modules, comm=None):
@@ -64,10 +65,10 @@ class Reloader(pyinotify.ProcessEvent):
     
     def process_default(self, event):
         try:
-            toreload = self._reloader.check_recursive_change()
+            toreload = self._reloader.check_recursive_change(comm=self._comm)
             if toreload:
                 self._comm.reply(f"Reloading Ana Core")
-                self._reloader.reload_list(toreload)
+                self._reloader.reload_list(toreload, comm=self._comm)
                 from .. import core
                 self._reloader.core = core
         except:

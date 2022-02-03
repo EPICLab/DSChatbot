@@ -17,6 +17,7 @@ export class MessageWidget extends ReactWidget {
 
   protected render(): JSX.Element {
     const className = `anachat-message-inner anachat-message-${this.message.type}`;
+    console.log(this.message);
     return <div className={className}>{this.message.text}</div>;
   }
 }

@@ -74,6 +74,7 @@
   border: 1px solid gray;
   margin-bottom: 0.8em;
   padding: 0.4em;
+  white-space: pre-line;
   
 }
 
