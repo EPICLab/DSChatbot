@@ -88,6 +88,28 @@
   background-color: lightblue;
 }
 
+.anachat-message-options {
+  margin-right: 4em;
+  background-color: lightblue;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.anachat-option-item {
+  display: table-cell;
+  border: 1px solid grey;
+  padding: 5px;
+  margin: 2px;
+  max-width: 45%;
+  flex: 1 0 45%;
+}
+
+.anachat-option-item:hover {
+  background-color: white;
+  cursor: pointer;
+}
+
+
 .anachat-message-error {
   margin-right: 4em;
   background-color: lightpink;

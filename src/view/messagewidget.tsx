@@ -2,7 +2,7 @@ import React from 'react';
 import { ReactWidget } from '@jupyterlab/apputils';
 import { IChatMessage } from '../interfaces';
 
-interface IMessageProps {
+export interface IMessageProps {
   message: IChatMessage;
 }
 

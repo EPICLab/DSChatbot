@@ -17,8 +17,13 @@ export const GenericMatcher: IKernelMatcher = {
   evalue: null
 };
 
+export interface IOptionItem {
+  key: string;
+  label: string;
+}
+
 export interface IChatMessage {
-  text: string;
-  type: 'user' | 'bot' | 'error';
+  text: string | IOptionItem[];
+  type: 'user' | 'bot' | 'error' | 'options';
   timestamp: number;
 }

@@ -1,17 +1,21 @@
 import { IChatMessage } from '../interfaces';
 import { MessageWidget } from './messagewidget';
-import { Panel } from '@lumino/widgets';
+import { Panel, Widget } from '@lumino/widgets';
+import { OptionsMessageWidget } from './optionsmessagewidget';
 
 interface IChatProps {
   messages: IChatMessage[];
+  sendText: (text: string) => void;
 }
 
 export class ChatWidget extends Panel {
   private messages: IChatMessage[];
+  private sendText: (text: string) => void;
 
   constructor(options: IChatProps) {
     super();
     this.messages = options.messages;
+    this.sendText = options.sendText;
     this.create();
   }
 
@@ -21,6 +25,19 @@ export class ChatWidget extends Panel {
   }
 
   addMessage(message: IChatMessage): void {
-    this.addWidget(new MessageWidget({ message }));
+    if (message.type === 'options') {
+      this.addWidget(
+        new OptionsMessageWidget({ message, sendText: this.sendText })
+      );
+    } else {
+      this.addWidget(new MessageWidget({ message }));
+    }
+  }
+
+  protected onChildAdded(msg: Widget.ChildMessage): void {
+    setTimeout(() => {
+      const node = this.node;
+      node.scrollTop = node.scrollHeight - node.clientHeight;
+    }, 300);
   }
 }

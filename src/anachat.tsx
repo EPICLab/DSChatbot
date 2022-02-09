@@ -172,13 +172,14 @@ export class AnaChat extends Panel {
         this._eh,
         this.refreshAnaChat.bind(this)
       );
-      this._chatWidget = new ChatWidget({ messages });
+      const sendText = this.sendText.bind(this);
+      this._chatWidget = new ChatWidget({ messages, sendText });
       this._mainWidget = new Panel();
       this._mainWidget.addClass('jp-AnaChat');
       this._mainWidget.addWidget(headerWidget);
       this._mainWidget.addWidget(this._chatWidget);
       if (showInput) {
-        this._mainWidget.addWidget(new InputWidget(this.sendText.bind(this)));
+        this._mainWidget.addWidget(new InputWidget(sendText));
       }
       this.addWidget(this._mainWidget);
     } catch (error) {
