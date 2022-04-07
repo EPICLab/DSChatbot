@@ -27,12 +27,11 @@ const plugin: JupyterFrontEndPlugin<void> = {
     labShell: ILabShell,
     restorer: ILayoutRestorer,
     notebookTracker: INotebookTracker,
-    rendermime: IRenderMimeRegistry,
   ) => {
     const eh = new ErrorHandler();
     try {
       // Create the widget
-      const anaChat = new AnaChat(docmanager, notebookTracker, rendermime, eh);
+      const anaChat = new AnaChat(docmanager, notebookTracker, eh);
 
       // Add the widget to the right area
       anaChat.title.icon = anaChatIcon.bindprops({ stylesheet: 'sideBar' });

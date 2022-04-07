@@ -1,8 +1,6 @@
-import { ISessionContext } from '@jupyterlab/apputils';
 import { ActivityMonitor } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
-import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 //import { Message } from '@lumino/messaging';
 
 import { Panel, Widget } from '@lumino/widgets';
@@ -31,7 +29,6 @@ export class AnaChat extends Panel {
   private _mainWidget: Panel | null;
   private _monitor: ActivityMonitor<any, any> | null;
   private _tracker: INotebookTracker | null;
-  private _rendermime: IRenderMimeRegistry;
   private _status: IAnaChatStatus;
   private _eh: ErrorHandler;
   private _chatWidget: ChatWidget | null;
@@ -40,14 +37,12 @@ export class AnaChat extends Panel {
   constructor(
     docmanager: IDocumentManager,
     tracker: INotebookTracker,
-    rendermime: IRenderMimeRegistry,
     eh: ErrorHandler
   ) {
     super();
     this._mainWidget = null;
     this._docmanager = docmanager;
     this._tracker = tracker;
-    this._rendermime = rendermime;
     this._eh = eh;
     this.handlers = {};
 
@@ -191,9 +186,7 @@ export class AnaChat extends Panel {
         this.refreshAnaChat.bind(this)
       );
       const sendText = this.sendText.bind(this);
-      const rendermime = this._rendermime;
-      const sessionContext: ISessionContext | null = this.currentHandler?.nbPanel?.sessionContext || null;
-      this._chatWidget = new ChatWidget({ messages, sendText, rendermime, sessionContext });
+      this._chatWidget = new ChatWidget({ messages, sendText });
       this._mainWidget = new Panel();
       this._mainWidget.addClass('jp-AnaChat');
       this._mainWidget.addWidget(headerWidget);

@@ -68,20 +68,53 @@ class SubjectState:
         if not matches:
             comm.reply("I could not find this subject. Please, try a different query")
             return self
-        return SubjectChoiceState(matches, comm, self)
+        return prepare_sub_choice_state(matches, comm, self)
+
+def prepare_sub_choice_state(matches, comm, subjectstate):
+    label = f"I found {len(matches)} subjects. Which one of these best describe your query?"
+    if len(matches) <= 6:
+        return SubjectChoiceStateDefinition(matches, label, comm, subjectstate).materialize()
+
+    states = []
+    last = None
+    for i, p in enumerate(range(0, len(matches), 6)):
+        nextp = False
+        submatches = matches[p: p + 6]
+        if p + 6 < len(matches):
+            nextp = True
+        state = SubjectChoiceStateDefinition(submatches, label + f" Showing {p + 1}..{min(p + 6, len(matches))} (page {i + 1}).", comm, subjectstate, prevpage=last, nextpage=nextp)
+        if last:
+            last.nextpage = state
+        last = state
+        states.append(last)
+
+    return states[0].materialize()
 
 
-class SubjectChoiceState(OptionsState):
-
-    def __init__(self, matches, comm, subjectstate):
+class SubjectChoiceStateDefinition():
+    def __init__(self, matches, label, comm, subjectstate, prevpage=None, nextpage=None):
         self.subjectstate = subjectstate
-        self.label = f"I found {len(matches)} subjects. Which one of these best describe your query?"
+        self.label = label
+        self.prevpage = prevpage
+        self.nextpage = nextpage
+        self.comm = comm
         options = []
         for i, match in enumerate(matches):
             label = subjectstate.docmap[match['ref']]['name']
             options.append((str(i + 1), label, self.load_subject_info(match, subjectstate)))
+        if prevpage:
+            options.append(('<', '(Go to previous page)', self.load_prevpage))
+        if nextpage:
+            options.append(('>', '(Go to next page)', self.load_nextpage))
+                
         options.append(('0', '(Go back to subject search)', self.load_subjectstate))
-        super().__init__(comm, options)
+        self.options = options
+
+    def load_prevpage(self, comm):
+        return self.prevpage.materialize()
+
+    def load_nextpage(self, comm):
+        return self.nextpage.materialize()
 
     def load_subject_info(self, match, subjectstate):
         def load_info(comm):
@@ -90,6 +123,16 @@ class SubjectChoiceState(OptionsState):
 
     def load_subjectstate(self, comm):
         return self.subjectstate
+
+    def materialize(self):
+        return SubjectChoiceState(self.label, self.comm, self.options)
+
+class SubjectChoiceState(OptionsState):
+
+    def __init__(self, label, comm, options):
+        self.label = label
+        super().__init__(comm, options)
+
 
 
 class SubjectInfoState(OptionsState):
