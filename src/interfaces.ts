@@ -24,6 +24,6 @@ export interface IOptionItem {
 
 export interface IChatMessage {
   text: string | IOptionItem[];
-  type: 'user' | 'bot' | 'error' | 'options';
+  type: 'user' | 'bot' | 'error' | 'options' | 'cell';
   timestamp: number;
 }

@@ -12,6 +12,7 @@ import { AnaChat } from './anachat';
 import { requestAPI } from './server';
 import { anaChatIcon } from './iconimports';
 import { ErrorHandler } from './errorhandler';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 
 /**
  * Initialization data for the anachat extension.
@@ -19,18 +20,19 @@ import { ErrorHandler } from './errorhandler';
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'anachat:plugin',
   autoStart: true,
-  requires: [IDocumentManager, ILabShell, ILayoutRestorer, INotebookTracker],
+  requires: [IDocumentManager, ILabShell, ILayoutRestorer, INotebookTracker, IRenderMimeRegistry],
   activate: (
     app: JupyterFrontEnd,
     docmanager: IDocumentManager,
     labShell: ILabShell,
     restorer: ILayoutRestorer,
-    notebookTracker: INotebookTracker
+    notebookTracker: INotebookTracker,
+    rendermime: IRenderMimeRegistry,
   ) => {
     const eh = new ErrorHandler();
     try {
       // Create the widget
-      const anaChat = new AnaChat(docmanager, notebookTracker, eh);
+      const anaChat = new AnaChat(docmanager, notebookTracker, rendermime, eh);
 
       // Add the widget to the right area
       anaChat.title.icon = anaChatIcon.bindprops({ stylesheet: 'sideBar' });

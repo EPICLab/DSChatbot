@@ -1,6 +1,8 @@
+import { ISessionContext } from '@jupyterlab/apputils';
 import { ActivityMonitor } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 //import { Message } from '@lumino/messaging';
 
 import { Panel, Widget } from '@lumino/widgets';
@@ -29,6 +31,7 @@ export class AnaChat extends Panel {
   private _mainWidget: Panel | null;
   private _monitor: ActivityMonitor<any, any> | null;
   private _tracker: INotebookTracker | null;
+  private _rendermime: IRenderMimeRegistry;
   private _status: IAnaChatStatus;
   private _eh: ErrorHandler;
   private _chatWidget: ChatWidget | null;
@@ -37,12 +40,14 @@ export class AnaChat extends Panel {
   constructor(
     docmanager: IDocumentManager,
     tracker: INotebookTracker,
+    rendermime: IRenderMimeRegistry,
     eh: ErrorHandler
   ) {
     super();
     this._mainWidget = null;
     this._docmanager = docmanager;
     this._tracker = tracker;
+    this._rendermime = rendermime;
     this._eh = eh;
     this.handlers = {};
 
@@ -119,6 +124,19 @@ export class AnaChat extends Panel {
     }
   }
 
+  partialRefresh(): void {
+    try {
+      console.log('!!!!!! UPDATE2')
+      if (!this.currentHandler || !this._chatWidget) {
+        return this.refreshInterfaceFully();
+      }
+      let messages: IChatMessage[] = this.currentHandler.chatHistory;
+      this._chatWidget.refresh(messages);
+    } catch (error) {
+      throw this._report(error, 'partialUpdate', []);
+    }
+  }
+
   refreshInterfaceFully(): void {
     try {
       console.log('!!!!!! UPDATE')
@@ -173,7 +191,9 @@ export class AnaChat extends Panel {
         this.refreshAnaChat.bind(this)
       );
       const sendText = this.sendText.bind(this);
-      this._chatWidget = new ChatWidget({ messages, sendText });
+      const rendermime = this._rendermime;
+      const sessionContext: ISessionContext | null = this.currentHandler?.nbPanel?.sessionContext || null;
+      this._chatWidget = new ChatWidget({ messages, sendText, rendermime, sessionContext });
       this._mainWidget = new Panel();
       this._mainWidget.addClass('jp-AnaChat');
       this._mainWidget.addWidget(headerWidget);
@@ -279,7 +299,7 @@ export class AnaChat extends Panel {
           signal: context.model.contentChanged,
           timeout: RENDER_TIMEOUT
         });
-        this._monitor.activityStopped.connect(this.monitorUpdate, this);
+        this._monitor.activityStopped.connect(this.partialRefresh, this);
       }
       console.log('set currentHandler 2');
       this.refreshInterfaceFully();
