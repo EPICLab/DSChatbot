@@ -1,3 +1,4 @@
+import re
 from lunr import lunr
 
 class OptionsState:
@@ -36,6 +37,7 @@ class OptionsState:
 def build_document_list(tree):
     docmap = {}
     documents = []
+    regexes = {}
 
     cid = 1
     visit = [("", tree)]
@@ -46,24 +48,30 @@ def build_document_list(tree):
             'id': cid,
             'name': current[1].name,
             'path': newpath,
-            'node': current[1]
+            'node': current[1],
         }
+        if 'regex' in current[1].attr:
+            regexes[current[1].attr['regex']] = document
         documents.append(document)
         docmap[str(cid)] = document
         cid += 1
         for child in current[1].children:
             child.parent = current[1]
             visit.append((newpath, child))
-    return docmap, documents
+    return docmap, documents, regexes
 
 
 class SubjectState:
 
     def __init__(self, tree):
-        self.docmap, documents = build_document_list(tree)
+        self.docmap, documents, self.regexes = build_document_list(tree)
         self.idx = lunr(ref='id', fields=('name', 'path'), documents=documents)
 
     def process_message(self, comm, text):
+        for regex, document in self.regexes.items():
+            result = re.search(regex, text)
+            if result:
+                return choose_state(comm, document['node'], self, self, matches=result)
         matches = self.idx.search(text)
         if not matches:
             comm.reply("I could not find this subject. Please, try a different query")
@@ -91,7 +99,13 @@ def prepare_sub_choice_state(matches, comm, subjectstate):
     return states[0].materialize()
 
 
-class SubjectChoiceStateDefinition():
+def choose_state(comm, node, subjectstate, previousstate, matches=None):
+    if "action" not in node.attr:
+        return SubjectInfoState(comm, node, subjectstate, previousstate)
+    return node.attr["action"](comm, subjectstate, previousstate, matches=matches)
+
+
+class SubjectChoiceStateDefinition:
     def __init__(self, matches, label, comm, subjectstate, prevpage=None, nextpage=None):
         self.subjectstate = subjectstate
         self.label = label
@@ -101,7 +115,7 @@ class SubjectChoiceStateDefinition():
         options = []
         for i, match in enumerate(matches):
             label = subjectstate.docmap[match['ref']]['name']
-            options.append((str(i + 1), label, self.load_subject_info(match, subjectstate)))
+            options.append((str(i + 1), label, self.load_subject_info(match)))
         if prevpage:
             options.append(('<', '(Go to previous page)', self.load_prevpage))
         if nextpage:
@@ -116,9 +130,9 @@ class SubjectChoiceStateDefinition():
     def load_nextpage(self, comm):
         return self.nextpage.materialize()
 
-    def load_subject_info(self, match, subjectstate):
+    def load_subject_info(self, match):
         def load_info(comm):
-            return SubjectInfoState(comm, subjectstate.docmap[match['ref']]['node'], subjectstate, self)
+            return choose_state(comm, subjectstate.docmap[match['ref']]['node'], self.subjectstate, self)
         return load_info
 
     def load_subjectstate(self, comm):
@@ -127,12 +141,12 @@ class SubjectChoiceStateDefinition():
     def materialize(self):
         return SubjectChoiceState(self.label, self.comm, self.options)
 
+
 class SubjectChoiceState(OptionsState):
 
     def __init__(self, label, comm, options):
         self.label = label
         super().__init__(comm, options)
-
 
 
 class SubjectInfoState(OptionsState):
@@ -145,8 +159,9 @@ class SubjectInfoState(OptionsState):
         cid = 1
         self.order = {}
         for key in self.node.attr:
-            options.append((str(cid), key.replace("_", " ").capitalize(), self.attr(key)))
-            cid += 1
+            if key not in ("action", "regex"):
+                options.append((str(cid), key.replace("_", " ").capitalize(), self.attr(key)))
+                cid += 1
         if self.node.parent is not None:
             options.append((str(cid), f"{self.node.parent.name} (parent)", self.subject(self.node.parent)))
             cid += 1

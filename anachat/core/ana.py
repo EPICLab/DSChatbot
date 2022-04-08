@@ -1,4 +1,5 @@
 import traceback
+import os
 
 from .states import OptionsState, SubjectState
 
@@ -53,8 +54,54 @@ class TypeConversionDecisionState(OptionsState):
         return self.subjectstate
 
 
+class FileInputState:
+
+    label = "Please, write the name of the file, type <back> to go back to the previous state or <subject> to go back to the subject search:"
+
+    def __init__(self, comm, subjectstate, previousstate, matches=None):
+        self.subjectstate = subjectstate
+        self.previousstate = previousstate
+        if matches and matches.group(1):
+            self.process_message(comm, matches.group(1))
+        else:
+            self.initial(comm)
+    
+    def initial(self, comm):
+        comm.reply(self.label)
+
+    def process_message(self, comm, text):
+        newtext = str(text).strip().lower()
+        if newtext == "<back>":
+            return self.previousstate
+        if newtext == "<subject>":
+            return self.subjectstate
+        if os.path.exists(text):
+            
+            comm.reply("Copy the following code to a cell:")
+            code = ""
+            ip = comm.shell
+            if 'pd' not in ip.user_ns and 'pandas' not in ip.user_ns:
+                code = "import pandas as pd"
+                pandas = "pd"
+            elif 'pd' in ip.user_ns:
+                pandas = "pd"
+            else:
+                pandas = "pandas"
+            code += f"\ndf = {pandas}.read_csv({text!r})\ndf"
+            comm.reply(code, type_="cell")
+            return self.subjectstate
+
+        comm.reply("This file path does not exist. Please try again")
+        return self
+
+
 TREE = SubjectTree(
     "",
+    SubjectTree(
+        "Load data",
+        action=FileInputState,
+        regex="load data ?(.*)"
+    ),
     SubjectTree("Prediction"),
     SubjectTree(
         "Classifier",
