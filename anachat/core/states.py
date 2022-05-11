@@ -132,7 +132,7 @@ class SubjectChoiceStateDefinition:
 
     def load_subject_info(self, match):
         def load_info(comm):
-            return choose_state(comm, subjectstate.docmap[match['ref']]['node'], self.subjectstate, self)
+            return choose_state(comm, self.subjectstate.docmap[match['ref']]['node'], self.subjectstate, self)
         return load_info
 
     def load_subjectstate(self, comm):

@@ -1,8 +1,44 @@
 import traceback
 import os
+import inspect
+import sys
+import re
+
+
 
 from .states import OptionsState, SubjectState
 
+# https://docs.google.com/document/d/1cb7JOcny_orNGfd7X9y6yI5pMFnU_Dxc/edit?rtpof=true
+
+
+from functools import wraps
+
+def statemanager(func):
+    @wraps(func)
+    def helper(*args, **kwargs):
+        if inspect.isgeneratorfunction(func):
+            gen = func(*args, **kwargs)
+            try:
+                next(gen)
+            except StopIteration as exc:
+                return exc.value
+            else:
+                return _GeneratorStateManager(gen)
+        return func(args, **kwargs)
+    return helper
+
+
+class _GeneratorStateManager:
+
+    def __init__(self, gen):
+        self.gen = gen
+
+    def process_message(self, comm, text):
+        try:
+            self.gen.send(text)
+        except StopIteration as exc:
+            return exc.value
+        return self
 
 class SubjectTree:
 
@@ -54,29 +90,15 @@ class TypeConversionDecisionState(OptionsState):
         return self.subjectstate
 
 
-class FileInputState:
-
-    label = "Please, write the name of the file, type <back> to go back to the previous state or <subject> to go back to the subject search:"
-
-    def __init__(self, comm, subjectstate, previousstate, matches=None):
-        self.subjectstate = subjectstate
-        self.previousstate = previousstate
-        if matches and matches.group(1):
-            self.process_message(comm, matches.group(1))
-        else:
-            self.initial(comm)
-    
-    def initial(self, comm):
-        comm.reply(self.label)
-
-    def process_message(self, comm, text):
+@statemanager
+def load_file_state(comm, subjectstate, previousstate, matches=None):
+    def prepare_file(text):
         newtext = str(text).strip().lower()
         if newtext == "<back>":
-            return self.previousstate
+            return previousstate
         if newtext == "<subject>":
-            return self.subjectstate
+            return subjectstate
         if os.path.exists(text):
-            
             comm.reply("Copy the following code to a cell:")
             code = ""
             ip = comm.shell
@@ -89,20 +111,148 @@ class FileInputState:
                 pandas = "pandas"
             code += f"\ndf = {pandas}.read_csv({text!r})\ndf"
             comm.reply(code, type_="cell")
-            return self.subjectstate
+            return subjectstate
+        return None
 
-        comm.reply("This file path does not exist. Please try again")
-        return self
+    
+    if matches and matches.group(1):
+        result = prepare_file(matches.group(1))
+        if result:
+            return result
+    comm.reply("Please, write the name of the file, type <back> to go back to the previous state or <subject> to go back to the subject search:")
+    while True:
+        text = yield
+        result = prepare_file(text)
+        if result:
+            return result
+
+
+def classification_steps_state(comm, subjectstate, previousstate, matches=None):
+    if matches and matches.group(2):
+        comm.memory["class_state"] = matches.group(2)
+    comm.memory["sub_state"] = "Classification"
+    comm.reply("Sounds good. Here are the steps for a classification:")
+    comm.reply([
+        {'key': '1', 'label': 'Preprocessing'},
+        {'key': '2', 'label': 'Algortihm Specification'},
+        {'key': '3', 'label': 'Validation'},
+        {'key': '4', 'label': 'Feature Engineering'},
+        
+    ], "options")
+    return subjectstate
+
+
+
+@statemanager
+def select_column_state(comm, subjectstate, previousstate, matches=None):
+    if matches and matches.group(1):
+        column = matches.group(1)
+    else:
+        comm.reply("Please, write the column name")
+        column = yield
+    comm.memory["column"] = column
+    comm.reply(f'Selected column {column!r}')
+    return subjectstate
+
+
+def isdataframe(value):
+    if 'pandas' in sys.modules:
+        import pandas as pd
+        return isinstance(value, pd.DataFrame)
+    return str(type(value)) == "<class 'pandas.core.frame.DataFrame'>"
+
+
+def get_dataframes(comm):
+    for var, value in comm.shell.user_ns.items():
+        if isdataframe(value):
+            yield var
+
+def select_dataframe(comm, matches):
+    if matches and matches.group('df'):
+        dataframe = matches.group('df')
+    elif comm.memory['dataframe']:
+        dataframe = comm.memory['dataframe']
+    else:
+        options = [
+            {'key': i + 1, 'label': df} for i, df in enumerate(get_dataframes(comm))
+        ]
+        if not options:
+            comm.reply("I could not find any dataframe in your notebook. Please write the expression of the dataframe")
+        else:
+            comm.reply("Please, select a dataframe")
+            comm.reply(options, "options")
+        dataframe = yield
+    return dataframe
+
+def select_column(comm, matches):
+    if matches and matches.group('column'):
+        column = matches.group('column')
+        if column.startswith("column "):
+            column = column[7:]
+    elif comm.memory['column']:
+        column = comm.memory['column']
+    else:
+        comm.reply("Please, write the column name")
+        column = yield
+    return column
+
+@statemanager
+def tokenize_column_state(comm, subjectstate, previousstate, matches=None):
+    instructions = matches and matches.group(1) or ""
+
+    dataframe = yield from select_dataframe(comm, re.search(r"from (dataframe )?(?P<df>.+?(?=( column )|$))", instructions))
+    column = yield from select_column(comm, re.search(r"((^(?!from))|(column ))(?P<column>.+?(?=( from )|$))", instructions))
+    
+
+    comm.reply(f'For tokenizing {column!r} from {dataframe!r}, please copy the following code to a cell:')
+    code = ""
+    if 'nltk' not in comm.shell.user_ns:
+        code = "import nltk\n"
+
+    code += f"{dataframe}['tokenized_{column}'] = {dataframe}.apply(lambda row: nltk.word_tokenize(row[{column!r}]), axis=1)"
+    comm.reply(code, type_="cell")
+    return subjectstate
+
+
 
 
 TREE = SubjectTree(
     "",
     SubjectTree(
         "Load data",
-        action=FileInputState,
+        action=load_file_state,
         regex="load data ?(.*)"
     ),
-    SubjectTree("Prediction"),
+    SubjectTree(
+        "Classification",
+        SubjectTree(
+            "Preprocessing",
+            SubjectTree(
+                "Select column",
+                select_column=select_column_state,
+                regex="select column (.+)",
+                action=select_column_state
+            ),
+            SubjectTree(
+                "Tokenize",
+                regex=r"tokenize (.+)",
+                action=tokenize_column_state
+            ),
+            SubjectTree("Transform Cases"),
+            SubjectTree("Filter tokens"),
+            SubjectTree("Filter stopwords"),
+            SubjectTree("Filter stopwords"),
+            ),
+        action=classification_steps_state,
+        regex="do a classification ?(of column (.*))"
+    ),
+    
+ 
+)
+
+
+"""
+   SubjectTree("Prediction"),
     SubjectTree(
         "Classifier",
         SubjectTree(
@@ -152,7 +302,8 @@ TREE = SubjectTree(
             ),
         ),
     ),
-)
+    """
+
 
 class AnaCore(object):
     """Implements ana chat"""

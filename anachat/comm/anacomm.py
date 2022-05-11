@@ -1,5 +1,6 @@
 """Define a Comm for Ana"""
 import traceback
+from collections import defaultdict
 from datetime import datetime
 from anachat.comm.core_loader import BaseLoader
 
@@ -12,6 +13,7 @@ class AnaComm(object):
 
     def __init__(self, shell=None, core_loader=BaseLoader):
         self.shell = shell
+        self.memory = defaultdict(lambda: None)
         self.name = "anachat.comm"
         self.comm = None
         self.core_loader = core_loader(self)
