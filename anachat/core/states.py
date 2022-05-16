@@ -1,7 +1,10 @@
+"""Chatbot state management"""
+
 import re
 from lunr import lunr
 
 class OptionsState:
+    """Presents a set of options and asks users to select one"""
 
     label = "Please, choose an option:"
     invalid = "I could not understand this option. Please, try again."
@@ -15,7 +18,7 @@ class OptionsState:
             self.matches[plabel] = function
             self.matches[f"{pkey}. {plabel}"] = function
         self.initial(comm)
-    
+
     def initial(self, comm):
         comm.reply(self.label)
         comm.reply([
@@ -158,6 +161,9 @@ class SubjectInfoState(OptionsState):
         options = []
         cid = 1
         self.order = {}
+        if "action" in self.node.attr:
+            options.append((str(cid), "Perform it", self.attr("action")))
+            cid += 1
         for key in self.node.attr:
             if key not in ("action", "regex"):
                 options.append((str(cid), key.replace("_", " ").capitalize(), self.attr(key)))
@@ -175,7 +181,7 @@ class SubjectInfoState(OptionsState):
     def attr(self, attr):
         def attr_display(comm):
             value = self.node.attr[attr]
-            if isinstance(value, type):
+            if callable(value):
                 return value(comm, self, self.subjectstate)
             else:
                 comm.reply(value)

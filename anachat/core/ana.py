@@ -14,6 +14,7 @@ from .states import OptionsState, SubjectState
 from functools import wraps
 
 def statemanager(func):
+    """Wraps generator function to support waiting for user replies"""
     @wraps(func)
     def helper(*args, **kwargs):
         if inspect.isgeneratorfunction(func):
@@ -24,7 +25,7 @@ def statemanager(func):
                 return exc.value
             else:
                 return _GeneratorStateManager(gen)
-        return func(args, **kwargs)
+        return func(*args, **kwargs)
     return helper
 
 
@@ -134,7 +135,7 @@ def classification_steps_state(comm, subjectstate, previousstate, matches=None):
     comm.reply("Sounds good. Here are the steps for a classification:")
     comm.reply([
         {'key': '1', 'label': 'Preprocessing'},
-        {'key': '2', 'label': 'Algortihm Specification'},
+        {'key': '2', 'label': 'Algorithm Specification'},
         {'key': '3', 'label': 'Validation'},
         {'key': '4', 'label': 'Feature Engineering'},
         
@@ -213,7 +214,125 @@ def tokenize_column_state(comm, subjectstate, previousstate, matches=None):
     comm.reply(code, type_="cell")
     return subjectstate
 
+def apply_str_list_operation(comm, description, dataframe, column, prefix, str_op, list_op, code=""):
+    if column in (df := comm.shell.user_ns.get(dataframe, {})) and len(df) > 0:
+        comm.reply(f'For {description} of {column!r} from {dataframe!r}, please copy the following code to a cell:')
+        if df[column].dtype == object and isinstance(df.iloc[0][column], str):
+            code += f"{dataframe}['{prefix}_{column}'] = {str_op}"
+        elif df[column].dtype == object and isinstance(df.iloc[0][column], list):
+            code += f"{dataframe}['{prefix}_{column}'] = {dataframe}['{column}'].apply(lambda row: {list_op})"
+        else:
+            code = ""
+    else:
+        comm.reply(f'I could not find this the column {column!r} from the dataframe {dataframe!r}. If you know this exists and it has a string type, please copy the following code to a cell:')
+        code += f"{dataframe}['{prefix}_{column}'] = {str_op}"
 
+    comm.reply(code, type_="cell")
+
+
+def transform_case_generic(case, comm, subjectstate, previousstate, matches=None):
+    instructions = matches and matches.group(2) or ""
+
+    dataframe = yield from select_dataframe(comm, re.search(r"from (dataframe )?(?P<df>.+?(?=( column )|$))", instructions))
+    column = yield from select_column(comm, re.search(r"((^(?!from))|(column ))(?P<column>.+?(?=( from )|$))", instructions))
+    
+    apply_str_list_operation(
+        comm, "transforming the case", dataframe, column, case,
+        f"{dataframe}['{column}'].str.{case}()",
+        f"[item.{case}() for item in row]"
+    )
+
+@statemanager
+def to_lowercase_state(comm, subjectstate, previousstate, matches=None):
+    yield from transform_case_generic("lower", comm, subjectstate, previousstate, matches)
+    return subjectstate
+
+@statemanager
+def to_uppercase_state(comm, subjectstate, previousstate, matches=None):
+    yield from transform_case_generic("upper", comm, subjectstate, previousstate, matches)
+    return subjectstate
+
+
+def filter_length_generic(operator, comm, subjectstate, previousstate, matches=None):
+    number = matches and matches.group(1) or ""
+    instructions = matches and matches.group(2) or ""
+
+    dataframe = yield from select_dataframe(comm, re.search(r"from (dataframe )?(?P<df>.+?(?=( column )|$))", instructions))
+    column = yield from select_column(comm, re.search(r"((^(?!from))|(column ))(?P<column>.+?(?=( from )|$))", instructions))
+    
+    if not number:
+        comm.reply("Please, write the number")
+        number = yield
+
+    apply_str_list_operation(
+        comm, "filtering the length", dataframe, column, "flength",
+        f"{dataframe}.where({dataframe}['{column}'].str.len() {operator} {number})['{column}']",
+        f"[item for item in row if len(item) {operator} {number}]"
+    )
+
+
+
+@statemanager
+def minimum_length_state(comm, subjectstate, previousstate, matches=None):
+    yield from filter_length_generic(">", comm, subjectstate, previousstate, matches)
+    return subjectstate
+
+@statemanager
+def minimum_length_inclusive_state(comm, subjectstate, previousstate, matches=None):
+    yield from filter_length_generic(">=", comm, subjectstate, previousstate, matches)
+    return subjectstate
+
+@statemanager
+def maximum_length_state(comm, subjectstate, previousstate, matches=None):
+    yield from filter_length_generic("<", comm, subjectstate, previousstate, matches)
+    return subjectstate
+
+@statemanager
+def maximum_length_inclusive_state(comm, subjectstate, previousstate, matches=None):
+    yield from filter_length_generic("<=", comm, subjectstate, previousstate, matches)
+    return subjectstate
+
+@statemanager
+def range_length_state(comm, subjectstate, previousstate, matches=None):
+    minimum = matches and matches.group(1) or ""
+    maximum = matches and matches.group(2) or ""
+    instructions = matches and matches.group(3) or ""
+
+    dataframe = yield from select_dataframe(comm, re.search(r"from (dataframe )?(?P<df>.+?(?=( column )|$))", instructions))
+    column = yield from select_column(comm, re.search(r"((^(?!from))|(column ))(?P<column>.+?(?=( from )|$))", instructions))
+    
+    if not minimum:
+        comm.reply("Please, write the minimum number of characters")
+        minimum = yield
+
+    if not maximum:
+        comm.reply("Please, write the maximum number of characters")
+        maximum = yield
+
+    apply_str_list_operation(
+        comm, "filtering the length", dataframe, column, "flength",
+        f"{dataframe}.where(({dataframe}['{column}'].str.len() >= {minimum}) & ({dataframe}['{column}'].str.len() <= {maximum}))['{column}']",
+        f"[item for item in row if {minimum} <= len(item) <= {maximum}]"
+    )
+    return subjectstate
+
+@statemanager
+def remove_stopwords_state(comm, subjectstate, previousstate, matches=None):
+    instructions = matches and matches.group(1) or ""
+
+    dataframe = yield from select_dataframe(comm, re.search(r"from (dataframe )?(?P<df>.+?(?=( column )|$))", instructions))
+    column = yield from select_column(comm, re.search(r"((^(?!from))|(column ))(?P<column>.+?(?=( from )|$))", instructions))
+
+    code = ""
+    if 'stopwords' not in comm.shell.user_ns:
+        code = "from nltk.corpus import stopwords\nnltk.download('stopwords')\n"
+    apply_str_list_operation(
+        comm, "removing the stopwords of", dataframe, column, "nostop",
+        f"{dataframe}.where({dataframe}['{column}'].isin(~stopwords.words()))['{column}']",
+        f"[item for item in row if item not in stopwords.words()]",
+        code=code,
+    )
+    return subjectstate
 
 
 TREE = SubjectTree(
@@ -238,11 +357,57 @@ TREE = SubjectTree(
                 regex=r"tokenize (.+)",
                 action=tokenize_column_state
             ),
-            SubjectTree("Transform Cases"),
-            SubjectTree("Filter tokens"),
-            SubjectTree("Filter stopwords"),
-            SubjectTree("Filter stopwords"),
+            SubjectTree(
+                "Transform Cases",
+                SubjectTree(
+                    "Lowercase",
+                    regex=r"transform cases? to lower ?case( of (.+))?",
+                    action=to_lowercase_state
+                ),
+                SubjectTree(
+                    "Uppercase",
+                    regex=r"transform cases? to upper ?case( of (.+))?",
+                    action=to_uppercase_state
+                ),
+                what_is_it="Transforms cases of characters in a document. \nThis operator transforms all characters in a document to either lower case or upper case, respectively. "
             ),
+            SubjectTree(
+                "Filter tokens by length",
+                SubjectTree(
+                    "Minimum Length",
+                    regex=r"filter tokens with more than (\d+) characters ?(.+)?",
+                    action=minimum_length_state,
+                ),
+                SubjectTree(
+                    "Minimum Length (inclusive)",
+                    regex=r"filter tokens with (\d+) characters or more ?(.+)?",
+                    action=minimum_length_inclusive_state,
+                ),
+                SubjectTree(
+                    "Maximum Length",
+                    regex=r"filter tokens with less than (\d+) characters ?(.+)?",
+                    action=maximum_length_state,
+                ),
+                SubjectTree(
+                    "Maximum Length (inclusive)",
+                    regex=r"filter tokens with (\d+) characters or less ?(.+)?",
+                    action=maximum_length_inclusive_state,
+                ),
+                SubjectTree(
+                    "Range",
+                    regex=r"filter tokens between (\d+) and (\d+) characters ?(.+)?",
+                    action=range_length_state,
+                ),
+            ),
+            SubjectTree(
+                "Remove stopwords",
+                regex=r"remove stopwords (.+)",
+                action=remove_stopwords_state,
+                what_is_it="This operator filters English stopwords from a document by removing every token which equals a stopword from the built-in stopword list. Please note that, for this operator to work properly, every token should represent a single English word only. To obtain a document with each token representing a single word, you may tokenize a document by applying the Tokenize operator beforehand.",
+                
+            ),
+            SubjectTree("Filter stopwords"),
+        ),
         action=classification_steps_state,
         regex="do a classification ?(of column (.*))"
     ),
