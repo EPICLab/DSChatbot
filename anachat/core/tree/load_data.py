@@ -32,7 +32,7 @@ def load_file_state(comm, subjectstate, previousstate, matches=None):
         result = prepare_file(matches.group(1))
         if result:
             return result
-    comm.reply("Please, write the name of the file, type <back> to go back to the previous state or <subject> to go back to the subject search:")
+    comm.reply("Please, write the name of the file")
     while True:
         text = yield
         result = prepare_file(text)

@@ -57,8 +57,18 @@ class AnaCore(object):
 
     def process_message(self, comm, text):
         """Processes user message"""
-        if text == "<<debug>>":
+        if text == "!debug":
             comm.reply(f"Current state: {self.state!r}")
+            return
+        if text == "!subject":
+            self.state = SubjectState(TREE)
+            return
+        if text.startswith("!show"):
+            keys = text.split()[1:] or comm.memory.keys()
+            result = []
+            for key in keys:
+                result.append(f"{key}: {comm.memory.get(key, '!not found')}")
+            comm.reply("\n".join(result))
             return
         try:
             self.state = self.state.process_message(comm, text)
