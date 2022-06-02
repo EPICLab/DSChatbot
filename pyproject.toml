@@ -14,4 +14,4 @@ build_cmd = "build:prod"
 npm = ["jlpm"]
 
 [tool.check-manifest]
-ignore = ["anachat/labextension/**", "yarn.lock", ".*", "package-lock.json"]
+ignore = ["anachat/labextension/**", "yarn.lock", ".*", "package-lock.json", "*.cjs", "*.config.js"]

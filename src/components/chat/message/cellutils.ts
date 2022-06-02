@@ -1,4 +1,13 @@
-import { CodeCell, Cell, RawCell, CodeCellModel, IRawCellModel, RawCellModel, ICodeCellModel, CellModel } from '@jupyterlab/cells';
+import {
+  CodeCell,
+  Cell,
+  RawCell,
+  CodeCellModel,
+  type IRawCellModel,
+  RawCellModel,
+  type ICodeCellModel,
+  CellModel
+} from '@jupyterlab/cells';
 
 export interface IContentFactory extends Cell.IContentFactory {
   /**
@@ -14,7 +23,8 @@ export interface IContentFactory extends Cell.IContentFactory {
 
 export class ContentFactory
   extends Cell.ContentFactory
-  implements IContentFactory {
+  implements IContentFactory
+{
   /**
    * Create a new code cell widget.
    *
@@ -44,11 +54,10 @@ export class ContentFactory
   }
 }
 
-
 /**
  * The default implementation of an `IModelFactory`.
  */
- export class ModelFactory {
+export class ModelFactory {
   /**
    * Create a new cell model factory.
    */

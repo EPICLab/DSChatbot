@@ -1,10 +1,3 @@
-export interface IAnaChatStatus {
-  connectedOnce: boolean;
-  connectedNow: boolean;
-  serverSide: boolean;
-  hasKernel: boolean;
-}
-
 export interface IKernelMatcher {
   language: string | null;
   initScript: string | null;

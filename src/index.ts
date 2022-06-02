@@ -1,18 +1,12 @@
 import {
   ILabShell,
   ILayoutRestorer,
-  JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  type JupyterFrontEnd,
+  type JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-
-import { IDocumentManager } from '@jupyterlab/docmanager';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
 import { AnaChat } from './anachat';
-
-import { requestAPI } from './server';
-import { anaChatIcon } from './iconimports';
-import { ErrorHandler } from './errorhandler';
-import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { errorHandler } from './stores';
 
 /**
  * Initialization data for the anachat extension.
@@ -20,23 +14,18 @@ import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'anachat:plugin',
   autoStart: true,
-  requires: [IDocumentManager, ILabShell, ILayoutRestorer, INotebookTracker, IRenderMimeRegistry],
+  requires: [ILabShell, ILayoutRestorer, INotebookTracker],
   activate: (
     app: JupyterFrontEnd,
-    docmanager: IDocumentManager,
     labShell: ILabShell,
     restorer: ILayoutRestorer,
-    notebookTracker: INotebookTracker,
+    notebookTracker: INotebookTracker
   ) => {
-    const eh = new ErrorHandler();
     try {
       // Create the widget
-      const anaChat = new AnaChat(docmanager, notebookTracker, eh);
+      const anaChat = new AnaChat();
 
       // Add the widget to the right area
-      anaChat.title.icon = anaChatIcon.bindprops({ stylesheet: 'sideBar' });
-      anaChat.title.caption = 'ana';
-      anaChat.id = 'ana';
       labShell.add(anaChat, 'right', { rank: 700 });
 
       // Add the widget to the application restorer
@@ -56,21 +45,10 @@ const plugin: JupyterFrontEndPlugin<void> = {
         if (!widget) {
           return;
         }
-        anaChat.changeActiveWidget(widget);
+        anaChat.changeActiveWidget(notebookTracker, widget as NotebookPanel);
       });
-
-      requestAPI<any>('get_example')
-        .then(data => {
-          console.log(data);
-        })
-        .catch(reason => {
-          console.error(
-            `The anachat server extension appears to be missing.\n${reason}`
-          );
-        });
-      console.log('JupyterLab extension anachat is activated!');
     } catch (error) {
-      throw eh.report(error, 'activate', []);
+      throw errorHandler.report(error, 'main', undefined);
     }
   }
 };

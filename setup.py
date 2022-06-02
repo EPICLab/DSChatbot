@@ -4,15 +4,32 @@ anachat setup
 import json
 import sys
 from pathlib import Path
+# from os import path
 
 import setuptools
 
 HERE = Path(__file__).parent.resolve()
 
+# Get the package info from package.json
+pkg_json = json.loads((HERE / "package.json").read_bytes())
+
+# with open((HERE / "requirements.txt")) as fp:
+#     install_requires = fp.read()
+
+install_requires = [
+    "jupyterlab>=3.3.3",
+    "jupyter_server>=1.6,<2",
+    "lunr",
+]
+
+extra_require = {
+    "dev": ["pyinotify"]
+}
+
 # The name of the project
 name = "anachat"
 
-lab_path = (HERE / name.replace("-", "_") / "labextension")
+lab_path = (HERE / pkg_json["jupyterlab"]["outputDir"])
 
 # Representative files that should exist after a successful build
 ensured_targets = [
@@ -20,7 +37,7 @@ ensured_targets = [
     str(lab_path / "static/style.js")
 ]
 
-labext_name = "anachat"
+labext_name = pkg_json["name"]
 
 data_files_spec = [
     ("share/jupyter/labextensions/%s" % labext_name, str(lab_path.relative_to(HERE)), "**"),
@@ -34,8 +51,6 @@ data_files_spec = [
 
 long_description = (HERE / "README.md").read_text()
 
-# Get the package info from package.json
-pkg_json = json.loads((HERE / "package.json").read_bytes())
 version = (
     pkg_json["version"]
     .replace("-alpha.", "a")
@@ -44,7 +59,7 @@ version = (
 ) 
 
 setup_args = dict(
-    name=name,
+    name=name, # pypi name
     version=version,
     url=pkg_json["homepage"],
     author=pkg_json["author"]["name"],
@@ -55,22 +70,17 @@ setup_args = dict(
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
-    install_requires=[
-        "jupyter_server>=1.6,<2", "lunr"
-    ],
-    extras_require={
-        "dev": ["pyinotify"]
-    },
+    install_requires=install_requires,
+    extra_require=extra_require,
     zip_safe=False,
     include_package_data=True,
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     platforms="Linux, Mac OS X, Windows",
     keywords=["Jupyter", "JupyterLab", "JupyterLab3"],
     classifiers=[
         "License :: OSI Approved :: BSD License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
@@ -80,6 +90,9 @@ setup_args = dict(
         "Framework :: Jupyter :: JupyterLab :: 3",
         "Framework :: Jupyter :: JupyterLab :: Extensions",
         "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Other Audience",
     ],
 )
 
