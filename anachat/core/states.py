@@ -111,6 +111,9 @@ class SubjectState:
 
     def process_message(self, comm, text):
         """Processes user messages"""
+        if text.startswith("http://") or text.startswith("https://"):
+            comm.open_panel(text, "URL View")
+            return self
         for regex, document in self.regexes.items():
             result = re.search(regex, text)
             if result:

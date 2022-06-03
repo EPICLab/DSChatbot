@@ -73,3 +73,10 @@ class AnaComm(object):
             "operation": "reply",
             "message": message
         })
+
+    def open_panel(self, url, title="Docs"):
+        self.send({
+            "operation": "panel",
+            "url": url,
+            "title": title,
+        })

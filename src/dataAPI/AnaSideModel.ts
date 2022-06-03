@@ -5,7 +5,8 @@ import {
   anaSideReady,
   chatHistory,
   errorHandler,
-  kernelStatus
+  kernelStatus,
+  panelWidget
 } from '../stores';
 import type { NotebookPanel } from '@jupyterlab/notebook';
 import type {
@@ -219,6 +220,11 @@ export class AnaSideModel {
           '_receiveAnaChatQuery',
           [msg.content.data.command, msg.content.data.message]
         );
+      } else if (operation === 'panel') {
+        panelWidget.load_url(
+          msg.content.data.url as string,
+          msg.content.data.title as string,
+        )
       }
     } catch (error) {
       throw errorHandler.report(error, '_receiveAnaChatQuery', [msg]);

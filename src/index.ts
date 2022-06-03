@@ -6,7 +6,7 @@ import {
 } from '@jupyterlab/application';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
 import { AnaChat } from './anachat';
-import { errorHandler } from './stores';
+import { errorHandler, jupyterapp } from './stores';
 
 /**
  * Initialization data for the anachat extension.
@@ -22,6 +22,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     notebookTracker: INotebookTracker
   ) => {
     try {
+      jupyterapp.set(app);
       // Create the widget
       const anaChat = new AnaChat();
 

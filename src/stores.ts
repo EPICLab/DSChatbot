@@ -1,6 +1,9 @@
+import type { JupyterFrontEnd } from '@jupyterlab/application';
 import { type Writable, writable, get } from 'svelte/store';
 import type { IChatMessage } from './common/anachatInterfaces';
+import { AnaPanelView } from './components/AnaPanelView';
 import type { AnaSideModel } from './dataAPI/AnaSideModel';
+import { anaChatIcon } from './iconimports';
 import { requestAPI } from './server';
 
 function createErrorHandler() {
@@ -151,10 +154,42 @@ function createChatHistory() {
   };
 }
 
+
+function createPanelWidget() {
+  let id = 1;
+  let store = writable<AnaPanelView | null>(null);
+  const { subscribe, set, update } = store;
+
+  function load_url(url: string, title="Info") {
+    let current = get(store)
+    if (!current) {
+      current = new AnaPanelView(url, title);
+      current.id = "AnaPanel-" + (id++);
+      current.title.closable = true;
+      get(jupyterapp)?.shell.add(current, 'main', { mode: 'split-right' })
+    } else{
+      current.set_props(url, title);
+    }
+    current.title.label = title;
+    current.title.icon = anaChatIcon.bindprops({ stylesheet: 'mainAreaTab' });;
+    set(current);
+  }
+
+  return {
+    subscribe,
+    set,
+    update,
+    load_url,
+  };
+
+}
+
 // ~~~~~~~~~~~ Stores ~~~~~~~~~~~~~~~~
+export const jupyterapp: Writable<JupyterFrontEnd | null> = writable(null);
 export const anaSideModel: Writable<AnaSideModel | null> = writable(null);
 export const anaSideReady: Writable<boolean> = writable(false);
 export const chatHistory = createChatHistory();
 export const kernelStatus = createStatus();
+export const panelWidget = createPanelWidget();
 
 export const errorHandler = createErrorHandler();
