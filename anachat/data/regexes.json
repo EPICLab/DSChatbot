@@ -1,0 +1,50 @@
+[
+  {
+    "regex": "load data ?(.*)", "params": [1],
+    "state": "load_data?load_file_state"
+  },
+  {
+    "regex": "do a classification ?(of column (.*))", "params": [2],
+    "state": "classification?classification_steps_state"
+  },
+  {
+    "regex": "select dataframe ?(.*)", "params": [1],
+    "state": "preprocessing?select_dataframe_state"
+  },
+  {
+    "regex": "select column ?(.*)", "params": [1],
+    "state": "preprocessing?select_column_state"
+  },
+  {
+    "regex": "tokenize (.+)", "params": [1],
+    "state": "preprocessing?tokenize_column_state"
+  },
+  {
+    "regex": "transform cases? to lower ?case( of (.+))?", "params": [2],
+    "state": "preprocessing?to_lowercase_state"
+  },
+  {
+    "regex": "transform cases? to upper ?case( of (.+))?", "params": [2],
+    "state": "preprocessing?to_uppercase_state"
+  },
+  {
+    "regex": "filter tokens with more than (\\d+) characters ?(.+)?", "params": [1, 2],
+    "state": "preprocessing?minimum_length_state"
+  },
+  {
+    "regex": "filter tokens with (\\d+) characters or more ?(.+)?", "params": [1, 2],
+    "state": "preprocessing?minimum_length_inclusive_state"
+  },
+  {
+    "regex": "filter tokens with less than (\\d+) characters ?(.+)?", "params": [1, 2],
+    "state": "preprocessing?maximum_length_state"
+  },
+  {
+    "regex": "filter tokens with (\\d+) characters or less ?(.+)?", "params": [1, 2],
+    "state": "preprocessing?maximum_length_inclusive_state"
+  },
+  {
+    "regex": "filter tokens between (\\d+) and (\\d+) characters ?(.+)?", "params": [1, 2, 3],
+    "state": "preprocessing?range_length_state"
+  }
+]

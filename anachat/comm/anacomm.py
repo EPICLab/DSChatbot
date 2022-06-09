@@ -1,15 +1,15 @@
 """Define a Comm for Ana"""
 import traceback
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from datetime import datetime
-from anachat.comm.core_loader import BaseLoader
-
 from ipykernel.comm import Comm
+from .core_loader import BaseLoader
+
+OptionsActions = namedtuple("OptionsActions", ['last', 'all'])
 
 
-class AnaComm(object):
+class AnaComm:
     """Ana comm hadler"""
-    # pylint: disable=useless-object-inheritance
 
     def __init__(self, shell=None, core_loader=BaseLoader):
         self.shell = shell
@@ -23,13 +23,15 @@ class AnaComm(object):
             "type": "bot",
             "timestamp": datetime.timestamp(datetime.now()),
         }]
+        self.options_actions = OptionsActions([], {})
 
     @property
     def core(self):
+        """Returns current AnaCore"""
         return self.core_loader.core.CURRENT
 
     def register(self):
-        """Register comm"""
+        """Registers comm"""
         self.comm = Comm(self.name)
         self.comm.on_msg(self.receive)
         self.send({
@@ -38,7 +40,7 @@ class AnaComm(object):
         })
 
     def receive(self, msg):
-        """Receive requests"""
+        """Receives requests"""
         data = msg["content"]["data"]
         operation = data.get("operation", "<undefined>")
         try:
@@ -55,14 +57,16 @@ class AnaComm(object):
             })
 
     def receive_message(self, message):
+        """Receives message from user"""
         self.history.append(message)
         self.core.process_message(self, message.get("text"))
 
     def send(self, data):
-        """Receive send results"""
+        """Receives send results"""
         self.comm.send(data)
 
     def reply(self, text, type_="bot"):
+        """Replies message to user"""
         message = {
             "text": text,
             "type": type_,
@@ -75,6 +79,7 @@ class AnaComm(object):
         })
 
     def open_panel(self, url, title="Docs"):
+        """Opens panel"""
         self.send({
             "operation": "panel",
             "url": url,

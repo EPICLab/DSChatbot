@@ -1,17 +1,12 @@
 """Defines interactions for loading dataset files"""
 
 import os
-from ..states import SubjectTree, statemanager
+from .utils import statemanager
 
-@statemanager
-def load_file_state(comm, subjectstate, previousstate, matches=None):
+@statemanager()
+def load_file_state(comm, filename=None):
     """Load file data"""
     def prepare_file(text):
-        newtext = str(text).strip().lower()
-        if newtext == "<back>":
-            return previousstate
-        if newtext == "<subject>":
-            return subjectstate
         if os.path.exists(text):
             comm.reply("Copy the following code to a cell:")
             code = ""
@@ -25,11 +20,12 @@ def load_file_state(comm, subjectstate, previousstate, matches=None):
                 pandas = "pandas"
             code += f"\ndf = {pandas}.read_csv({text!r})\ndf"
             comm.reply(code, type_="cell")
-            return subjectstate
-        return None
+            return True
+        comm.reply("File does not exist. Try again or type !subject")
+        return False
 
-    if matches and matches.group(1):
-        result = prepare_file(matches.group(1))
+    if filename:
+        result = prepare_file(filename)
         if result:
             return result
     comm.reply("Please, write the name of the file")
@@ -38,9 +34,3 @@ def load_file_state(comm, subjectstate, previousstate, matches=None):
         result = prepare_file(text)
         if result:
             return result
-
-LOAD_DATA_SUBTREE = SubjectTree(
-    "Load data",
-    action=load_file_state,
-    regex="load data ?(.*)"
-)

@@ -1,0 +1,87 @@
+[
+    {
+        "name": "Supervised learning",
+        "description": "Supervised learning (SL) is the machine learning task of learning a function that maps an input to an output based on example input-output pairs.[1] It infers a function from labeled training data consisting of a set of training examples.[2] The defining characteristic of supervised learning is the availability of annotated training data. The name invokes the idea of a ‘supervisor’ that instructs the learning system on the labels to associate with training examples. Typically these labels are class labels in classification problems. Supervised learning algorithms induce models from these training data and these models can be used to classify other unlabelled data[3]",
+        "url": "https://scikit-learn.org/stable/supervised_learning.html"
+    }, 
+    {
+        "name": "Unsupervised learning",
+        "description": "Unsupervised learning is a type of algorithm that learns patterns from untagged data. The hope is that through mimicry, which is an important mode of learning in people, the machine is forced to build a compact internal representation of its world and then generate imaginative content from it. In contrast to supervised learning where data is tagged by an expert, e.g. as a \"ball\" or \"fish\", unsupervised methods exhibit self-organization that captures patterns as probability densities[1].  in unsupervised learning the machine simply receives inputs x1, x2,. . .,but obtains neither supervised target outputs, nor rewards from its environment. It may seem somewhat mysterious to imagine what the machine could possibly learn given that it doesn’t get any feedback from its environment. However, it is possible to develop of formal framework for unsupervised learning based on the notion that the machine’s goal is to build representations of the input that can be used for decision making, predicting future inputs, efficiently communicating the inputs to another machine, etc [2].",
+        "url": "https://scikit-learn.org/stable/unsupervised_learning.html"
+    }, 
+    {
+        "name": "Model selection and evaluation",
+        "description": "The correct use of model evaluation, model selection, and algorithm selection techniques is vital in academic machine learning research as well as in many industrial settings [1].",
+        "url": "https://scikit-learn.org/stable/model_selection.html"
+    }, 
+    {
+        "name": "Inspection",
+        "description": "Predictive performance is often the main goal of developing machine learning models. Yet summarizing performance with an evaluation metric is often insufficient: it assumes that the evaluation metric and test dataset perfectly reflect the target domain, which is rarely true. In certain domains, a model needs a certain level of interpretability before it can be deployed. A model that is exhibiting performance issues needs to be debugged for one to understand the model’s underlying issue. The sklearn.inspection module provides tools to help understand the predictions from a model and what affects them. This can be used to evaluate assumptions and biases of a model, design a better model, or to diagnose issues with model performance.",
+        "url": "https://scikit-learn.org/stable/inspection.html"
+    }, 
+    {
+        "name": "Visualizations",
+        "description": "Scikit-learn defines a simple API for creating visualizations for machine learning. The key feature of this API is to allow for quick plotting and visual adjustments without recalculation. We provide Display classes that exposes two methods allowing to make the plotting: from_estimator and from_predictions. The from_estimator method will take a fitted estimator and some data (X and y) and create a Display object.",
+        "url": "https://scikit-learn.org/stable/visualizations.html"
+    },
+    {
+        "name": "Load data",
+        "description": "For processing the data, it is necessary to load it first",
+        "actions": [
+            {"name": "Load csv", "state": "load_data?load_file_state"}
+        ]
+    },
+    {
+        "name": ["Classification", "Classifier"],
+        "children": [
+            {
+                "name": "Preprocessing",
+                "children": [
+                    {
+                        "name": "Tokenization",
+                        "description": "Tokenization splits an input text into a list of tokens",
+                        "actions": [
+                            {"name": "Tokenize", "state": "preprocessing?tokenize_column_state"}
+                        ]
+                    },
+                    {
+                        "name": "Transform Cases",
+                        "description": "Transforms cases of characters in a document. This operator transforms all characters in a document to either lower case or upper case, respectively.",
+                        "actions": [
+                            {"name": "To lower case", "state": "preprocessing?to_lowercase_state"},
+                            {"name": "To upper case", "state": "preprocessing?to_uppercase_state"}
+                            
+                        ]
+                    },
+                    {
+                        "name": "Filter tokens by length",
+                        "description": "Use a length criteria to filter tokens",
+                        "actions": [
+                            {"name": "Minimum length", "state": "preprocessing?minimum_length_state"},
+                            {"name": "Minumum length (inclusive)", "state": "preprocessing?minimum_length_inclusive_state"},
+                            {"name": "Maximum length", "state": "preprocessing?maximum_length_state"},
+                            {"name": "Maximum length (inclusive)", "state": "preprocessing?maximum_length_inclusive_state"},
+                            {"name": "Range", "state": "preprocessing?range_length_state"}
+                        ]
+                    },
+                    {
+                        "name": "Remove stopwords",
+                        "description": "This operator filters English stopwords from a document by removing every token which equals a stopword from the built-in stopword list. Please note that, for this operator to work properly, every token should represent a single English word only. To obtain a document with each token representing a single word, you may tokenize a document by applying the Tokenize operator beforehand.",
+                        "actions": [
+                            {"name": "Remove stopwords", "state": "preprocessing?remove_stopwords_state"}
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "Algorithm Specification"
+            },
+            {
+                "name": "Validation"
+            },
+            {
+                "name": "Feature Engineering"
+            }
+        ]
+    }
+]

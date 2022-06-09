@@ -5,11 +5,19 @@
   export let message: IChatMessage;
 
   const click = (element: IOptionItem) => (): void => {
-    chatHistory.addNew({
-      text: element.label,
-      type: 'user',
-      timestamp: +new Date()
-    })
+    if ($chatHistory[$chatHistory.length - 1] == message) {
+      chatHistory.addNew({
+        text: element.label,
+        type: 'user',
+        timestamp: +new Date()
+      })
+    } else {
+      chatHistory.addNew({
+        text: '!choose ' + element.key,
+        type: 'user',
+        timestamp: +new Date()
+      })
+    }
   }
 
   const items: IOptionItem[] = message.text as IOptionItem[];
@@ -21,7 +29,7 @@
     border: 1px solid grey;
     padding: 5px;
     margin: 2px;
-    max-width: 45%;
+    max-width: 42%;
     flex: 1 0 45%;
   }
   
@@ -33,8 +41,8 @@
 
 <Default {message}>
   {#each items as element}
-    <div on:click={click(element)}>
-      {element.key}. {element.label}
+    <div on:click={click(element)} title={element.key}>
+      {element.label}
     </div>
   {/each}
 </Default>
