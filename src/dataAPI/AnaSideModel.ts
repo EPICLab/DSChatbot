@@ -1,12 +1,14 @@
 import type { JSONObject } from '@lumino/coreutils';
 import type { ISessionContext } from '@jupyterlab/apputils';
+import { get } from 'svelte/store';
 
 import {
   anaSideReady,
   chatHistory,
   errorHandler,
   kernelStatus,
-  panelWidget
+  panelWidget,
+  subjectItems
 } from '../stores';
 import type { NotebookPanel } from '@jupyterlab/notebook';
 import type {
@@ -15,6 +17,7 @@ import type {
 } from '@jupyterlab/services/lib/kernel/kernel';
 import {
   GenericMatcher,
+  type IAutoCompleteItem,
   type IChatMessage,
   type IKernelMatcher
 } from '../common/anachatInterfaces';
@@ -153,6 +156,18 @@ export class AnaSideModel {
     });
   }
 
+  /**
+   * Send a subject query command to the kernel
+   */
+   public sendSubjectQuery(requestId: number, query: string): void {
+    this.send({
+      operation: 'query',
+      type: 'subject',
+      requestId: requestId,
+      query: query,
+    });
+  }
+
   private async _setKernelLanguage(kernel: IKernelConnection) {
     const infoReply = await kernel.info;
     this._language = GenericMatcher;
@@ -225,6 +240,10 @@ export class AnaSideModel {
           msg.content.data.url as string,
           msg.content.data.title as string,
         )
+      } else if (operation === 'subjects') {
+        const { responseId, sitems } = get(subjectItems);
+        responseId.set(msg.content.data.responseId as number);
+        sitems.set(msg.content.data.items as unknown as IAutoCompleteItem[]);
       }
     } catch (error) {
       throw errorHandler.report(error, '_receiveAnaChatQuery', [msg]);

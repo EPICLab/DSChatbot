@@ -32,6 +32,21 @@ class DefaultState:
         comm.reply("I could not process this query. Please, try a different query")
         return self
 
+    def process_query(self, comm, request_id, query):
+        """Processes subject queries"""
+        result = []
+        for match, node in self.subject_handler.search(query):
+            result.append({
+                'type': 'subject',
+                'key': match['ref'],
+                'value': node.get('description', ''),
+                'url': node.get('url', ''),
+            })
+        comm.send({
+            "operation": "subjects",
+            "responseId": request_id,
+            "items": result,
+        })
 
 
 class AnaCore:
@@ -107,6 +122,11 @@ class AnaCore:
         except Exception:  # pylint: disable=broad-except
             self.set_state(comm, self.default_state)
             comm.reply("Something is wrong: " + traceback.format_exc(), "error")
+
+    def process_query(self, comm, query_type, request_id, query):
+        """Processes user query"""
+        if query_type == "subject":
+            self.default_state.process_query(comm, request_id, query)
 
 
 class DummyState:

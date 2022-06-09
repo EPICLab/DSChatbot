@@ -36,6 +36,10 @@
     flex: none;
   }
 
+  .outer :global(.CodeMirror) {
+    z-index: 0;
+  }
+
 </style>
 
 <div class="outer">

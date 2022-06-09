@@ -48,7 +48,13 @@ class AnaComm:
                 self.receive_message(data.get("message"))
             elif operation == "refresh":
                 self.core.refresh(self)
-        except Exception:
+            elif operation == "query":
+                self.receive_query(
+                    data.get('type'),
+                    data.get('requestId'),
+                    data.get('query')
+                )
+        except Exception:  # pylint: disable=broad-except
             print(traceback.format_exc())
             self.send({
                 "operation": "error",
@@ -60,6 +66,10 @@ class AnaComm:
         """Receives message from user"""
         self.history.append(message)
         self.core.process_message(self, message.get("text"))
+
+    def receive_query(self, query_type, request_id, query):
+        """Receives query from user"""
+        self.core.process_query(self, query_type, request_id, query)
 
     def send(self, data):
         """Receives send results"""

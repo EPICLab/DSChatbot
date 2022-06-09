@@ -20,3 +20,10 @@ export interface IChatMessage {
   type: 'user' | 'bot' | 'error' | 'options' | 'cell';
   timestamp: number;
 }
+
+export interface IAutoCompleteItem {
+  type: string;
+  key: string;
+  value: string;
+  url: string | null;
+}

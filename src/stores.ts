@@ -1,6 +1,6 @@
 import type { JupyterFrontEnd } from '@jupyterlab/application';
 import { type Writable, writable, get } from 'svelte/store';
-import type { IChatMessage } from './common/anachatInterfaces';
+import type { IChatMessage, IAutoCompleteItem } from './common/anachatInterfaces';
 import { AnaPanelView } from './components/AnaPanelView';
 import type { AnaSideModel } from './dataAPI/AnaSideModel';
 import { anaChatIcon } from './iconimports';
@@ -162,7 +162,10 @@ function createPanelWidget() {
 
   function load_url(url: string, title="Info") {
     let current = get(store)
-    if (!current) {
+    if (!current || !current?.isVisible) {
+      if (current) {
+        current.dispose();
+      }
       current = new AnaPanelView(url, title);
       current.id = "AnaPanel-" + (id++);
       current.title.closable = true;
@@ -188,6 +191,7 @@ function createPanelWidget() {
 export const jupyterapp: Writable<JupyterFrontEnd | null> = writable(null);
 export const anaSideModel: Writable<AnaSideModel | null> = writable(null);
 export const anaSideReady: Writable<boolean> = writable(false);
+export const subjectItems: Writable<{responseId: Writable<number>, sitems: Writable<IAutoCompleteItem[]>}> = writable({responseId: writable(-1), sitems: writable([])})
 export const chatHistory = createChatHistory();
 export const kernelStatus = createStatus();
 export const panelWidget = createPanelWidget();
