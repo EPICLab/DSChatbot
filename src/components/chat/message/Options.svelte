@@ -3,6 +3,8 @@
   import Default from "./Default.svelte";
   import { chatHistory } from "../../../stores";
   export let message: IChatMessage;
+  let width: number;
+
 
   const click = (element: IOptionItem) => (): void => {
     if ($chatHistory[$chatHistory.length - 1] == message) {
@@ -34,14 +36,14 @@
   }
   
   div:hover {
-    background-color: white;
+    background-color: #D0FDFF;
     cursor: pointer;
   }
 </style>
 
-<Default {message}>
+<Default {message} bind:width>
   {#each items as element}
-    <div on:click={click(element)} title={element.key}>
+    <div on:click={click(element)} title={element.key} style:max-width={((width - 45)/2) + 'px'}>
       {element.label}
     </div>
   {/each}

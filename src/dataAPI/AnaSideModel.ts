@@ -3,6 +3,7 @@ import type { ISessionContext } from '@jupyterlab/apputils';
 import { get } from 'svelte/store';
 
 import {
+  anaSideModel,
   anaSideReady,
   chatHistory,
   errorHandler,
@@ -87,7 +88,8 @@ export class AnaSideModel {
       throw errorHandler.report(undefined, 'AnaSideModel:initAna', []);
     }
     await this._setKernelLanguage(kernel);
-
+    kernelStatus.setattr('connectedOnce', true);
+    kernelStatus.setattr('connectedNow', !!get(anaSideModel));
     kernel.registerCommTarget('anachat.comm', (comm, msg) => {
       this._icomm = comm;
       this._icomm.onMsg = this._receiveAnaChatQuery.bind(this);
