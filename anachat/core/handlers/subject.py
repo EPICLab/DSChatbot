@@ -111,6 +111,15 @@ class SubjectHandler(HandlerWithPaths):
         visit = [('', tree) for tree in forest]
         while visit:
             current = visit.pop()
+            if 'redirect' in current[1]:
+                filepath = data() / current[1]['redirect']
+                del current[1]['redirect']
+                with open(filepath, 'r', encoding='utf-8') as subfile:
+                    subvisit = [(current[0], {**tree, **current[1]}) for tree in json.load(subfile)]
+                    visit = visit + subvisit
+                    print(subvisit)
+                self.paths[filepath] = self.getmtime(filepath)
+                continue
             names = current[1]['name']
             if isinstance(names, str):
                 names = [names]
@@ -128,11 +137,6 @@ class SubjectHandler(HandlerWithPaths):
                 documents.append(document)
                 docmap[key] = document
                 for child in current[1].get('children', []):
-                    if 'redirect' in child:
-                        filepath = data() / child['redirect']
-                        with open(filepath, 'r', encoding='utf-8') as subfile:
-                            child = json.load(subfile)
-                        self.paths[filepath] = self.getmtime(filepath)
                     child['parent'] = current[1]
                     visit.append((key, child))
         return docmap, documents
