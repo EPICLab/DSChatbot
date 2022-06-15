@@ -1,6 +1,8 @@
 """Core Module that handles Ana operations"""
 import traceback
 
+from anachat.core.handlers.woz import WozHandler
+
 
 from .handlers.action import ActionHandler
 from .handlers.regex import RegexHandler
@@ -17,6 +19,7 @@ class DefaultState:
         self.subject_handler = SubjectHandler()
 
         self.solvers = [
+            WozHandler(),
             ActionHandler(),
             RegexHandler(),
             URLHandler(),
