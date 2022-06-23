@@ -11,13 +11,19 @@
       chatHistory.addNew({
         text: element.label,
         type: 'user',
-        timestamp: +new Date()
+        prevent: false,
+        timestamp: +new Date(),
+        force: false,
+        hidden: false,
       })
     } else {
       chatHistory.addNew({
         text: '!choose ' + element.key,
         type: 'user',
-        timestamp: +new Date()
+        prevent: false,
+        timestamp: +new Date(),
+        force: false,
+        hidden: false,
       })
     }
   }

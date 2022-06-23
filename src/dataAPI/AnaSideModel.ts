@@ -9,7 +9,9 @@ import {
   errorHandler,
   kernelStatus,
   panelWidget,
-  subjectItems
+  subjectItems,
+  anaQueryEnabled,
+  anaMessageEnabled
 } from '../stores';
 import type { NotebookPanel } from '@jupyterlab/notebook';
 import type {
@@ -150,13 +152,22 @@ export class AnaSideModel {
   }
 
   /**
-   * Send a init command to the kernel
+   * Send a refresh command to the kernel
    */
   public sendRefreshKernel(): void {
     this.send({
       operation: 'refresh'
     });
   }
+
+  /**
+   * Send a supermode command to the kernel
+   */
+   public sendSupermode(data: any): void {
+    data.operation = 'supermode';
+    this.send(data);
+  }
+
 
   /**
    * Send a subject query command to the kernel
@@ -226,6 +237,8 @@ export class AnaSideModel {
       if (operation === 'init' || operation === 'refresh') {
         kernelStatus.setattr('hasKernel', true);
         chatHistory.load(msg.content.data.history as unknown as IChatMessage[]);
+        anaQueryEnabled.set(msg.content.data.query_processing_enabled as unknown as boolean);
+        anaMessageEnabled.set(msg.content.data.message_processing_enabled as unknown as boolean);
       } else if (operation === 'reply') {
         kernelStatus.setattr('hasKernel', true);
         const message: IChatMessage = msg.content.data

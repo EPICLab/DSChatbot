@@ -62,10 +62,7 @@ class AnaCore:
     def refresh(self, comm):
         """Refresh chatbot"""
         # pylint: disable=no-self-use
-        comm.send({
-            "operation": "refresh",
-            "history": comm.history,
-        })
+        comm.send(comm.history_message("refresh"))
 
     def set_state(self, comm, new_state, params=None):
         """Sets new state"""

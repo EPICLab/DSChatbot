@@ -2,10 +2,23 @@
   // Based on simple-svelte-autocomplete: https://github.com/pstanoev/simple-svelte-autocomplete/graphs/contributors
 
   import AutoCompleteItem from "./AutoCompleteItem.svelte";
+  import Message from "./message/Message.svelte";
   import { onMount, tick } from "svelte";
   
-  import { chatHistory, anaSideModel, subjectItems } from "../../stores";
-  import type { IAutoCompleteItem } from "../../common/anachatInterfaces";
+  import { chatHistory, anaSideModel, subjectItems, anaSuperMode, anaQueryEnabled } from "../../stores";
+  import type { IAutoCompleteItem, IChatMessage, IMessageType, IOptionItem } from "../../common/anachatInterfaces";
+
+  let superModeType: IMessageType = 'bot';
+  let superModeErrorMessage: string = "";
+  let superModeOptionId = 0;
+  let superModePreviewMessage: IChatMessage|null = null;
+  let superModeHide: boolean = false;
+
+  async function onSuperModePreview() {
+    superModePreviewMessage = null;
+    await tick();
+    superModePreviewMessage = createMessage(value);
+  }
 
   export let value: string = "";
   export let text: string|undefined = undefined;
@@ -93,19 +106,71 @@
     chatHistory.addNew({
       text: '!subject ' + event.detail.item.key,
       type: 'user',
-      timestamp: +new Date()
+      prevent: false,
+      timestamp: +new Date(),
+      force: false,
+      hidden: false,
     })
     clear();
   }
+
+  function createMessage(text: string): IChatMessage | null {
+    let result: string | IOptionItem[];
+    superModeErrorMessage = "";
+    superModePreviewMessage = null;
+    text = text.trim();
+    if (text === '') {
+      return null;
+    }
+
+    if ($anaSuperMode && superModeType === 'options'){
+      if (text[0] !== '-' && text[0] !== '!') {
+        superModeErrorMessage = 'You must start the options by "-"';
+        return null;
+      }
+      let options: IOptionItem[] = [];
+      if (text[0] === '!') {
+        let newText: string = text.substring(1).trim();
+        options.push({
+          'key': `SU-${superModeOptionId++}: ${newText}`,
+          'label': newText
+        });
+      } else {
+        let lines = text.substring(1).split("\n-");
+        if (lines.length == 1) {
+          superModeErrorMessage = 'If you want to show a button with a single option, start the message with "!"';
+          return null;
+        }
+        options = lines.map((line) => {
+          let newText = line.trim();
+          return {
+            'key': `SU-${superModeOptionId++}: ${newText}`,
+            'label': newText
+          }
+        })
+      }
+      result = options;
+    } else {
+      result = text;
+    }
+    return {
+      text: result,
+      type: $anaSuperMode ? superModeType : 'user',
+      prevent: $anaSuperMode,
+      hidden: $anaSuperMode && superModeHide,
+      force: $anaSuperMode && superModeHide,
+      timestamp: +new Date()
+    }
+  }
+
   async function enter(e: any) {
     e.preventDefault();
     if (highlightIndex == -1) {
-      chatHistory.addNew({
-        text: value,
-        type: 'user',
-        timestamp: +new Date()
-      })
-      clear();
+      let newMessage = createMessage(value);
+      if (newMessage !== null) {
+        chatHistory.addNew(newMessage);
+        clear();
+      }
     } else {
       selectItem({detail: { item: items[highlightIndex] }})
     }
@@ -178,7 +243,7 @@
   }
   
 
-  $: showList = opened && ((items && items.length > 0) || filteredTextLength > 0);
+  $: showList = opened && !$anaSuperMode && ((items && items.length > 0) || (filteredTextLength > 0 && loading && $anaQueryEnabled));
   $: ({ responseId, sitems } = $subjectItems);
   $: {
     if ($responseId == lastRequestId) {
@@ -260,6 +325,10 @@
     display: none;
   }
 
+  .error {
+    color: red;
+  }
+
 </style>
 
 <div class="text">
@@ -302,5 +371,45 @@
     </div>
   </div>
 </div>
+
+{#if $anaSuperMode}
+<label>
+  <input type=checkbox bind:checked={superModeHide} value="hide">
+  Send hidden message to chatbot
+</label>
+<label>
+  <input type=radio bind:group={superModeType} name="messageType" value="bot">
+  Ana
+</label>
+<label>
+  <input type=radio bind:group={superModeType} name="messageType" value="options">
+  Options
+</label>
+<label>
+  <input type=radio bind:group={superModeType} name="messageType" value="cell">
+  Code
+</label>
+<label>
+  <input type=radio bind:group={superModeType} name="messageType" value="user">
+  User
+</label>
+<label>
+  <input type=radio bind:group={superModeType} name="messageType" value="error">
+  Error
+</label>
+
+  {#if superModeErrorMessage}
+  <div class="error">
+    {superModeErrorMessage}
+  </div>
+  {/if}
+
+
+  <button on:click|preventDefault={onSuperModePreview}>Preview</button>
+  {#if superModePreviewMessage}
+    <Message message={superModePreviewMessage}/>
+  {/if}
+
+{/if}
 
 <svelte:window on:click={onDocumentClick} />

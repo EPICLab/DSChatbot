@@ -1,6 +1,19 @@
 <script lang="ts">
   import Error from "./Error.svelte";
+  import { anaSuperMode } from "../../../stores";
   export let title: string;
+
+  function contextMenu(event: MouseEvent) {
+    if (event.ctrlKey) {
+      if ($anaSuperMode) {
+        alert("Supermode disabled!");
+        $anaSuperMode = false;
+      } else if (confirm("Do you want to enable Ana supermode?")) {
+        $anaSuperMode = true;
+      }
+    }
+  }
+
 </script>
 
 <style>
@@ -17,7 +30,7 @@
   }
 </style>
 
-<div {title} class="outer">
+<div {title} class="outer" on:contextmenu|preventDefault={contextMenu}>
   <Error/>
   <div class="icon">
       <slot></slot>

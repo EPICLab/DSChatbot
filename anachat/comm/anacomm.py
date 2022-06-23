@@ -18,6 +18,9 @@ class AnaComm:
         self.comm = None
         self.core_loader = core_loader(self)
 
+        self.message_processing_enabled = True
+        self.query_processing_enabled = True
+
         self.history = [{
             "text": "Hello, my name is Ana. How can I help you?",
             "type": "bot",
@@ -30,14 +33,20 @@ class AnaComm:
         """Returns current AnaCore"""
         return self.core_loader.core.CURRENT
 
+    def history_message(self, opetation):
+        """Returns message with history and general config"""
+        return {
+            "operation": opetation,
+            "history": self.history,
+            "message_processing_enabled": self.message_processing_enabled,
+            "query_processing_enabled": self.query_processing_enabled,
+        }
+
     def register(self):
         """Registers comm"""
         self.comm = Comm(self.name)
         self.comm.on_msg(self.receive)
-        self.send({
-            "operation": "init",
-            "history": self.history,
-        })
+        self.send(self.history_message("init"))
 
     def receive(self, msg):
         """Receives requests"""
@@ -54,6 +63,12 @@ class AnaComm:
                     data.get('requestId'),
                     data.get('query')
                 )
+            elif operation == "supermode":
+                if (value := data.get("message_processing", None)) is not None:
+                    self.message_processing_enabled = value
+                if (value := data.get("query_processing", None)) is not None:
+                    self.query_processing_enabled = value
+                self.core.refresh(self)
         except Exception:  # pylint: disable=broad-except
             print(traceback.format_exc())
             self.send({
@@ -65,11 +80,24 @@ class AnaComm:
     def receive_message(self, message):
         """Receives message from user"""
         self.history.append(message)
-        self.core.process_message(self, message.get("text"))
+        self.send({
+            "operation": "reply",
+            "message": message
+        })
+
+        if not message.get('prevent') and self.message_processing_enabled or message.get('force'):
+            self.core.process_message(self, message.get("text"))
 
     def receive_query(self, query_type, request_id, query):
         """Receives query from user"""
-        self.core.process_query(self, query_type, request_id, query)
+        if self.query_processing_enabled:
+            self.core.process_query(self, query_type, request_id, query)
+        else:
+            self.send({
+                "operation": "subjects",
+                "responseId": request_id,
+                "items": [],
+            })
 
     def send(self, data):
         """Receives send results"""

@@ -2,9 +2,7 @@
 <script type="ts">
   import { beforeUpdate, afterUpdate } from 'svelte';
   import { chatHistory } from '../../stores';
-  import Cell from './message/Cell.svelte';
-  import Default from './message/Default.svelte';
-  import Options from './message/Options.svelte';
+  import Message from './message/Message.svelte';
 
   let div: HTMLElement;
   let autoscroll = true;
@@ -34,12 +32,6 @@
 
 <div bind:this={div}>
   {#each $chatHistory as message}
-    {#if message.type === 'options'}
-      <Options {message}/>
-    {:else if message.type === 'cell'}
-      <Cell {message} {scrollBottom}/>
-    {:else}
-      <Default {message}/>
-    {/if}
+    <Message {message} {scrollBottom}/>
   {/each}
 </div>

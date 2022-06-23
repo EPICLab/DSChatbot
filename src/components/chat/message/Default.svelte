@@ -44,10 +44,21 @@
     display: flex;
     flex-wrap: wrap;
   }
+
+  .hidden {
+    border-style: dotted;
+    border-color: red;
+  }
 </style>
 
 <div class="outer">
-  <div class="inner {message.type}" bind:clientWidth={width}>
-    <slot>{message.text}</slot>
+  <div class:hidden={message.hidden} class="inner {message.type}" bind:clientWidth={width}>
+    <slot>
+      {#if message.type !== 'user'}
+        {@html message.text}
+      {:else}
+        {message.text}
+      {/if}
+    </slot>
   </div>
 </div>

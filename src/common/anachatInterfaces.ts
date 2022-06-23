@@ -15,10 +15,15 @@ export interface IOptionItem {
   label: string;
 }
 
+export type IMessageType = 'user' | 'bot' | 'error' | 'options' | 'cell';
+
 export interface IChatMessage {
   text: string | IOptionItem[];
-  type: 'user' | 'bot' | 'error' | 'options' | 'cell';
+  type: IMessageType;
   timestamp: number;
+  prevent: boolean;
+  force: boolean;
+  hidden: boolean;
 }
 
 export interface IAutoCompleteItem {

@@ -1,8 +1,16 @@
 <script lang="ts">
-  import { anaSideModel } from "../../stores";
+  import { anaSideModel, anaSuperMode, anaQueryEnabled, anaMessageEnabled } from "../../stores";
   import Renderer from "./status/Renderer.svelte";
 
   export let title: string;
+
+  function superModeToggleAutoComplete(event: any) {
+    $anaSideModel?.sendSupermode({ query_processing: event.target.checked });
+  }
+  
+  function superModeToggleMessage(event: any) {
+    $anaSideModel?.sendSupermode({ message_processing: event.target.checked });
+  }
 
   const refresh = (): void => {
     $anaSideModel?.refresh();
@@ -28,6 +36,10 @@
     cursor: pointer;
   }
 
+  .supermode {
+    color: red;
+  }
+
   div {
     overflow: initial !important;
   }
@@ -35,7 +47,19 @@
 
 <div>
   <header>
-    <div class="title" on:click={refresh} title="Click to refresh">{title}</div>
+    <div class="title" class:supermode={$anaSuperMode} on:click={refresh} title="Click to refresh">{title}</div>
     <Renderer/>
+
+    {#if $anaSuperMode}
+    <br>
+    <label>
+      <input type=checkbox on:change={superModeToggleAutoComplete} checked={$anaQueryEnabled}>
+      Autocomplete
+    </label>
+    <label>
+      <input type=checkbox on:change={superModeToggleMessage} checked={$anaMessageEnabled}>
+      Message
+    </label>
+    {/if}
   </header>
 </div>

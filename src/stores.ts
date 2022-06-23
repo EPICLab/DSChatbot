@@ -125,9 +125,9 @@ function createChatHistory() {
   }
 
   function addNew(newMessage: IChatMessage) {
-    current.push(newMessage);
+    //current.push(newMessage);
     const model = get(anaSideModel);
-    set(current);
+    //set(current);
     if (model) {
       model.sendMessageKernel(newMessage);
     }
@@ -191,6 +191,9 @@ function createPanelWidget() {
 export const jupyterapp: Writable<JupyterFrontEnd | null> = writable(null);
 export const anaSideModel: Writable<AnaSideModel | null> = writable(null);
 export const anaSideReady: Writable<boolean> = writable(false);
+export const anaSuperMode: Writable<boolean> = writable(false);
+export const anaQueryEnabled: Writable<boolean> = writable(true);
+export const anaMessageEnabled: Writable<boolean> = writable(true);
 export const subjectItems: Writable<{responseId: Writable<number>, sitems: Writable<IAutoCompleteItem[]>}> = writable({responseId: writable(-1), sitems: writable([])})
 export const chatHistory = createChatHistory();
 export const kernelStatus = createStatus();
