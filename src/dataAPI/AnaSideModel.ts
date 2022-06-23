@@ -11,7 +11,8 @@ import {
   panelWidget,
   subjectItems,
   anaQueryEnabled,
-  anaMessageEnabled
+  anaMessageEnabled,
+  anaLoading,
 } from '../stores';
 import type { NotebookPanel } from '@jupyterlab/notebook';
 import type {
@@ -239,6 +240,7 @@ export class AnaSideModel {
         chatHistory.load(msg.content.data.history as unknown as IChatMessage[]);
         anaQueryEnabled.set(msg.content.data.query_processing_enabled as unknown as boolean);
         anaMessageEnabled.set(msg.content.data.message_processing_enabled as unknown as boolean);
+        anaLoading.set(msg.content.data.loading as unknown as boolean);
       } else if (operation === 'reply') {
         kernelStatus.setattr('hasKernel', true);
         const message: IChatMessage = msg.content.data

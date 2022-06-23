@@ -20,11 +20,12 @@ class AnaComm:
 
         self.message_processing_enabled = True
         self.query_processing_enabled = True
+        self.loading = False
 
         self.history = [{
             "text": "Hello, my name is Ana. How can I help you?",
             "type": "bot",
-            "timestamp": datetime.timestamp(datetime.now()),
+            "timestamp": int(datetime.timestamp(datetime.now())*1000),
         }]
         self.options_actions = OptionsActions([], {})
 
@@ -40,6 +41,7 @@ class AnaComm:
             "history": self.history,
             "message_processing_enabled": self.message_processing_enabled,
             "query_processing_enabled": self.query_processing_enabled,
+            "loading": self.loading,
         }
 
     def register(self):
@@ -68,6 +70,8 @@ class AnaComm:
                     self.message_processing_enabled = value
                 if (value := data.get("query_processing", None)) is not None:
                     self.query_processing_enabled = value
+                if (value := data.get("loading", None)) is not None:
+                    self.loading = value
                 self.core.refresh(self)
         except Exception:  # pylint: disable=broad-except
             print(traceback.format_exc())
@@ -108,7 +112,7 @@ class AnaComm:
         message = {
             "text": text,
             "type": type_,
-            "timestamp": datetime.timestamp(datetime.now()),
+            "timestamp": int(datetime.timestamp(datetime.now())*1000),
         }
         self.history.append(message)
         self.send({

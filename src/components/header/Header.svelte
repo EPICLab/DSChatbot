@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { anaSideModel, anaSuperMode, anaQueryEnabled, anaMessageEnabled } from "../../stores";
+  import { anaSideModel, anaSuperMode, anaQueryEnabled, anaMessageEnabled, anaLoading } from "../../stores";
   import Renderer from "./status/Renderer.svelte";
 
   export let title: string;
@@ -11,6 +11,11 @@
   function superModeToggleMessage(event: any) {
     $anaSideModel?.sendSupermode({ message_processing: event.target.checked });
   }
+
+  function superModeToggleLoading(event: any) {
+    $anaSideModel?.sendSupermode({ loading: event.target.checked });
+  }
+
 
   const refresh = (): void => {
     $anaSideModel?.refresh();
@@ -43,12 +48,20 @@
   div {
     overflow: initial !important;
   }
+
+  span {
+    font-size: 2em;
+  }
+
 </style>
 
 <div>
   <header>
     <div class="title" class:supermode={$anaSuperMode} on:click={refresh} title="Click to refresh">{title}</div>
     <Renderer/>
+    {#if $anaLoading}
+    <span>⌛️</span>
+    {/if}
 
     {#if $anaSuperMode}
     <br>
@@ -59,6 +72,10 @@
     <label>
       <input type=checkbox on:change={superModeToggleMessage} checked={$anaMessageEnabled}>
       Message
+    </label>
+    <label>
+      <input type=checkbox on:change={superModeToggleLoading} checked={$anaLoading}>
+      Loading
     </label>
     {/if}
   </header>

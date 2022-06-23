@@ -2,6 +2,11 @@
   import type { IChatMessage } from "../../../common/anachatInterfaces";
   export let message: IChatMessage;
   export let width = 100;
+
+  let timestamp = message.timestamp;
+  if (!Number.isInteger(timestamp)) {
+    timestamp = timestamp * 1000;
+  }
 </script>
 
 <style>
@@ -49,9 +54,14 @@
     border-style: dotted;
     border-color: red;
   }
+
+  .timestamp-user {
+    text-align: right;
+  }
 </style>
 
 <div class="outer">
+  <div class="timestamp-{message.type}"> { new Date(timestamp).toLocaleTimeString("en-US") } </div>
   <div class:hidden={message.hidden} class="inner {message.type}" bind:clientWidth={width}>
     <slot>
       {#if message.type !== 'user'}
