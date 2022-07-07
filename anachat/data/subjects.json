@@ -1,65 +1,16 @@
 [
     {
-        "redirect": "SKLearn_subjects.json"
-    },
-    {
-        "name": "Load data",
-        "description": "For processing the data, it is necessary to load it first",
+        "name": "Print",
+        "description": "Print something on screen",
         "actions": [
-            {"name": "Load csv", "state": "load_data?load_file_state"}
+            {"name": "Print", "state": "display?display_state"}
         ] 
     },
     {
-        "name": ["Classification", "Classifier"],
-        "children": [
-            {
-                "name": "Preprocessing",
-                "children": [
-                    {
-                        "name": "Tokenization",
-                        "description": "Tokenization splits an input text into a list of tokens",
-                        "actions": [
-                            {"name": "Tokenize", "state": "preprocessing?tokenize_column_state"}
-                        ]
-                    },
-                    {
-                        "name": "Transform Cases",
-                        "description": "Transforms cases of characters in a document. This operator transforms all characters in a document to either lower case or upper case, respectively.",
-                        "actions": [
-                            {"name": "To lower case", "state": "preprocessing?to_lowercase_state"},
-                            {"name": "To upper case", "state": "preprocessing?to_uppercase_state"}
-                            
-                        ]
-                    },
-                    {
-                        "name": "Filter tokens by length",
-                        "description": "Use a length criteria to filter tokens",
-                        "actions": [
-                            {"name": "Minimum length", "state": "preprocessing?minimum_length_state"},
-                            {"name": "Minumum length (inclusive)", "state": "preprocessing?minimum_length_inclusive_state"},
-                            {"name": "Maximum length", "state": "preprocessing?maximum_length_state"},
-                            {"name": "Maximum length (inclusive)", "state": "preprocessing?maximum_length_inclusive_state"},
-                            {"name": "Range", "state": "preprocessing?range_length_state"}
-                        ]
-                    },
-                    {
-                        "name": "Remove stopwords",
-                        "description": "This operator filters English stopwords from a document by removing every token which equals a stopword from the built-in stopword list. Please note that, for this operator to work properly, every token should represent a single English word only. To obtain a document with each token representing a single word, you may tokenize a document by applying the Tokenize operator beforehand.",
-                        "actions": [
-                            {"name": "Remove stopwords", "state": "preprocessing?remove_stopwords_state"}
-                        ]
-                    }
-                ]
-            },
-            {
-                "name": "Algorithm Specification"
-            },
-            {
-                "name": "Validation"
-            },
-            {
-                "name": "Feature Engineering"
-            }
-        ]
+        "name": "Input",
+        "description": "Ask user to input something",
+        "actions": [
+            {"name": "Input", "state": "input?ask_state"}
+        ] 
     }
 ]
