@@ -15,7 +15,7 @@ export interface IOptionItem {
   label: string;
 }
 
-export type IMessageType = 'user' | 'bot' | 'error' | 'options' | 'cell';
+export type IMessageType = 'user' | 'bot' | 'error' | 'options' | 'cell' | 'usercode' | 'botcode';
 
 export interface IChatMessage {
   text: string | IOptionItem[];

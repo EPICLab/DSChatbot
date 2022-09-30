@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { anaSideModel, anaSuperMode, anaQueryEnabled, anaMessageEnabled, anaLoading } from "../../stores";
+  import { anaSideModel, anaSuperMode, anaQueryEnabled, anaMessageEnabled, anaLoading, anaTimes } from "../../stores";
   import Renderer from "./status/Renderer.svelte";
 
   export let title: string;
@@ -76,6 +76,10 @@
     <label>
       <input type=checkbox on:change={superModeToggleLoading} checked={$anaLoading}>
       Loading
+    </label>
+    <label>
+      <input type=checkbox on:change={superModeToggleLoading} bind:checked={$anaTimes}>
+      Show time
     </label>
     {/if}
   </header>

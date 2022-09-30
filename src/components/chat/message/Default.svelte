@@ -1,5 +1,6 @@
 <script type="ts">
   import type { IChatMessage } from "../../../common/anachatInterfaces";
+import { anaTimes } from "../../../stores";
   export let message: IChatMessage;
   export let width = 100;
 
@@ -61,7 +62,9 @@
 </style>
 
 <div class="outer">
-  <div class="timestamp-{message.type}"> { new Date(timestamp).toLocaleTimeString("en-US") } </div>
+  {#if $anaTimes}
+    <div class="timestamp-{message.type}"> { new Date(timestamp).toLocaleTimeString("en-US") } </div>
+  {/if}
   <div class:hidden={message.hidden} class="inner {message.type}" bind:clientWidth={width}>
     <slot>
       {#if message.type !== 'user'}

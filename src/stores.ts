@@ -195,6 +195,7 @@ export const anaSuperMode: Writable<boolean> = writable(false);
 export const anaLoading: Writable<boolean> = writable(false);
 export const anaQueryEnabled: Writable<boolean> = writable(true);
 export const anaMessageEnabled: Writable<boolean> = writable(true);
+export const anaTimes: Writable<boolean> = writable(true);
 export const subjectItems: Writable<{responseId: Writable<number>, sitems: Writable<IAutoCompleteItem[]>}> = writable({responseId: writable(-1), sitems: writable([])})
 export const chatHistory = createChatHistory();
 export const kernelStatus = createStatus();
