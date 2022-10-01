@@ -4,7 +4,10 @@
 
 Configurable Chatbot for support of different tasks in Jupyter Lab.
 
-This branch ([main](https://github.com/EPICLab/DSChatbot/tree/main)) supports data science analysis in Jupyter Lab. If you are interested in the chatbot configured for teaching computational thinking and programming, please check the [education](https://github.com/EPICLab/DSChatbot/tree/education) branch.
+This branch ([education](https://github.com/EPICLab/DSChatbot/tree/education)) supports teaching computational thinking and programming in Jupyter Lab. If you are interested in the chatbot configured for data science analysis, please check the [main](https://github.com/EPICLab/DSChatbot/tree/main) branch.
+
+![Chatbot prototype](docs/chatbot.png)
+
 
 This extension is composed of a Python package named `anachat`
 for the server extension and a NPM package named `anachat`
@@ -27,6 +30,8 @@ Run the commands below to install the chatbot:
 # Clone and change into repository
 git clone git@github.com:EPICLab/DSChatbot.git
 cd DSChatbot
+# Change to education branch
+git checkout education
 # Install package in development mode
 pip install -e .
 # Link your development version of the extension with JupyterLab
