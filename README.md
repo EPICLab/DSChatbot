@@ -1,7 +1,5 @@
 # anachat
 
-[![Github Actions Status](https://github.com/EPICLab/DSChatbot/workflows/Build/badge.svg)](https://github.com/EPICLab/DSChatbot/actions/workflows/build.yml)[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/EPICLab/DSChatbot/main?urlpath=lab)
-
 Configurable Chatbot for support of different tasks in Jupyter Lab.
 
 This branch ([education](https://github.com/EPICLab/DSChatbot/tree/education)) supports teaching computational thinking and programming in Jupyter Lab. If you are interested in the chatbot configured for data science analysis, please check the [main](https://github.com/EPICLab/DSChatbot/tree/main) branch.
