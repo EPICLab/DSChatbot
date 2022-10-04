@@ -1,0 +1,10 @@
+image:
+    file: .gitpod.dockerfile
+ports:
+- port: 8888
+  onOpen: open-browser
+- port: 5000
+  onOpen: notify
+tasks:
+- command: conda init
+- command: conda activate base

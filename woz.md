@@ -13,3 +13,9 @@ jupyter lab --collaborative
 ```
 
 Use the Share button to have the notebook in two browsers. Activate Ana supermode in one of them by right-clicking the circle on the top-right corner of the chat.
+
+
+## Gitpod
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/EPICLab/DSChatbot)
+
