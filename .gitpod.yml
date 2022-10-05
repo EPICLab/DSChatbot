@@ -3,6 +3,7 @@ image:
 ports:
 - port: 8888
   onOpen: open-browser
+  visibility: public
 - port: 5000
   onOpen: notify
 tasks:
