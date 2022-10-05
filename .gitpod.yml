@@ -6,5 +6,13 @@ ports:
 - port: 5000
   onOpen: notify
 tasks:
-- command: conda init
-- command: conda activate base
+- init: |
+    conda init
+    conda activate ana
+    pip install -e .
+    jupyter labextension develop . --overwrite
+    jupyter server extension enable anachat
+    jlpm run build
+- command: |
+    conda init
+    conda activate ana

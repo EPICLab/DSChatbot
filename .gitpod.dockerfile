@@ -15,10 +15,6 @@ ENV PATH=$PATH:$HOME/anaconda3/bin
 RUN conda install conda
 RUN ["/bin/bash", "-c", ". /home/gitpod/anaconda3/etc/profile.d/conda.sh && conda create -n ana -c conda-forge nodejs python=3.9 jupyterlab matplotlib seaborn lightgbm catboost -y"]
 RUN conda init
-RUN ["/bin/bash", "-c", ". /home/gitpod/anaconda3/etc/profile.d/conda.sh && conda activate ana && pip install -e /workspace/DSChatbot"]
-RUN ["/bin/bash", "-c", ". /home/gitpod/anaconda3/etc/profile.d/conda.sh && conda activate ana && jupyter labextension develop . --overwrite"]
-RUN ["/bin/bash", "-c", ". /home/gitpod/anaconda3/etc/profile.d/conda.sh && conda activate ana && jupyter server extension enable anachat"]
-RUN ["/bin/bash", "-c", ". /home/gitpod/anaconda3/etc/profile.d/conda.sh && conda activate ana && jlpm run build"]
 ENV jupynb="jupyter notebook --NotebookApp.allow_origin=\'$(gp url 8888)\' --ip='*' --NotebookApp.token='' --NotebookApp.password=''"
 ENV jupylab="jupyter lab --NotebookApp.allow_origin=\'$(gp url 8888)\' --ip='*' --NotebookApp.token='' --NotebookApp.password='' --collaborative"
 
