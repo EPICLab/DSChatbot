@@ -5,8 +5,10 @@ import { Panel } from '@lumino/widgets';
 import { anaChatIcon } from './iconimports';
 import { AnaSideModel } from './dataAPI/AnaSideModel';
 import { AnaSideView } from './components/AnaSideView';
-import { anaSideModel } from './stores';
+import { anaRestrict, anaSideModel } from './stores';
 import type { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
+import { get } from 'svelte/store';
+import type { ILabShell } from '@jupyterlab/application';
 
 /**
  * A widget for hosting a notebook anachat.
@@ -41,7 +43,8 @@ export class AnaChat extends Panel {
   }
 
   public changeActiveWidget(
-    tracker: INotebookTracker,
+  labShell: ILabShell,
+  tracker: INotebookTracker,
     widget: NotebookPanel
   ): void {
     const future = this._handlers[widget.id];
@@ -52,6 +55,11 @@ export class AnaChat extends Panel {
             this._sessionContext = widget.sessionContext;
             await model.connectNotebook();
             anaSideModel.set(model);
+            if (model.name == get(anaRestrict)) {
+              labShell.activateById(this.id);
+            } else if (get(anaRestrict) !== null) {
+              labShell.collapseRight();
+            }
           }
         });
       });

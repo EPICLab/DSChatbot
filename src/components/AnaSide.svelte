@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { anaSideReady, anaSideModel, kernelStatus } from '../stores';
+  import { anaSideReady, anaSideModel, kernelStatus, anaRestrict } from '../stores';
   import Chat from './chat/Chat.svelte';
   import ChatInput from './chat/ChatInput.svelte';
   import Header from './header/Header.svelte';
@@ -12,7 +12,7 @@
   $: ({ hasKernel } = $kernelStatus);
 </script>
 
-{#if $anaSideModel}
+{#if $anaSideModel && ($anaRestrict === null || $anaRestrict === name) }
   <Header title="Ana - {name}"></Header>
   <Chat></Chat>
   {#if $hasKernel}
@@ -20,4 +20,7 @@
   {/if}
 {:else}
   <Header title="Ana"></Header>
+  {#if $anaRestrict !== null}
+    Currently, the chatbot only works on files named {$anaRestrict}.
+  {/if}
 {/if}

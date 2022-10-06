@@ -188,6 +188,7 @@ function createPanelWidget() {
 }
 
 // ~~~~~~~~~~~ Stores ~~~~~~~~~~~~~~~~
+export const anaRestrict: Writable<string | null> = writable(null);
 export const jupyterapp: Writable<JupyterFrontEnd | null> = writable(null);
 export const anaSideModel: Writable<AnaSideModel | null> = writable(null);
 export const anaSideReady: Writable<boolean> = writable(false);

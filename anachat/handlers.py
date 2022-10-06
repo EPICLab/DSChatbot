@@ -1,4 +1,5 @@
 import json
+import sys
 
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
@@ -10,8 +11,12 @@ class RouteHandler(APIHandler):
     # Jupyter server
     @tornado.web.authenticated
     def get(self):
+        restrict = None
+        for arg in sys.argv:
+            if arg.startswith('--Anachat.restrict='):
+                restrict = arg[len('--Anachat.restrict='):]
         self.finish(json.dumps({
-            "data": "This is /anachat/get_example endpoint!"
+            'restrict': restrict
         }))
 
 
@@ -19,6 +24,6 @@ def setup_handlers(web_app):
     host_pattern = ".*$"
 
     base_url = web_app.settings["base_url"]
-    route_pattern = url_path_join(base_url, "anachat", "get_example")
+    route_pattern = url_path_join(base_url, "anachat", "config")
     handlers = [(route_pattern, RouteHandler)]
     web_app.add_handlers(host_pattern, handlers)

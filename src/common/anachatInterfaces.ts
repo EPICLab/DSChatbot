@@ -32,3 +32,7 @@ export interface IAutoCompleteItem {
   value: string;
   url: string | null;
 }
+
+export interface IServerConfig {
+  restrict: string | null;
+}
