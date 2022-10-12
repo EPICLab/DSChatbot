@@ -11,7 +11,26 @@
 
   export let message: IChatMessage;
   export let scrollBottom: () => void = () => {};
+  export let remove: (() => void) | null = null;
 </script>
+
+<style>
+  span {
+    height: 0px;
+    position: relative;
+    top: 5px;
+    z-index: 1000;
+  }
+
+  span:hover {
+    cursor: pointer;
+  }
+
+</style>
+
+{#if remove}
+<span on:click={remove}>❌</span>
+{/if}
 
 {#if !message.hidden || $anaSuperMode}
   {#if message.type === 'options'}

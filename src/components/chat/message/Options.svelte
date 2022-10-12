@@ -29,6 +29,7 @@
   }
 
   const items: IOptionItem[] = message.text as IOptionItem[];
+  let article = items.length == 1? "the" : 'an';
 </script>
 
 <style>
@@ -55,7 +56,7 @@
 </style>
 
 <Default {message} bind:width>
-  <div> Click in an option: </div>
+  <div> Click in {article} option: </div>
   <div class="inner">
     {#each items as element}
       <div class="button" on:click={click(element)} title={element.key} style:max-width={((width - 45)/2) + 'px'}>

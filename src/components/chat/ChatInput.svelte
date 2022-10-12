@@ -11,13 +11,40 @@
   let superModeType: IMessageType = 'bot';
   let superModeErrorMessage: string = "";
   let superModeOptionId = 0;
-  let superModePreviewMessage: IChatMessage|null = null;
+  let superModePreviewMessage: IChatMessage[] = [];
   let superModeHide: boolean = false;
 
-  async function onSuperModePreview() {
-    superModePreviewMessage = null;
+  async function onSuperModeSend() {
+    let timestamp = +new Date()
+    superModePreviewMessage.forEach((message: IChatMessage) => {
+      message.timestamp = timestamp;
+      chatHistory.addNew(message);
+    })
+    superModePreviewMessage = [];
     await tick();
-    superModePreviewMessage = createMessage(value);
+  }
+
+  function onClickHereIsTheCode() {
+    if (!$anaSuperMode) return;
+    superModeType = 'bot';
+    let message = createMessage("Copy the following code to the notebook:");
+    if (message !== null) {
+      superModePreviewMessage = [...superModePreviewMessage, message];
+      superModeType = 'cell';
+    }
+    textarea.focus();
+  }
+
+  function onClickContinue() {
+    if (!$anaSuperMode) return;
+    superModeType = 'options';
+    value = '! Continue'
+    textarea.focus();
+  }
+
+  function removePreview(index: number) {
+    superModePreviewMessage.splice(index, 1);
+    superModePreviewMessage = superModePreviewMessage;
   }
 
   export let value: string = "";
@@ -117,7 +144,6 @@
   function createMessage(text: string): IChatMessage | null {
     let result: string | IOptionItem[];
     superModeErrorMessage = "";
-    superModePreviewMessage = null;
     text = text.trim();
     if (text === '') {
       return null;
@@ -129,26 +155,18 @@
         return null;
       }
       let options: IOptionItem[] = [];
-      if (text[0] === '!') {
-        let newText: string = text.substring(1).trim();
-        options.push({
+      let lines = text.substring(1).trim().split("\n-");
+      if (lines.length == 1 && text[0] !== '!') {
+        superModeErrorMessage = 'If you want to show a button with a single option, start the message with "!"';
+        return null;
+      }
+      options = lines.map((line) => {
+        let newText = line.trim();
+        return {
           'key': `SU-${superModeOptionId++}: ${newText}`,
           'label': newText
-        });
-      } else {
-        let lines = text.substring(1).split("\n-");
-        if (lines.length == 1) {
-          superModeErrorMessage = 'If you want to show a button with a single option, start the message with "!"';
-          return null;
         }
-        options = lines.map((line) => {
-          let newText = line.trim();
-          return {
-            'key': `SU-${superModeOptionId++}: ${newText}`,
-            'label': newText
-          }
-        })
-      }
+      })
       result = options;
     } else {
       result = text;
@@ -168,7 +186,11 @@
     if (highlightIndex == -1) {
       let newMessage = createMessage(value);
       if (newMessage !== null) {
-        chatHistory.addNew(newMessage);
+        if ($anaSuperMode) {
+          superModePreviewMessage = [...superModePreviewMessage, newMessage];          
+        } else {
+          chatHistory.addNew(newMessage);
+        }
         clear();
       }
     } else {
@@ -222,6 +244,22 @@
   }
   async function onKeyDown(e: any) {
     let key = e.key
+    if ($anaSuperMode && (e.altKey)) {
+      if (key === "a") {
+        superModeType = "bot"
+      } else if (key === "o") {
+        superModeType = "options"
+      } else if (key === "c") {
+        superModeType = "cell"
+      } else if (key === "u") {
+        superModeType = "user"
+      } else if (key === "e") {
+        superModeType = "error"
+      } else if (key === "h") {
+        superModeHide = !superModeHide;
+      }
+    }
+
     if (key === "Tab" && opened) {
       close();
     } else if (key === "ArrowDown") {
@@ -232,6 +270,9 @@
       onEsc(e);
     } else if ((key === "Enter") && (e.shiftKey === false)) {
       await enter(e);
+      if ((e.ctrlKey === true) && $anaSuperMode) {
+        await onSuperModeSend();
+      }
     }
   }
   function onDocumentClick(e: any) {
@@ -329,6 +370,10 @@
     color: red;
   }
 
+  .supermodetypes {
+    display: flex;
+  }
+
 </style>
 
 <div class="text">
@@ -373,31 +418,34 @@
 </div>
 
 {#if $anaSuperMode}
-<label>
-  <input type=checkbox bind:checked={superModeHide} value="hide">
-  Send hidden message to chatbot
-</label>
-<label>
-  <input type=radio bind:group={superModeType} name="messageType" value="bot">
-  Ana
-</label>
-<label>
-  <input type=radio bind:group={superModeType} name="messageType" value="options">
-  Options
-</label>
-<label>
-  <input type=radio bind:group={superModeType} name="messageType" value="cell">
-  Code
-</label>
-<label>
-  <input type=radio bind:group={superModeType} name="messageType" value="user">
-  User
-</label>
-<label>
-  <input type=radio bind:group={superModeType} name="messageType" value="error">
-  Error
-</label>
-
+  <label>
+    <input type=checkbox bind:checked={superModeHide} value="hide">
+    Send hidden message to chatbot
+  </label>
+  <div class="supermodetypes">
+    <label>
+      <input type=radio bind:group={superModeType} name="messageType" value="bot">
+      Ana
+    </label>
+    <label>
+      <input type=radio bind:group={superModeType} name="messageType" value="options">
+      Options
+    </label>
+    <label>
+      <input type=radio bind:group={superModeType} name="messageType" value="cell">
+      Code
+    </label>
+    <label>
+      <input type=radio bind:group={superModeType} name="messageType" value="user">
+      User
+    </label>
+    <label>
+      <input type=radio bind:group={superModeType} name="messageType" value="error">
+      Error
+    </label>
+    <button on:click|preventDefault={onClickHereIsTheCode}>Code</button>
+    <button on:click|preventDefault={onClickContinue}>Continue</button>
+  </div>
   {#if superModeErrorMessage}
   <div class="error">
     {superModeErrorMessage}
@@ -405,11 +453,10 @@
   {/if}
 
 
-  <button on:click|preventDefault={onSuperModePreview}>Preview</button>
-  {#if superModePreviewMessage}
-    <Message message={superModePreviewMessage}/>
-  {/if}
-
+  <button on:click|preventDefault={onSuperModeSend}>Send Messages (ctrl + enter)</button>
+  {#each superModePreviewMessage as message, i}
+    <Message {message} remove={() => removePreview(i)}/>
+  {/each}
 {/if}
 
 <svelte:window on:click={onDocumentClick} />
