@@ -1,19 +1,20 @@
 image:
-    file: .gitpod.dockerfile
+  file: .gitpod.dockerfile
 ports:
-- port: 8888
-  onOpen: open-browser
-  visibility: public
-- port: 5000
-  onOpen: notify
+  - port: 8888
+    onOpen: open-browser
+    visibility: public
+  - port: 5000
+    onOpen: notify
 tasks:
-- init: |
-    conda init
-    conda activate ana
-    pip install -e .
-    jupyter labextension develop . --overwrite
-    jupyter server extension enable anachat
-    jlpm run build
-- command: |
-    conda init
-    conda activate ana
+  - name: Install
+    init: >
+      conda init &&
+      conda activate ana &&
+      pip install -e . &&
+      jupyter labextension develop . --overwrite &&
+      jupyter server extension enable anachat &&
+      jlpm run build
+    command: |
+      conda init
+      conda activate ana
