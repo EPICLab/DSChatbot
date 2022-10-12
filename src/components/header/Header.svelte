@@ -62,13 +62,13 @@
     {#if $anaLoading}
     <span>⌛️</span>
     {/if}
-
-    {#if $anaSuperMode}
-    <br>
     <label>
       <input type=checkbox on:change={superModeToggleAutoComplete} checked={$anaQueryEnabled}>
       Autocomplete
     </label>
+    {#if $anaSuperMode}
+    <br>
+    
     <label>
       <input type=checkbox on:change={superModeToggleMessage} checked={$anaMessageEnabled}>
       Message
