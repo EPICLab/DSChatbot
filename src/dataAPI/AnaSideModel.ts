@@ -15,7 +15,7 @@ import {
   anaLoading,
   anaAutoLoading,
 } from '../stores';
-import type { NotebookPanel } from '@jupyterlab/notebook';
+import { NotebookActions, type NotebookPanel } from '@jupyterlab/notebook';
 import type {
   IComm,
   IKernelConnection
@@ -31,7 +31,7 @@ import type { IErrorMsg } from '@jupyterlab/services/lib/kernel/messages';
 
 export class AnaSideModel {
   private _sessionContext: ISessionContext;
-  //private _notebook: NotebookPanel;
+  private _notebook: NotebookPanel;
   private _icomm: IComm | null;
   private _language: IKernelMatcher;
   private _boundQueryCall: (
@@ -41,7 +41,7 @@ export class AnaSideModel {
 
   constructor(notebook: NotebookPanel) {
     this._sessionContext = notebook.sessionContext;
-    //this._notebook = notebook;
+    this._notebook = notebook;
     this._icomm = null;
     this._language = GenericMatcher;
     this._boundQueryCall = this._queryCall.bind(this);
@@ -72,6 +72,37 @@ export class AnaSideModel {
 
   public refresh() {
     this.sendRefreshKernel();
+  }
+
+  public insertAbove(text: string) {
+    const content = this._notebook.content;
+    NotebookActions.insertAbove(content);
+    const activeCell = content.activeCell;
+    if (activeCell) {
+      activeCell.model.value.text = text;
+      activeCell.editorWidget.editor.focus();
+    }
+  }
+
+  public insertBelow(text: string) {
+    const content = this._notebook.content;
+    NotebookActions.insertBelow(content);
+    const activeCell = content.activeCell;
+    if (activeCell) {
+      activeCell.model.value.text = text;
+      activeCell.editorWidget.editor.focus();
+    }
+  }
+
+  public insertBottom(text: string) {
+    const content = this._notebook.content;
+    content.activeCellIndex = content.widgets.length - 1;
+    NotebookActions.insertBelow(content);
+    const activeCell = content.activeCell;
+    if (activeCell) {
+      activeCell.model.value.text = text;
+      activeCell.editorWidget.editor.focus();
+    }
   }
 
   public async listenForRestart() {
