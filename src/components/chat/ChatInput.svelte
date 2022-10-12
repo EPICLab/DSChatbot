@@ -5,7 +5,7 @@
   import Message from "./message/Message.svelte";
   import { onMount, tick } from "svelte";
   
-  import { chatHistory, anaSideModel, subjectItems, anaSuperMode, anaQueryEnabled } from "../../stores";
+  import { chatHistory, anaSideModel, subjectItems, anaSuperMode, anaQueryEnabled, anaAutoLoading } from "../../stores";
   import type { IAutoCompleteItem, IChatMessage, IMessageType, IOptionItem } from "../../common/anachatInterfaces";
 
   let superModeType: IMessageType = 'bot';
@@ -21,6 +21,9 @@
       chatHistory.addNew(message);
     })
     superModePreviewMessage = [];
+    if ($anaAutoLoading) {
+      $anaSideModel?.sendSupermode({ loading: false });
+    }
     await tick();
   }
 
@@ -190,6 +193,9 @@
           superModePreviewMessage = [...superModePreviewMessage, newMessage];          
         } else {
           chatHistory.addNew(newMessage);
+          if ($anaAutoLoading) {
+            $anaSideModel?.sendSupermode({ loading: $chatHistory.length });
+          }
         }
         clear();
       }

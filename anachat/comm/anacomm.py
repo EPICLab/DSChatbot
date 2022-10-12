@@ -21,6 +21,7 @@ class AnaComm:
         self.message_processing_enabled = True
         self.query_processing_enabled = True
         self.loading = False
+        self.auto_loading = False
 
         self.history = [{
             "text": "Hello, my name is Ana. How can I help you?",
@@ -42,6 +43,7 @@ class AnaComm:
             "message_processing_enabled": self.message_processing_enabled,
             "query_processing_enabled": self.query_processing_enabled,
             "loading": self.loading,
+            "auto_loading": self.auto_loading
         }
 
     def register(self):
@@ -72,6 +74,8 @@ class AnaComm:
                     self.query_processing_enabled = value
                 if (value := data.get("loading", None)) is not None:
                     self.loading = value
+                if (value := data.get("auto_loading", None)) is not None:
+                    self.auto_loading = value
                 self.core.refresh(self)
         except Exception:  # pylint: disable=broad-except
             print(traceback.format_exc())

@@ -1,13 +1,27 @@
 <script type="ts">
   import type { IChatMessage } from "../../../common/anachatInterfaces";
-import { anaTimes } from "../../../stores";
+  import { anaTimes, anaSuperMode, anaSideModel } from "../../../stores";
   export let message: IChatMessage;
   export let width = 100;
+  export let loading = false;
+  export let index: number | null = null;
 
   let timestamp = message.timestamp;
   if (!Number.isInteger(timestamp)) {
     timestamp = timestamp * 1000;
   }
+
+  function clickLoading() {
+    if (!$anaSuperMode || !toggleableLoading) return;
+    if (loading) {
+      $anaSideModel?.sendSupermode({ loading: false });
+      loading = false;
+    } else {
+      $anaSideModel?.sendSupermode({ loading: index });
+    }
+  }
+
+  $: toggleableLoading = ($anaSuperMode && (index !== null));
 </script>
 
 <style>
@@ -57,11 +71,29 @@ import { anaTimes } from "../../../stores";
   .timestamp-user {
     text-align: right;
   }
+
+  
+  .togglableLoading span {
+    display: none;
+  }
+
+  .togglableLoading:hover span {
+    display: inline-block;
+  }
+
+  span.clickable:hover {
+    cursor: pointer;
+  }
 </style>
 
 <div class="outer">
   {#if $anaTimes}
-    <div class="timestamp-{message.type}"> { new Date(timestamp).toLocaleTimeString("en-US") } </div>
+    <div class:togglableLoading={toggleableLoading && !loading} class="timestamp-{message.type}"> 
+      { new Date(timestamp).toLocaleTimeString("en-US") }
+      {#if loading || toggleableLoading}
+        <span class:clickable={$anaSuperMode} on:click|preventDefault={clickLoading}>⌛️</span>
+      {/if}
+    </div>
   {/if}
   <div class:hidden={message.hidden} class="inner {message.type}" bind:clientWidth={width}>
     <slot>

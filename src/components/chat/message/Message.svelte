@@ -12,6 +12,8 @@
   export let message: IChatMessage;
   export let scrollBottom: () => void = () => {};
   export let remove: (() => void) | null = null;
+  export let loading = false;
+  export let index: number | null = null;
 </script>
 
 <style>
@@ -40,6 +42,6 @@
   {:else if message.type === 'usercode' || message.type === 'botcode'}
     <UserCode {message} {scrollBottom}/>
   {:else}
-    <Default {message}/>
+    <Default {message} {loading} {index}/>
   {/if}
 {/if}

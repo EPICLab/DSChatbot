@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { anaSideModel, anaSuperMode, anaQueryEnabled, anaMessageEnabled, anaLoading, anaTimes } from "../../stores";
+  import { anaSideModel, anaSuperMode, anaQueryEnabled, anaMessageEnabled, anaLoading, anaAutoLoading, anaTimes } from "../../stores";
   import Renderer from "./status/Renderer.svelte";
 
   export let title: string;
@@ -14,6 +14,10 @@
 
   function superModeToggleLoading(event: any) {
     $anaSideModel?.sendSupermode({ loading: event.target.checked });
+  }
+
+  function superModeToggleAutoLoading(event: any) {
+    $anaSideModel?.sendSupermode({ auto_loading: event.target.checked });
   }
 
 
@@ -59,7 +63,7 @@
   <header>
     <div class="title" class:supermode={$anaSuperMode} on:click={refresh} title="Click to refresh">{title}</div>
     <Renderer/>
-    {#if $anaLoading}
+    {#if $anaLoading === true}
     <span>⌛️</span>
     {/if}
     <label>
@@ -74,12 +78,16 @@
       Message
     </label>
     <label>
-      <input type=checkbox on:change={superModeToggleLoading} checked={$anaLoading}>
+      <input type=checkbox on:change={superModeToggleLoading} checked={$anaLoading !== false}>
       Loading
     </label>
     <label>
-      <input type=checkbox on:change={superModeToggleLoading} bind:checked={$anaTimes}>
+      <input type=checkbox bind:checked={$anaTimes}>
       Show time
+    </label>
+    <label>
+      <input type=checkbox on:change={superModeToggleAutoLoading} checked={$anaAutoLoading}>
+      Auto Loading
     </label>
     {/if}
   </header>

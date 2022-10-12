@@ -1,7 +1,7 @@
 
 <script type="ts">
   import { beforeUpdate, afterUpdate } from 'svelte';
-  import { chatHistory } from '../../stores';
+  import { anaLoading, chatHistory } from '../../stores';
   import Message from './message/Message.svelte';
 
   let div: HTMLElement;
@@ -31,7 +31,7 @@
 </style>
 
 <div bind:this={div}>
-  {#each $chatHistory as message}
-    <Message {message} {scrollBottom}/>
+  {#each $chatHistory as message, index}
+    <Message {message} {scrollBottom} loading={index === $anaLoading} {index}/>
   {/each}
 </div>
