@@ -32,25 +32,35 @@
 </script>
 
 <style>
-  div {
+  div.button {
     display: table-cell;
-    border: 1px solid grey;
+    border: 2px solid #333;
     padding: 5px;
     margin: 2px;
     max-width: 42%;
     flex: 1 0 45%;
+    border-radius: 7px;
+    text-align: center;
   }
   
-  div:hover {
+  div.button:hover {
     background-color: #D0FDFF;
     cursor: pointer;
+  }
+
+  .inner {
+    display: flex;
+    flex-wrap: wrap;
   }
 </style>
 
 <Default {message} bind:width>
-  {#each items as element}
-    <div on:click={click(element)} title={element.key} style:max-width={((width - 45)/2) + 'px'}>
-      {element.label}
-    </div>
-  {/each}
+  <div> Click in an option: </div>
+  <div class="inner">
+    {#each items as element}
+      <div class="button" on:click={click(element)} title={element.key} style:max-width={((width - 45)/2) + 'px'}>
+        {element.label}
+      </div>
+    {/each}
+  </div>
 </Default>
