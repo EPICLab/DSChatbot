@@ -2,53 +2,12 @@
   // Based on simple-svelte-autocomplete: https://github.com/pstanoev/simple-svelte-autocomplete/graphs/contributors
 
   import AutoCompleteItem from "./AutoCompleteItem.svelte";
-  import Message from "./message/Message.svelte";
+  
   import { onMount, tick } from "svelte";
   
   import { chatHistory, anaSideModel, subjectItems, anaSuperMode, anaQueryEnabled, anaAutoLoading } from "../../stores";
-  import type { IAutoCompleteItem, IChatMessage, IMessageType, IOptionItem } from "../../common/anachatInterfaces";
-
-  let superModeType: IMessageType | 'ordered' = 'bot';
-  let superModeErrorMessage: string = "";
-  let superModeOptionId = 0;
-  let superModePreviewMessage: IChatMessage[] = [];
-  let superModeHide: boolean = false;
-
-  async function onSuperModeSend() {
-    let timestamp = +new Date()
-    superModePreviewMessage.forEach((message: IChatMessage) => {
-      message.timestamp = timestamp;
-      chatHistory.addNew(message);
-    })
-    superModePreviewMessage = [];
-    if ($anaAutoLoading) {
-      $anaSideModel?.sendSupermode({ loading: false });
-    }
-    await tick();
-  }
-
-  function onClickHereIsTheCode() {
-    if (!$anaSuperMode) return;
-    superModeType = 'bot';
-    let message = createMessage("Copy the following code to the notebook:");
-    if (message !== null) {
-      superModePreviewMessage = [...superModePreviewMessage, message];
-      superModeType = 'cell';
-    }
-    textarea.focus();
-  }
-
-  function onClickContinue() {
-    if (!$anaSuperMode) return;
-    superModeType = 'options';
-    value = '! Continue'
-    textarea.focus();
-  }
-
-  function removePreview(index: number) {
-    superModePreviewMessage.splice(index, 1);
-    superModePreviewMessage = superModePreviewMessage;
-  }
+  import type { IAutoCompleteItem, IChatMessage, IOptionItem } from "../../common/anachatInterfaces";
+  import SuperChat from "./SuperChat.svelte";
 
   export let value: string = "";
   export let text: string|undefined = undefined;
@@ -64,6 +23,8 @@
   let list: HTMLElement;
   let inputDelayTimeout: NodeJS.Timeout;
   let listHeight: number = 0;
+
+  let superchat: SuperChat | null = null;
 
   const uniqueId = "sautocomplete-" + Math.floor(Math.random() * 1000)
 
@@ -98,7 +59,6 @@
     }
     opened = true
   }
-  
   function close() {
     opened = false
     loading = false
@@ -146,49 +106,18 @@
 
   function createMessage(text: string): IChatMessage | null {
     let result: string | IOptionItem[];
-    superModeErrorMessage = "";
     text = text.trim();
     if (text === '') {
       return null;
     }
-
-    if ($anaSuperMode && (superModeType === 'options' || superModeType === 'ordered')){
-      if (text[0] !== '-' && text[0] !== '!') {
-        superModeErrorMessage = 'You must start the options by "-"';
-        return null;
-      }
-      let options: IOptionItem[] = [];
-      let lines = text.substring(1).trim().split("\n-");
-      if (lines.length == 1 && text[0] !== '!') {
-        superModeErrorMessage = 'If you want to show a button with a single option, start the message with "!"';
-        return null;
-      }
-      options = lines.map((line, index) => {
-        let newText = line.trim();
-        if (superModeType == 'ordered') {
-          newText = (index + 1) + '. ' + newText;
-        }
-        return {
-          'key': `SU-${superModeOptionId++}: ${newText}`,
-          'label': newText
-        }
-      })
-      result = options;
-    } else {
-      result = text;
-    }
+    result = text;
     
-    let mestype: IMessageType = 'user';
-    if ($anaSuperMode) {
-      mestype = (superModeType === 'ordered') ? 'options' : superModeType;
-    }
-
     return {
       text: result,
-      type: mestype,
-      prevent: $anaSuperMode,
-      hidden: $anaSuperMode && superModeHide,
-      force: $anaSuperMode && superModeHide,
+      type: 'user',
+      prevent: false,
+      hidden: false,
+      force: false,
       timestamp: +new Date()
     }
   }
@@ -196,22 +125,23 @@
   async function enter(e: any) {
     e.preventDefault();
     if (highlightIndex == -1) {
-      let newMessage = createMessage(value);
-      if (newMessage !== null) {
-        if ($anaSuperMode) {
-          superModePreviewMessage = [...superModePreviewMessage, newMessage];          
-        } else {
+      if (superchat) {
+        if (superchat.enterMessage(value)) {
+          clear()
+        }
+      } else {
+        let newMessage = createMessage(value);
+        if (newMessage !== null) {
           chatHistory.addNew(newMessage);
           if ($anaAutoLoading) {
             $anaSideModel?.sendSupermode({ loading: $chatHistory.length });
           }
+          clear();
         }
-        clear();
       }
     } else {
       selectItem({detail: { item: items[highlightIndex] }})
     }
-    
   }
   function up() {
     open()
@@ -245,7 +175,6 @@
       close()
     }
   }
-
   function onInput(e: any) {
     resize();
     text = e.target.value;
@@ -259,24 +188,6 @@
   }
   async function onKeyDown(e: any) {
     let key = e.key
-    if ($anaSuperMode && (e.altKey)) {
-      if (key === "a") {
-        superModeType = "bot"
-      } else if (key === "o") {
-        superModeType = "ordered"
-      } else if (key === "i") {
-        superModeType = "options"
-      } else if (key === "c") {
-        superModeType = "cell"
-      } else if (key === "u") {
-        superModeType = "user"
-      } else if (key === "e") {
-        superModeType = "error"
-      } else if (key === "h") {
-        superModeHide = !superModeHide;
-      }
-    }
-
     if (key === "Tab" && opened) {
       close();
     } else if (key === "ArrowDown") {
@@ -287,9 +198,6 @@
       onEsc(e);
     } else if ((key === "Enter") && (e.shiftKey === false)) {
       await enter(e);
-      if ((e.ctrlKey === true) && $anaSuperMode) {
-        await onSuperModeSend();
-      }
     }
   }
   function onDocumentClick(e: any) {
@@ -298,8 +206,7 @@
     } else {
       close()
     }
-  }
-  
+  }  
 
   $: showList = opened && !$anaSuperMode && ((items && items.length > 0) || (filteredTextLength > 0 && loading && $anaQueryEnabled));
   $: ({ responseId, sitems } = $subjectItems);
@@ -383,14 +290,6 @@
     display: none;
   }
 
-  .error {
-    color: red;
-  }
-
-  .supermodetypes {
-    display: flex;
-  }
-
 </style>
 
 <div class="text">
@@ -435,49 +334,7 @@
 </div>
 
 {#if $anaSuperMode}
-  <label>
-    <input type=checkbox bind:checked={superModeHide} value="hide">
-    Send hidden message to chatbot
-  </label>
-  <div class="supermodetypes">
-    <label>
-      <input type=radio bind:group={superModeType} name="messageType" value="bot">
-      Ana
-    </label>
-    <label>
-      <input type=radio bind:group={superModeType} name="messageType" value="ordered">
-      Ordered
-    </label>
-    <label>
-      <input type=radio bind:group={superModeType} name="messageType" value="options">
-      Items
-    </label>
-    <label>
-      <input type=radio bind:group={superModeType} name="messageType" value="cell">
-      Code
-    </label>
-    <label>
-      <input type=radio bind:group={superModeType} name="messageType" value="user">
-      User
-    </label>
-    <label>
-      <input type=radio bind:group={superModeType} name="messageType" value="error">
-      Error
-    </label>
-    <button on:click|preventDefault={onClickHereIsTheCode}>Code</button>
-    <button on:click|preventDefault={onClickContinue}>Continue</button>
-  </div>
-  {#if superModeErrorMessage}
-  <div class="error">
-    {superModeErrorMessage}
-  </div>
-  {/if}
-
-
-  <button on:click|preventDefault={onSuperModeSend}>Send Messages (ctrl + enter)</button>
-  {#each superModePreviewMessage as message, i}
-    <Message {message} remove={() => removePreview(i)}/>
-  {/each}
+  <SuperChat bind:this={superchat} {textarea} {value}/>
 {/if}
 
 <svelte:window on:click={onDocumentClick} />
