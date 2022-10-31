@@ -8,7 +8,7 @@
   import { chatHistory, anaSideModel, subjectItems, anaSuperMode, anaQueryEnabled, anaAutoLoading } from "../../stores";
   import type { IAutoCompleteItem, IChatMessage, IMessageType, IOptionItem } from "../../common/anachatInterfaces";
 
-  let superModeType: IMessageType = 'bot';
+  let superModeType: IMessageType | 'ordered' = 'bot';
   let superModeErrorMessage: string = "";
   let superModeOptionId = 0;
   let superModePreviewMessage: IChatMessage[] = [];
@@ -152,7 +152,7 @@
       return null;
     }
 
-    if ($anaSuperMode && superModeType === 'options'){
+    if ($anaSuperMode && (superModeType === 'options' || superModeType === 'ordered')){
       if (text[0] !== '-' && text[0] !== '!') {
         superModeErrorMessage = 'You must start the options by "-"';
         return null;
@@ -163,8 +163,11 @@
         superModeErrorMessage = 'If you want to show a button with a single option, start the message with "!"';
         return null;
       }
-      options = lines.map((line) => {
+      options = lines.map((line, index) => {
         let newText = line.trim();
+        if (superModeType == 'ordered') {
+          newText = (index + 1) + '. ' + newText;
+        }
         return {
           'key': `SU-${superModeOptionId++}: ${newText}`,
           'label': newText
@@ -174,9 +177,15 @@
     } else {
       result = text;
     }
+    
+    let mestype: IMessageType = 'user';
+    if ($anaSuperMode) {
+      mestype = (superModeType === 'ordered') ? 'options' : superModeType;
+    }
+
     return {
       text: result,
-      type: $anaSuperMode ? superModeType : 'user',
+      type: mestype,
       prevent: $anaSuperMode,
       hidden: $anaSuperMode && superModeHide,
       force: $anaSuperMode && superModeHide,
@@ -254,6 +263,8 @@
       if (key === "a") {
         superModeType = "bot"
       } else if (key === "o") {
+        superModeType = "ordered"
+      } else if (key === "i") {
         superModeType = "options"
       } else if (key === "c") {
         superModeType = "cell"
@@ -434,8 +445,12 @@
       Ana
     </label>
     <label>
+      <input type=radio bind:group={superModeType} name="messageType" value="ordered">
+      Ordered
+    </label>
+    <label>
       <input type=radio bind:group={superModeType} name="messageType" value="options">
-      Options
+      Items
     </label>
     <label>
       <input type=radio bind:group={superModeType} name="messageType" value="cell">

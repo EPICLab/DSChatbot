@@ -24,7 +24,7 @@ class AnaComm:
         self.auto_loading = False
 
         self.history = [{
-            "text": "Hello, my name is Ana. How can I help you?",
+            "text": "Hello, I am Ana, an assistent that can help you with machine learning. You can ask me questions at any given time and go back to previous questions too. How can I help you?",
             "type": "bot",
             "timestamp": int(datetime.timestamp(datetime.now())*1000),
         }]
