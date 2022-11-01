@@ -3,8 +3,6 @@
 
   import AutoCompleteItem from "./AutoCompleteItem.svelte";
   
-  import { tick } from "svelte";
-  
   import { chatHistory, anaSideModel, subjectItems, anaSuperMode, anaQueryEnabled } from "../../stores";
   import type { IAutoCompleteItem } from "../../common/anachatInterfaces";
   import SuperChat from "./SuperChat.svelte";
@@ -13,7 +11,6 @@
   export let value: string = "";
   export let text: string|undefined = undefined;
   export let minCharactersToSearch = 1;
-  let chatinput: ChatInput;
   let textarea: HTMLElement;
   let items: IAutoCompleteItem[] = [];
   let loading = false 
@@ -82,8 +79,6 @@
     value = text = "";
     items = [];
     close();
-    await tick();
-    chatinput.resize();
   }
   
   async function selectItem(event: any) {
@@ -260,7 +255,6 @@
   <ChatInput 
     subclass="autocomplete select is-fullwidth {uniqueId}"
     placeholder="Talk to Ana here..."
-    bind:this={chatinput}
     bind:textarea
     bind:value
     on:focus={resetListToAllItemsAndOpen}

@@ -8,12 +8,6 @@
   let width: number;
   let textarea: HTMLElement|null = null;
 
-  export function resize(): void {
-    if (!textarea) return;
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.max(textarea.scrollHeight - 20, 15) + 'px';
-  }
-
   const click = (element: IOptionItem) => (): void => {
     if ($chatHistory[$chatHistory.length - 1] == message) {
       chatHistory.addNew({
@@ -62,7 +56,7 @@
   }
 
   .text {
-    padding-right: 28px;
+    padding-right: 3px;
     padding-left: 2px;
   }
 
@@ -73,11 +67,9 @@
   }
 
   .text :global(textarea) {
-    box-shadow: none;
-    outline: none;
-    resize:none;
-    height: 20px;
+    border: 1px solid #777;
   }
+
 </style>
 
 <Default {message} bind:width>
@@ -90,6 +82,6 @@
     {/each}
   </div>
   <div class="text">
-    <ChatInput value="" {resize} bind:textarea={textarea} subclass="subtext" placeholder="Ask a different question"/>
+    <ChatInput value="" bind:textarea={textarea} subclass="subtext" placeholder="Ask a different question"/>
   </div>
 </Default>

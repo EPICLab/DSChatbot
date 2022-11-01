@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { IChatMessage, IOptionItem } from "../../common/anachatInterfaces";
   import { chatHistory, anaAutoLoading, anaSideModel } from "../../stores";
-  import { onMount, tick } from "svelte";
+  import { tick } from "svelte";
 
   export let subclass = "";
   export let value: string = "";
@@ -11,20 +11,16 @@
   export let alternativeEnter: ((e: any) => Promise<boolean>) | null = null;
   export let alternativeInput: ((e: any) => Promise<boolean>) | null = null;
 
-  export function resize(): void {
-    if (!textarea) return;
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.max(textarea.scrollHeight, 35) + 'px';
-  }
+	export let minRows: number = 1;
+	export let maxRows: number | null = null;
+	
+	$: minHeight = `${1 + minRows * 1.2}em`;
+	$: maxHeight = maxRows ? `${1 + maxRows * 1.2}em` : `auto`;
+
   export async function clear() {
     value = "";
     await tick();
-    resize();
   }
-
-  onMount(() => {
-    resize();
-  })
 
   function createMessage(text: string): IChatMessage | null {
     let result: string | IOptionItem[];
@@ -69,24 +65,50 @@
 
   async function onInput(e: any) {
     if (alternativeInput === null || !await alternativeInput(e)) {
-      resize();
     }
   }
 
 </script>
 
 <style>
-  textarea {
-    width: 100%;
+  div {
+		position: relative;
+	}
 
-    font: inherit;
-    height: 100%;
-    padding: 5px 11px;
+  pre {
+    margin: 0;
   }
+
+  pre, textarea {
+		font-family: inherit;
+		padding: 0.5em;
+		box-sizing: border-box;
+		border: 1px solid #eee;
+		line-height: 1.2;
+		overflow: hidden;
+    padding: 5px 11px;
+	}
+
+  textarea:focus {
+    border: 1px solid #333;
+  }
+
+  textarea {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		top: 0;
+		resize: none;
+	}
 </style>
 
 
 <div class={subclass}>
+  <pre
+		aria-hidden="true"
+		style="min-height: {minHeight}; max-height: {maxHeight}"
+	>{value + '\n'}</pre>
+
   <textarea
     bind:this={textarea}
     bind:value={value}
