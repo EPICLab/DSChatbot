@@ -3,15 +3,17 @@
 
   import AutoCompleteItem from "./AutoCompleteItem.svelte";
   
-  import { onMount, tick } from "svelte";
+  import { tick } from "svelte";
   
-  import { chatHistory, anaSideModel, subjectItems, anaSuperMode, anaQueryEnabled, anaAutoLoading } from "../../stores";
-  import type { IAutoCompleteItem, IChatMessage, IOptionItem } from "../../common/anachatInterfaces";
+  import { chatHistory, anaSideModel, subjectItems, anaSuperMode, anaQueryEnabled } from "../../stores";
+  import type { IAutoCompleteItem } from "../../common/anachatInterfaces";
   import SuperChat from "./SuperChat.svelte";
+  import ChatInput from "./ChatInput.svelte";
 
   export let value: string = "";
   export let text: string|undefined = undefined;
   export let minCharactersToSearch = 1;
+  let chatinput: ChatInput;
   let textarea: HTMLElement;
   let items: IAutoCompleteItem[] = [];
   let loading = false 
@@ -27,15 +29,6 @@
   let superchat: SuperChat | null = null;
 
   const uniqueId = "sautocomplete-" + Math.floor(Math.random() * 1000)
-
-  const resize = (): void => {
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.max(textarea.scrollHeight, 35) + 'px';
-  }
-
-  onMount(() => {
-    resize();
-  })
   
   async function search() {
     let textFiltered = (text === undefined) ? "" : text.replace(/[&/\\#,+()$~%.'":*?<>{}]/g, " ").trim().toLowerCase()
@@ -90,8 +83,9 @@
     items = [];
     close();
     await tick();
-    resize();
+    chatinput.resize();
   }
+  
   async function selectItem(event: any) {
     chatHistory.addNew({
       text: '!subject ' + event.detail.item.key,
@@ -103,46 +97,7 @@
     })
     clear();
   }
-
-  function createMessage(text: string): IChatMessage | null {
-    let result: string | IOptionItem[];
-    text = text.trim();
-    if (text === '') {
-      return null;
-    }
-    result = text;
-    
-    return {
-      text: result,
-      type: 'user',
-      prevent: false,
-      hidden: false,
-      force: false,
-      timestamp: +new Date()
-    }
-  }
-
-  async function enter(e: any) {
-    e.preventDefault();
-    if (highlightIndex == -1) {
-      if (superchat) {
-        if (superchat.enterMessage(value)) {
-          clear()
-        }
-      } else {
-        let newMessage = createMessage(value);
-        if (newMessage !== null) {
-          chatHistory.addNew(newMessage);
-          if ($anaAutoLoading) {
-            $anaSideModel?.sendSupermode({ loading: $chatHistory.length });
-          }
-          clear();
-        }
-      }
-    } else {
-      selectItem({detail: { item: items[highlightIndex] }})
-    }
-  }
+ 
   function up() {
     open()
     if (highlightIndex < items.length - 1) {
@@ -175,31 +130,46 @@
       close()
     }
   }
-  function onInput(e: any) {
-    resize();
+
+  async function alternativeKeyDown(e: any) {
+    let key = e.key
+    if (key === "Tab" && opened) {
+      close();
+      return true;
+    } else if (key === "ArrowDown") {
+      down();
+      return true;
+    } else if (key === "ArrowUp") {
+      up();
+      return true;
+    } else if (key === "Escape") {
+      onEsc(e);
+      return true;
+    }
+    return false;
+  }
+  async function alternativeEnter(e: any) {
+    e.preventDefault();
+    if (highlightIndex != -1) {
+      selectItem({detail: { item: items[highlightIndex] }});
+      return true;
+    } else if (superchat) {
+      if (superchat.enterMessage(value)) {
+        clear()
+      }
+      return true;
+    }
+    return false;
+  }
+  async function alternativeInput(e: any) {
     text = e.target.value;
     if (inputDelayTimeout) {
       clearTimeout(inputDelayTimeout)
     }
     inputDelayTimeout = setTimeout(processInput, delay)
+    return false;
   }
-  function onBlur() {
-    //close();
-  }
-  async function onKeyDown(e: any) {
-    let key = e.key
-    if (key === "Tab" && opened) {
-      close();
-    } else if (key === "ArrowDown") {
-      down();
-    } else if (key === "ArrowUp") {
-      up();
-    } else if (key === "Escape") {
-      onEsc(e);
-    } else if ((key === "Enter") && (e.shiftKey === false)) {
-      await enter(e);
-    }
-  }
+
   function onDocumentClick(e: any) {
     if (e.composedPath().some((path: HTMLElement) => path.classList && path.classList.contains(uniqueId))) {
       highlight()
@@ -239,23 +209,15 @@
     padding-right: 1em;
   }
 
-  .autocomplete {
+  :global(.autocomplete) {
     min-width: 200px;
     max-width: 100%;
     position: relative;
     vertical-align: top;
   }
 
-  .autocomplete * {
+  :global(.autocomplete *) {
     box-sizing: border-box;
-  }
-
-  textarea {
-    width: 100%;
-
-    font: inherit;
-    height: 100%;
-    padding: 5px 11px;
   }
 
   .autocomplete-list {
@@ -281,10 +243,12 @@
     color: #999;
     line-height: 1;
   }
+
   .autocomplete-list-item-loading {
     padding: 5px 15px;
     line-height: 1;
   }
+
   .autocomplete-list.hidden {
     visibility: hidden;
     display: none;
@@ -293,17 +257,19 @@
 </style>
 
 <div class="text">
-  <div class="autocomplete select is-fullwidth {uniqueId}">
-    <textarea
-      bind:this={textarea}
-      bind:value
-      placeholder="Talk to Ana here..."
-      on:input={onInput}
-      on:focus={resetListToAllItemsAndOpen}
-      on:blur={onBlur}
-      on:keydown={onKeyDown}
-      on:click={resetListToAllItemsAndOpen}
-    ></textarea>
+  <ChatInput 
+    subclass="autocomplete select is-fullwidth {uniqueId}"
+    placeholder="Talk to Ana here..."
+    bind:this={chatinput}
+    bind:textarea
+    bind:value
+    on:focus={resetListToAllItemsAndOpen}
+    on:click={resetListToAllItemsAndOpen}
+    {alternativeKeyDown}
+    {alternativeEnter}
+    {alternativeInput}
+    {clear}
+  >
     <div
       class="autocomplete-list {showList ? '' : 'hidden'} is-fullwidth"
       bind:this={list}
@@ -330,7 +296,7 @@
         </div>
       {/if}
     </div>
-  </div>
+  </ChatInput>
 </div>
 
 {#if $anaSuperMode}

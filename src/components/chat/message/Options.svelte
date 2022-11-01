@@ -2,9 +2,17 @@
   import type { IChatMessage, IOptionItem } from "../../../common/anachatInterfaces";
   import Default from "./Default.svelte";
   import { chatHistory } from "../../../stores";
+  import ChatInput from "../ChatInput.svelte";
   export let message: IChatMessage;
+  
   let width: number;
+  let textarea: HTMLElement|null = null;
 
+  export function resize(): void {
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.max(textarea.scrollHeight - 20, 15) + 'px';
+  }
 
   const click = (element: IOptionItem) => (): void => {
     if ($chatHistory[$chatHistory.length - 1] == message) {
@@ -52,6 +60,24 @@
     display: flex;
     flex-wrap: wrap;
   }
+
+  .text {
+    padding-right: 28px;
+    padding-left: 2px;
+  }
+
+  .text :global(.subtext) {
+    box-sizing: border-box;
+    position: relative;
+    vertical-align: top;
+  }
+
+  .text :global(textarea) {
+    box-shadow: none;
+    outline: none;
+    resize:none;
+    height: 20px;
+  }
 </style>
 
 <Default {message} bind:width>
@@ -62,5 +88,8 @@
         {element.label}
       </div>
     {/each}
+  </div>
+  <div class="text">
+    <ChatInput value="" {resize} bind:textarea={textarea} subclass="subtext" placeholder="Ask a different question"/>
   </div>
 </Default>
