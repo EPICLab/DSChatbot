@@ -1,12 +1,8 @@
 <script lang="ts">
-  import { anaSideModel, anaSuperMode, anaQueryEnabled, anaMessageEnabled, anaLoading, anaAutoLoading, anaTimes } from "../../stores";
+  import { anaSideModel, anaSuperMode, anaMessageEnabled, anaLoading, anaAutoLoading, anaTimes } from "../../stores";
   import Renderer from "./status/Renderer.svelte";
 
   export let title: string;
-
-  function superModeToggleAutoComplete(event: any) {
-    $anaSideModel?.sendSupermode({ query_processing: event.target.checked });
-  }
   
   function superModeToggleMessage(event: any) {
     $anaSideModel?.sendSupermode({ message_processing: event.target.checked });
@@ -66,10 +62,7 @@
     {#if $anaLoading === true}
     <span>⌛️</span>
     {/if}
-    <label>
-      <input type=checkbox on:change={superModeToggleAutoComplete} checked={$anaQueryEnabled}>
-      Autocomplete
-    </label>
+    
     {#if $anaSuperMode}
     <br>
     

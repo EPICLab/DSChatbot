@@ -171,7 +171,11 @@
     } else {
       close()
     }
-  }  
+  }
+
+  function superModeToggleAutoComplete(event: any) {
+    $anaSideModel?.sendSupermode({ query_processing: event.target.checked });
+  }
 
   $: showList = opened && !$anaSuperMode && ((items && items.length > 0) || (filteredTextLength > 0 && loading && $anaQueryEnabled));
   $: ({ responseId, sitems } = $subjectItems);
@@ -251,7 +255,15 @@
 
 </style>
 
+
+
 <div class="text">
+  {#if !$anaSuperMode}
+    <label>
+      <input type=checkbox on:change={superModeToggleAutoComplete} checked={$anaQueryEnabled}>
+      Autocomplete
+    </label>
+  {/if}
   <ChatInput 
     subclass="autocomplete select is-fullwidth {uniqueId}"
     placeholder="Talk to Ana here..."
