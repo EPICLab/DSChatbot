@@ -28,10 +28,6 @@
       }
       let options: IOptionItem[] = [];
       let lines = text.substring(1).trim().split("\n-");
-      if (lines.length == 1 && text[0] !== '!') {
-        superModeErrorMessage = 'If you want to show a button with a single option, start the message with "!"';
-        return null;
-      }
       options = lines.map((line, index) => {
         let newText = line.trim();
         if (superModeType == 'ordered') {
@@ -101,7 +97,7 @@
   }
 
   function onClickContinue() {
-    superModeType = 'options';
+    superModeType = 'ordered';
     value = '- Continue'
     textarea.focus();
   }

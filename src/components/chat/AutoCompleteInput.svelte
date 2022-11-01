@@ -306,7 +306,7 @@
 </div>
 
 {#if $anaSuperMode}
-  <SuperChat bind:this={superchat} {textarea} {value}/>
+  <SuperChat bind:this={superchat} {textarea} bind:value={value}/>
 {/if}
 
 <svelte:window on:click={onDocumentClick} />
