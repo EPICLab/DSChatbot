@@ -35,14 +35,22 @@
 
 <style>
   div.button {
-    display: table-cell;
-    border: 2px solid #333;
-    padding: 5px;
-    margin: 2px;
-    max-width: 42%;
-    flex: 1 0 45%;
-    border-radius: 7px;
-    text-align: center;
+    flex: 1 0 100%;
+    padding-left: 5px;
+  }
+
+  .button:first-child {
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+  }
+
+  .button:last-child {
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+  }
+
+  .button:not(:first-child) {
+    border-top: 1px solid black;
   }
   
   div.button:hover {
@@ -53,6 +61,10 @@
   .inner {
     display: flex;
     flex-wrap: wrap;
+    padding-right: 5px;
+    border: 1px solid #333;
+    margin: 2px;
+    border-radius: 3px;
   }
 
   .text {
@@ -76,7 +88,7 @@
   <div> Suggestions (clickable): </div>
   <div class="inner">
     {#each items as element}
-      <div class="button" on:click={click(element)} title={element.key} style:max-width={((width - 45)/2) + 'px'}>
+      <div class="button" on:click={click(element)} title={element.key}>
         {element.label}
       </div>
     {/each}
