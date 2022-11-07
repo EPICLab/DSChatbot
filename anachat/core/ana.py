@@ -45,6 +45,7 @@ class DefaultState:
                 'value': node.get('description', ''),
                 'url': node.get('url', ''),
             })
+        result = result[:5]
         comm.send({
             "operation": "subjects",
             "responseId": request_id,
