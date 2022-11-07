@@ -18,7 +18,7 @@ def get_dataframes(comm):
             yield var
 
 
-def select_dataframe(comm, matches):
+def select_dataframe(comm, reply_to, matches):
     """Extracts dataframe name from pattern matching"""
     if matches and matches.group('df'):
         dataframe = matches.group('df')
@@ -30,15 +30,15 @@ def select_dataframe(comm, matches):
         ]
         if not options:
             comm.reply("I could not find any dataframe in your notebook. "
-                       "Please write the expression of the dataframe")
+                       "Please write the expression of the dataframe", reply=reply_to)
         else:
-            comm.reply("Please, select a dataframe")
-            comm.reply(options, "options")
+            comm.reply("Please, select a dataframe", reply=reply_to)
+            comm.reply(options, "options", reply=reply_to)
         dataframe = yield
     return dataframe
 
 
-def select_column(comm, matches):
+def select_column(comm, reply_to, matches):
     """Extracts column name from pattern matching"""
     if matches and matches.group('column'):
         column = matches.group('column')
@@ -47,30 +47,30 @@ def select_column(comm, matches):
     elif comm.memory['column']:
         column = comm.memory['column']
     else:
-        comm.reply("Please, write the column name")
+        comm.reply("Please, write the column name", reply=reply_to)
         column = yield
     return column
 
 
-def select_dataframe_column(comm, instructions):
+def select_dataframe_column(comm, reply_to, instructions):
     """Extracts dataframe and column from predefined pattern"""
     dataframe = yield from select_dataframe(
-        comm, re.search(r"from (dataframe )?(?P<df>.+?(?=( column )|$))", instructions)
+        comm, reply_to, re.search(r"from (dataframe )?(?P<df>.+?(?=( column )|$))", instructions)
     )
     column = yield from select_column(
-        comm, re.search(r"((^(?!from))|(column ))(?P<column>.+?(?=( from )|$))", instructions)
+        comm, reply_to, re.search(r"((^(?!from))|(column ))(?P<column>.+?(?=( from )|$))", instructions)
     )
     return dataframe, column
 
 
 def apply_str_list_operation(
-    comm, description, dataframe, column,
+    comm, reply_to, description, dataframe, column,
     prefix, str_op, list_op, code=""
 ):
     """Applies operations for str dataframe column or list dataframe column"""
     if column in (df := comm.shell.user_ns.get(dataframe, {})) and len(df) > 0:
         comm.reply(f'For {description} of {column!r} from {dataframe!r}, '
-                   f'please copy the following code to a cell:')
+                   f'please copy the following code to a cell:', reply=reply_to)
         if df[column].dtype == object and isinstance(df.iloc[0][column], str):
             code += f"{dataframe}['{prefix}_{column}'] = {str_op}"
         elif df[column].dtype == object and isinstance(df.iloc[0][column], list):
@@ -80,7 +80,8 @@ def apply_str_list_operation(
             code = ""
     else:
         comm.reply(f'I could not find this the column {column!r} from the dataframe {dataframe!r}. '
-                   f'If you know this exists and it has a string type, please copy the following code to a cell:')
+                   f'If you know this exists and it has a string type, please copy the following code to a cell:',
+                   reply=reply_to)
         code += f"{dataframe}['{prefix}_{column}'] = {str_op}"
 
-    comm.reply(code, type_="cell")
+    comm.reply(code, type_="cell", reply=reply_to)

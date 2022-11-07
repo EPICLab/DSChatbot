@@ -83,12 +83,14 @@
   
   async function selectItem(event: any) {
     chatHistory.addNew({
+      id: crypto.randomUUID(),
       text: '!subject ' + event.detail.item.key,
       type: 'user',
       prevent: false,
       timestamp: +new Date(),
       force: false,
       hidden: false,
+      reply: null,
     })
     clear();
   }

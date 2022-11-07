@@ -27,7 +27,7 @@ class _GeneratorStateManager:
     def __init__(self, gen):
         self.gen = gen
 
-    def process_message(self, comm, text):  # pylint: disable=unused-argument
+    def process_message(self, comm, text, reply_to, replying_to):  # pylint: disable=unused-argument
         """Processes user messages"""
         try:
             self.gen.send(text)
@@ -49,17 +49,18 @@ class GoToState(Exception):
 def create_reply_state(text):
     """Create a state that when enacted replies a text"""
     @statemanager()
-    def reply_state(comm):
+    def reply_state(comm, reply_to):
         """Replies predefined text and returns to default state"""
-        comm.reply(text)
+        comm.reply(text, reply=reply_to)
     return reply_state
 
 
 def create_panel_state(url, title):
     """Create a state that when enacted opens a panel"""
     @statemanager()
-    def panel_state(comm):
+    def panel_state(comm, reply_to):
         """Opens a predefined panel and returns to default state"""
+        # pylint: disable=unused-argument
         comm.open_panel(url, title)
     return panel_state
 
@@ -67,6 +68,6 @@ def create_panel_state(url, title):
 def create_state_loader(state):
     """Create a state that loads a state by name when enacted"""
     @statemanager()
-    def state_loader(comm):
+    def state_loader(comm, reply_to):
         raise GoToState(state)
     return state_loader

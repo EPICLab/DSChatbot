@@ -32,6 +32,6 @@
 
 <div bind:this={div}>
   {#each $chatHistory as message, index}
-    <Message {message} {scrollBottom} loading={index === $anaLoading} {index}/>
+    <Message {message} chat={div} {scrollBottom} loading={index === $anaLoading} {index}/>
   {/each}
 </div>

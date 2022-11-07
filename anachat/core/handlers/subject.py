@@ -31,7 +31,7 @@ def create_subject_state(subject, key=None):
     else:
         parent_key = key.rsplit(" > ", 2)[0]
     @statemanager()
-    def subject_state(comm):
+    def subject_state(comm, reply_to):
         options = []
         if 'description' in subject:
             options.append({
@@ -82,19 +82,22 @@ def create_subject_state(subject, key=None):
             })
 
         if not options:
-            comm.reply(f"Unfortunately, there is nothing in my knowlegde base about {name}.")
+            comm.reply(
+                f"Unfortunately, there is nothing in my knowlegde base about {name}.",
+                reply=reply_to
+            )
         else:
-            comm.reply(f"What do you want to know about {name}?")
-            ActionHandler().show_options(comm, options)
+            comm.reply(f"What do you want to know about {name}?", reply=reply_to)
+            ActionHandler().show_options(comm, options, reply_to)
     return subject_state
 
 
 def create_state_list(name, children, theme):
     """Creates state for list of children of subject"""
     @statemanager()
-    def children_state(comm):
-        comm.reply(f"{name} has {len(children)} {theme}. Please select one:")
-        pagination(comm, children)
+    def children_state(comm, reply_to):
+        comm.reply(f"{name} has {len(children)} {theme}. Please select one:", reply=reply_to)
+        pagination(comm, children, reply_to)
     return children_state
 
 
@@ -158,17 +161,17 @@ class SubjectHandler(HandlerWithPaths):
         ), documents=documents)
         self.paths[filepath] = self.getmtime(filepath)
 
-    def inner_process_message(self, comm, text):
+    def inner_process_message(self, comm, text, reply_to, replying_to):
         """Processes users message"""
         matches = list(self.search(text))
         if matches:
             comm.reply(f"I found {len(matches)} subjects. "
-                       f"Which one of these best describe your query?")
+                       f"Which one of these best describe your query?", reply=reply_to)
             pagination(comm, [{
                 'key': match['ref'],
                 'label': subject_name(node['name'], match['ref']),
                 'state': create_subject_state(node, key=match['ref'])
-            } for match, node in matches])
+            } for match, node in matches], reply_to)
             return True
         return None
 
@@ -186,7 +189,7 @@ class SubjectHandler(HandlerWithPaths):
                 node_ids.add(node_id)
                 yield (match, node)
 
-    def state_by_key(self, key):
+    def state_by_key(self, key, reply_to):
         """Return subject state by key, if it exists"""
         if key in self.docmap:
             node = self.docmap[key]['node']

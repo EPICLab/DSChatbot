@@ -11,21 +11,25 @@
   const click = (element: IOptionItem) => (): void => {
     if ($chatHistory[$chatHistory.length - 1] == message) {
       chatHistory.addNew({
+        id: crypto.randomUUID(),
         text: element.label,
         type: 'user',
         prevent: false,
         timestamp: +new Date(),
         force: false,
         hidden: false,
+        reply: message.id
       })
     } else {
       chatHistory.addNew({
+        id: crypto.randomUUID(),
         text: '!choose ' + element.key,
         type: 'user',
         prevent: false,
         timestamp: +new Date(),
         force: false,
         hidden: false,
+        reply: message.id
       })
     }
   }
@@ -94,6 +98,6 @@
     {/each}
   </div>
   <div class="text">
-    <ChatInput value="" bind:textarea={textarea} subclass="subtext" placeholder="Ask a different question"/>
+    <ChatInput value="" replyto={message.id} bind:textarea={textarea} subclass="subtext" placeholder="Ask a different question"/>
   </div>
 </Default>

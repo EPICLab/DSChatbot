@@ -9,13 +9,13 @@ PAGE_ID = 0
 def create_page(page, count, items, last):
     """Creates page state"""
     @statemanager()
-    def more_state(comm):
+    def more_state(comm, reply_to):
         start_pos = (page - 1)*count + 1
         end_pos = start_pos + count - 1
         if last:
             end_pos = start_pos + len(items)
-        comm.reply(f"Showing {start_pos}..{end_pos} (page {page})")
-        ActionHandler().show_options(comm, items)
+        comm.reply(f"Showing {start_pos}..{end_pos} (page {page})", reply=reply_to)
+        ActionHandler().show_options(comm, items, reply_to)
     return more_state
 
 
@@ -36,9 +36,9 @@ def _pagination(options, count=5, page=1):
     return current, False
 
 
-def pagination(comm, items, count=5):
+def pagination(comm, items, reply_to, *, count=5):
     """Paginates options and shows first page for consistency"""
-    items, last = _pagination(items, count)
+    items, last = _pagination(items, count=count)
     if not last:
-        comm.reply(f"Showing 1..{count} (page 1)")
-    ActionHandler().show_options(comm, items)
+        comm.reply(f"Showing 1..{count} (page 1)", reply=reply_to)
+    ActionHandler().show_options(comm, items, reply_to)

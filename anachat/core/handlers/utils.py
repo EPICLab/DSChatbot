@@ -22,10 +22,10 @@ class HandlerWithPaths:
                 self.reload()
                 break
 
-    def process_message(self, comm, text):
+    def process_message(self, comm, text, reply_to, replying_to):
         """Processes users message"""
         self.check_updates()
-        return self.inner_process_message(comm, text)
+        return self.inner_process_message(comm, text, reply_to, replying_to)
 
     def getmtime(self, path):
         """Returns the mofication time of a file"""
@@ -40,5 +40,5 @@ class HandlerWithPaths:
         """Defines how to reload paths for subclasses"""
 
     @abstractmethod
-    def inner_process_message(self, comm, text):
+    def inner_process_message(self, comm, text, reply_to, replying_to):
         """Defines how to process messages for subclasses"""

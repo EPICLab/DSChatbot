@@ -122,6 +122,9 @@ function createChatHistory() {
   function push(newMessage: IChatMessage) {
     current.push(newMessage);
     set(current);
+    if (get(anaSuperMode) != (newMessage.type != 'user')) {
+      replying.set(newMessage['id']);
+    }
   }
 
   function addNew(newMessage: IChatMessage) {
@@ -135,6 +138,10 @@ function createChatHistory() {
 
   function load(data: IChatMessage[]) {
     current = data;
+    const lastMessage = data[data.length - 1];
+    if (get(anaSuperMode) != (lastMessage.type != 'user')) {
+      replying.set(lastMessage['id']);
+    }
     set(current);
   }
 
@@ -188,6 +195,7 @@ function createPanelWidget() {
 }
 
 // ~~~~~~~~~~~ Stores ~~~~~~~~~~~~~~~~
+export const replying: Writable<string | null> = writable(null);
 export const anaRestrict: Writable<string | null> = writable(null);
 export const jupyterapp: Writable<JupyterFrontEnd | null> = writable(null);
 export const anaSideModel: Writable<AnaSideModel | null> = writable(null);

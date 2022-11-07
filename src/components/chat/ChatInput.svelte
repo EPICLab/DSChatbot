@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { IChatMessage, IOptionItem } from "../../common/anachatInterfaces";
-  import { chatHistory, anaAutoLoading, anaSideModel } from "../../stores";
+  import { chatHistory, anaAutoLoading, anaSideModel, replying } from "../../stores";
   import { tick } from "svelte";
 
   export let subclass = "";
@@ -10,6 +10,7 @@
   export let alternativeKeyDown: ((e: any) => Promise<boolean>) | null = null;
   export let alternativeEnter: ((e: any) => Promise<boolean>) | null = null;
   export let alternativeInput: ((e: any) => Promise<boolean>) | null = null;
+  export let replyto: string | null = null;
 
 	export let minRows: number = 1;
 	export let maxRows: number | null = null;
@@ -31,12 +32,14 @@
     result = text;
     
     return {
+      id: crypto.randomUUID(),
       text: result,
       type: 'user',
       prevent: false,
       hidden: false,
       force: false,
-      timestamp: +new Date()
+      timestamp: +new Date(),
+      reply: replyto || $replying
     }
   }
 

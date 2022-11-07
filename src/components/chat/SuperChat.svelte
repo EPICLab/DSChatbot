@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { IChatMessage, IMessageType, IOptionItem } from "../../common/anachatInterfaces";
-  import { chatHistory, anaSideModel, anaAutoLoading, anaSuperMode } from "../../stores";
+  import { chatHistory, anaSideModel, anaAutoLoading, anaSuperMode, replying } from "../../stores";
   import Message from "./message/Message.svelte";
   import { tick } from "svelte";
 
@@ -46,12 +46,14 @@
     let mestype: IMessageType = (superModeType === 'ordered') ? 'options' : superModeType;
 
     return {
+      id: crypto.randomUUID(),
       text: result,
       type: mestype,
       prevent: true,
       hidden: superModeHide,
       force: superModeHide,
-      timestamp: +new Date()
+      timestamp: +new Date(),
+      reply: $replying
     }
   }
 

@@ -32,7 +32,7 @@ class RegexHandler(HandlerWithPaths):
         self.paths = {}
         self.load_file(data() / 'regexes.json')
 
-    def inner_process_message(self, comm, text):
+    def inner_process_message(self, comm, text, reply_to, replying_to):
         """Processes user message"""
         for regex in self.regexes:
             matches = re.search(regex['regex'], text)

@@ -1,5 +1,6 @@
 """Define a Comm for Ana"""
 import traceback
+import uuid
 from collections import defaultdict, namedtuple
 from datetime import datetime
 from ipykernel.comm import Comm
@@ -24,7 +25,8 @@ class AnaComm:
         self.auto_loading = False
 
         self.history = [{
-            "text": "Hello, I am Ana, an assistent that can help you with machine learning. You can ask me questions at any given time and go back to previous questions too. How can I help you?",
+            "id": str(uuid.uuid4()),
+            "text": "Hello, I am Ana, an assistant that can help you with machine learning. You can ask me questions at any given time and go back to previous questions too. How can I help you?",
             "type": "bot",
             "timestamp": int(datetime.timestamp(datetime.now())*1000),
         }]
@@ -87,6 +89,8 @@ class AnaComm:
 
     def receive_message(self, message):
         """Receives message from user"""
+        if "id" not in message:
+            message["id"] = str(uuid.uuid4())
         self.history.append(message)
         self.send({
             "operation": "reply",
@@ -94,7 +98,9 @@ class AnaComm:
         })
 
         if not message.get('prevent') and self.message_processing_enabled or message.get('force'):
-            self.core.process_message(self, message.get("text"))
+            self.core.process_message(
+                self, message.get("text"), message.get('id'), message.get('reply')
+            )
 
     def receive_query(self, query_type, request_id, query):
         """Receives query from user"""
@@ -111,12 +117,14 @@ class AnaComm:
         """Receives send results"""
         self.comm.send(data)
 
-    def reply(self, text, type_="bot"):
+    def reply(self, text, type_="bot", reply=None):
         """Replies message to user"""
         message = {
+            "id": str(uuid.uuid4()),
             "text": text,
             "type": type_,
             "timestamp": int(datetime.timestamp(datetime.now())*1000),
+            "reply": reply,
         }
         self.history.append(message)
         self.send({

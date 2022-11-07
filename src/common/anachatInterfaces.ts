@@ -18,12 +18,14 @@ export interface IOptionItem {
 export type IMessageType = 'user' | 'bot' | 'error' | 'options' | 'cell' | 'usercode' | 'botcode';
 
 export interface IChatMessage {
+  id: string;
   text: string | IOptionItem[];
   type: IMessageType;
   timestamp: number;
   prevent: boolean;
   force: boolean;
   hidden: boolean;
+  reply: string | null;
 }
 
 export interface IAutoCompleteItem {
