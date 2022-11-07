@@ -42,13 +42,14 @@ def create_subject_state(subject, key=None):
         if 'url' in subject:
             options.append({
                 'key': f"{key}::url",
-                'label': 'Panel',
+                'label': 'Documentation',
                 'state': create_panel_state(subject['url'], name),
             })
         if 'parent' in subject:
+            parent_name = subject_name(subject['parent'])
             options.append({
                 'key': parent_key,
-                'label': 'Parent',
+                'label': f'⬆️ {parent_name}',
                 'state': create_subject_state(subject['parent'], parent_key)
             })
         if 'actions' in subject:
@@ -64,8 +65,10 @@ def create_subject_state(subject, key=None):
             })
         if 'children' in subject:
             children = []
+            children_names = []
             for child in subject['children']:
                 child_name = subject_name(child)
+                children_names.append(child_name)
                 child_key = key + " > " + child_name
                 children.append({
                     'key': child_key,
@@ -74,7 +77,7 @@ def create_subject_state(subject, key=None):
                 })
             options.append({
                 'key': f"{key}::children",
-                'label': 'Children',
+                'label': f'⬇️ {", ".join(children_names)}',
                 'state': create_state_list(name, children, "child subject(s)")
             })
 

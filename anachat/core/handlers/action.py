@@ -26,14 +26,19 @@ class ActionHandler:
         self.add(comm, options)
         new_options = [{
             'key': option['key'],
-            'label': option['label']
-        } for option in options]
+            'label': f"{num + 1}. {option['label']}"
+        } for num, option in enumerate(options)]
         comm.reply(new_options, "options")
 
     def process_message(self, comm, text):
         """Processes users message"""
         last = comm.options_actions.last[:]
         self.reset(comm)
+        if text and text[0].isdigit() and ('.' in text or text.isdigit()):
+            pos = int(text.split('.')[0])
+            if pos <= len(last):
+                return last[pos - 1]['state'](comm)
+
         for option in last:
             if option['key'] == text or option['label'].lower() == text.lower():
                 return option['state'](comm)
