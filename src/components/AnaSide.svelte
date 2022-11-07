@@ -13,13 +13,13 @@
 </script>
 
 {#if $anaSideModel && ($anaRestrict === null || $anaRestrict === name) }
-  <Header title="Ana - {name}"></Header>
+  <Header title="Newton - {name}"></Header>
   <Chat></Chat>
   {#if $hasKernel}
     <AutoCompleteInput></AutoCompleteInput>
   {/if}
 {:else}
-  <Header title="Ana"></Header>
+  <Header title="Newton"></Header>
   {#if $anaRestrict !== null}
     Currently, the chatbot only works on files named {$anaRestrict}.
   {/if}

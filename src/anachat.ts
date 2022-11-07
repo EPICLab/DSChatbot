@@ -21,7 +21,7 @@ export class AnaChat extends Panel {
   constructor() {
     super();
     this.title.icon = anaChatIcon.bindprops({ stylesheet: 'sideBar' });
-    this.title.caption = 'ana';
+    this.title.caption = 'Newton';
     this.id = 'ana';
     this._sessionContext = null;
     this._handlers = {};

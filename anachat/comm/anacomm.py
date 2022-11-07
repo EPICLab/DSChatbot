@@ -26,7 +26,7 @@ class AnaComm:
 
         self.history = [{
             "id": str(uuid.uuid4()),
-            "text": "Hello, I am Ana, an assistant that can help you with machine learning. You can ask me questions at any given time and go back to previous questions too. How can I help you?",
+            "text": "Hello, I am Newton, an assistant that can help you with machine learning. You can ask me questions at any given time and go back to previous questions too. How can I help you?",
             "type": "bot",
             "timestamp": int(datetime.timestamp(datetime.now())*1000),
         }]

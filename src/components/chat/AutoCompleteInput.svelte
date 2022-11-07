@@ -268,7 +268,7 @@
   {/if}
   <ChatInput 
     subclass="autocomplete select is-fullwidth {uniqueId}"
-    placeholder="Talk to Ana here..."
+    placeholder="Talk to Newton here..."
     bind:textarea
     bind:value
     on:focus={resetListToAllItemsAndOpen}

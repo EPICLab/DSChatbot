@@ -16,11 +16,11 @@
 
 {#if $anaSideModel}
   {#if !$connectedOnce}
-    <Inner title="Ana did not connect to a notebook">
+    <Inner title="Newton did not connect to a notebook">
       <Neverconnected/>
     </Inner>
   {:else if !$connectedNow}
-    <Inner title="Ana is not connected to a notebook">
+    <Inner title="Newton is not connected to a notebook">
       <Disconnected/>
     </Inner>
   {:else if !$hasKernel}
