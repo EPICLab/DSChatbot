@@ -12,7 +12,7 @@
   $: ({ hasKernel } = $kernelStatus);
 </script>
 
-{#if $anaSideModel && ($anaRestrict === null || $anaRestrict === name) }
+{#if $anaSideModel && ($anaRestrict.length === 0 || $anaRestrict.includes(name)) }
   <Header title="Newton - {name}"></Header>
   <Chat></Chat>
   {#if $hasKernel}
@@ -20,7 +20,7 @@
   {/if}
 {:else}
   <Header title="Newton"></Header>
-  {#if $anaRestrict !== null}
-    Currently, the chatbot only works on files named {$anaRestrict}.
+  {#if $anaRestrict.length !== 0}
+    Currently, the chatbot only works on files named {$anaRestrict.join(" or ")}.
   {/if}
 {/if}

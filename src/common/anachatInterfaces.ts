@@ -36,5 +36,5 @@ export interface IAutoCompleteItem {
 }
 
 export interface IServerConfig {
-  restrict: string | null;
+  restrict: string[];
 }

@@ -11,10 +11,10 @@ class RouteHandler(APIHandler):
     # Jupyter server
     @tornado.web.authenticated
     def get(self):
-        restrict = None
+        restrict = []
         for arg in sys.argv:
             if arg.startswith('--Anachat.restrict='):
-                restrict = arg[len('--Anachat.restrict='):]
+                restrict = arg[len('--Anachat.restrict='):].strip('"').strip("'").split(',')
         self.finish(json.dumps({
             'restrict': restrict
         }))

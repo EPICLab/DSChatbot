@@ -55,9 +55,9 @@ export class AnaChat extends Panel {
             this._sessionContext = widget.sessionContext;
             await model.connectNotebook();
             anaSideModel.set(model);
-            if (model.name == get(anaRestrict)) {
+            if (get(anaRestrict).includes(model.name)) {
               labShell.activateById(this.id);
-            } else if (get(anaRestrict) !== null) {
+            } else if (get(anaRestrict).length == 0) {
               labShell.collapseRight();
             }
           }

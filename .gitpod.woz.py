@@ -20,6 +20,6 @@ else:
     password = ''
 
 url = subprocess.check_output(['gp', 'url', '8888']).decode('utf-8').strip()
-result = f"jupyter lab --NotebookApp.allow_origin='{url}' --ip='*' --NotebookApp.token='' --NotebookApp.password='{password}' --collaborative --notebook-dir experiments/woz --Anachat.restrict=tool.ipynb"
+result = f"jupyter lab --NotebookApp.allow_origin='{url}' --ip='*' --NotebookApp.token='' --NotebookApp.password='{password}' --collaborative --notebook-dir experiments/woz --Anachat.restrict=tool.ipynb,warmup.ipynb"
 
 print(result)

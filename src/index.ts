@@ -19,6 +19,7 @@ function startPlugin(
   config: IServerConfig
 ) {
   try {
+    console.log("Restrict: %s", config.restrict)
     anaRestrict.set(config.restrict);
     jupyterapp.set(app);
     // Create the widget
@@ -72,7 +73,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       console.error(
         `The anachat server extension appears to be missing.\n${reason}\nStarting with default config`
       );
-      startPlugin(app, labShell, restorer, notebookTracker, { restrict: null });
+      startPlugin(app, labShell, restorer, notebookTracker, { restrict: [] });
     });
   }
   
