@@ -1,13 +1,18 @@
 """Provides class related to handling urls"""
 
+from ...comm.context import MessageContext
+from ..states.state import StateDefinition
+
+
 class URLHandler:
     """Handler that opens Panel if user types a URL"""
     # pylint: disable=too-few-public-methods
 
-    def process_message(self, comm, text, reply_to, replying_to):
+    def process_message(self, context: MessageContext) -> StateDefinition:
         """Processes user message"""
         # pylint: disable=no-self-use
+        text = context.text
         if text.startswith("http://") or text.startswith("https://"):
-            comm.open_panel(text, "URL View")
+            context.comm.open_panel(text, "URL View")
             return True
         return None

@@ -1,18 +1,39 @@
 """This module defines the subject state and the subject handler"""
+from __future__ import annotations
 import json
+from typing import List, Optional, TypedDict
 import uuid
-from lunr import lunr
-from lunr.exceptions import QueryParseError
+from lunr import lunr  # type: ignore
+from lunr.exceptions import QueryParseError  # type: ignore
 
+
+from ...comm.context import MessageContext
 from ..pagination import pagination
 from ..resources import data
 from ..states.utils import create_panel_state, create_reply_state, create_state_loader
 from ..states.utils import statemanager
-from .action import ActionHandler
+from ..states.state import StateCallable, StateDefinition
+from .action import ActionHandler, StatefulOption
 from .utils import HandlerWithPaths
 
 
-def subject_name(subject, key=None):
+class Action(TypedDict, total=False):
+    """Defines an Action"""
+    name: str
+    state: str
+
+
+class Subject(TypedDict, total=False):
+    """Defines a Subject"""
+    name: str | List[str]
+    description: Optional[str]
+    url: Optional[str]
+    parent: Optional[Subject]
+    actions: Optional[List[Action]]
+    children: Optional[List[Subject]]
+
+
+def subject_name(subject: Subject, key: str | None=None) -> str:
     """Return subject name"""
     if key:
         return key.rsplit(" > ", 2)[-1]
@@ -22,7 +43,7 @@ def subject_name(subject, key=None):
     return name
 
 
-def create_subject_state(subject, key=None):
+def create_subject_state(subject: Subject, key: str | None=None) -> StateCallable:
     """Creates state for subject"""
     name = subject_name(subject, key)
     if not key:
@@ -31,8 +52,8 @@ def create_subject_state(subject, key=None):
     else:
         parent_key = key.rsplit(" > ", 2)[0]
     @statemanager()
-    def subject_state(comm, reply_to):
-        options = []
+    def subject_state(context: MessageContext):
+        options: List[StatefulOption] = []
         if 'description' in subject:
             options.append({
                 'key': f"{key}::description",
@@ -45,31 +66,31 @@ def create_subject_state(subject, key=None):
                 'label': 'Documentation',
                 'state': create_panel_state(subject['url'], name),
             })
-        if 'parent' in subject:
-            parent_name = subject_name(subject['parent'])
+        if subject_parent := subject.get('parent', None):
+            parent_name = subject_name(subject_parent)
             options.append({
                 'key': parent_key,
                 'label': f'⬆️ {parent_name}',
-                'state': create_subject_state(subject['parent'], parent_key)
+                'state': create_subject_state(subject_parent, parent_key)
             })
-        if 'actions' in subject:
-            actions = [{
+        if subject_actions := subject.get('actions', []):
+            actions: List[StatefulOption] = [{
                 'key': action['state'],
                 'label': action['name'],
                 'state': create_state_loader(action['state'])
-            } for action in subject['actions']]
+            } for action in subject_actions]
             options.append({
                 'key': f"{key}::actions",
                 'label': 'Actions',
                 'state': create_state_list(name, actions, "action(s)")
             })
-        if 'children' in subject:
-            children = []
+        if subject_children := subject.get('children', []):
+            children: List[StatefulOption] = []
             children_names = []
-            for child in subject['children']:
+            for child in subject_children:
                 child_name = subject_name(child)
                 children_names.append(child_name)
-                child_key = key + " > " + child_name
+                child_key = f"{key} > {child_name}"
                 children.append({
                     'key': child_key,
                     'label': child_name,
@@ -82,22 +103,22 @@ def create_subject_state(subject, key=None):
             })
 
         if not options:
-            comm.reply(
+            context.reply(
                 f"Unfortunately, there is nothing in my knowlegde base about {name}.",
-                reply=reply_to
             )
         else:
-            comm.reply(f"What do you want to know about {name}?", reply=reply_to)
-            ActionHandler().show_options(comm, options, reply_to)
+            context.reply(f"What do you want to know about {name}?")
+            ActionHandler().show_options(context, options)
     return subject_state
 
 
-def create_state_list(name, children, theme):
+def create_state_list(name: str, children: List[StatefulOption], theme: str) -> StateCallable:
     """Creates state for list of children of subject"""
     @statemanager()
-    def children_state(comm, reply_to):
-        comm.reply(f"{name} has {len(children)} {theme}. Please select one:", reply=reply_to)
-        pagination(comm, children, reply_to)
+    def children_state(context: MessageContext) -> StateDefinition:
+        context.reply(f"{name} has {len(children)} {theme}. Please select one:")
+        pagination(context, children)
+        return None
     return children_state
 
 
@@ -147,7 +168,7 @@ class SubjectHandler(HandlerWithPaths):
                     visit.append((key, child))
         return docmap, documents
 
-    def inner_reload(self):
+    def inner_reload(self) -> None:
         """Reloads lunr indexes based on subjects file"""
         filepath = data() / 'subjects.json'
         with open(filepath, 'r', encoding='utf-8') as subjects:
@@ -161,17 +182,17 @@ class SubjectHandler(HandlerWithPaths):
         ), documents=documents)
         self.paths[filepath] = self.getmtime(filepath)
 
-    def inner_process_message(self, comm, text, reply_to, replying_to):
+    def inner_process_message(self, context: MessageContext) -> StateDefinition:
         """Processes users message"""
-        matches = list(self.search(text))
+        matches = list(self.search(context.text))
         if matches:
-            comm.reply(f"I found {len(matches)} subjects. "
-                       f"Which one of these best describe your query?", reply=reply_to)
-            pagination(comm, [{
+            context.reply(f"I found {len(matches)} subjects. "
+                          f"Which one of these best describe your query?")
+            pagination(context, [{
                 'key': match['ref'],
                 'label': subject_name(node['name'], match['ref']),
                 'state': create_subject_state(node, key=match['ref'])
-            } for match, node in matches], reply_to)
+            } for match, node in matches])
             return True
         return None
 
@@ -189,7 +210,7 @@ class SubjectHandler(HandlerWithPaths):
                 node_ids.add(node_id)
                 yield (match, node)
 
-    def state_by_key(self, key, reply_to):
+    def state_by_key(self, key) -> StateDefinition:
         """Return subject state by key, if it exists"""
         if key in self.docmap:
             node = self.docmap[key]['node']

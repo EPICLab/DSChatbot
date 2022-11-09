@@ -4,6 +4,8 @@ import uuid
 from collections import defaultdict, namedtuple
 from datetime import datetime
 from ipykernel.comm import Comm
+
+from .context import MessageContext
 from .core_loader import BaseLoader
 
 OptionsActions = namedtuple("OptionsActions", ['last', 'all'])
@@ -98,9 +100,10 @@ class AnaComm:
         })
 
         if not message.get('prevent') and self.message_processing_enabled or message.get('force'):
-            self.core.process_message(
+            context = MessageContext(
                 self, message.get("text"), message.get('id'), message.get('reply')
             )
+            self.core.process_message(context)
 
     def receive_query(self, query_type, request_id, query):
         """Receives query from user"""

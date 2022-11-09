@@ -1,8 +1,16 @@
 """Interactions helpers"""
+from __future__ import annotations
 import re
 import sys
+from typing import Generator, Match, Tuple, List, Any, TYPE_CHECKING
 
-def isdataframe(value):
+from ...comm.context import MessageContext, Option
+
+if TYPE_CHECKING:
+    from ...comm.anacomm import AnaComm
+
+
+def isdataframe(value: Any) -> bool:
     """Checks if value is a pandas dataframe"""
     if 'pandas' in sys.modules:
         # pylint: disable=import-outside-toplevel
@@ -11,66 +19,72 @@ def isdataframe(value):
     return str(type(value)) == "<class 'pandas.core.frame.DataFrame'>"
 
 
-def get_dataframes(comm):
+def get_dataframes(comm: AnaComm) -> Generator[str, None, None]:
     """Returns the available dataframes from the namespace"""
     for var, value in comm.shell.user_ns.items():
         if isdataframe(value):
             yield var
 
 
-def select_dataframe(comm, reply_to, matches):
+def select_dataframe(
+    context: MessageContext,
+    matches: Match[str] | None
+) -> Generator[None, str, str]:
     """Extracts dataframe name from pattern matching"""
     if matches and matches.group('df'):
         dataframe = matches.group('df')
-    elif comm.memory['dataframe']:
-        dataframe = comm.memory['dataframe']
+    elif context.comm.memory['dataframe']:
+        dataframe = context.comm.memory['dataframe']
     else:
-        options = [
-            {'key': i + 1, 'label': df} for i, df in enumerate(get_dataframes(comm))
+        options: List[Option] = [
+            {'key': str(i + 1), 'label': df} for i, df in enumerate(get_dataframes(context.comm))
         ]
         if not options:
-            comm.reply("I could not find any dataframe in your notebook. "
-                       "Please write the expression of the dataframe", reply=reply_to)
+            context.reply("I could not find any dataframe in your notebook. "
+                          "Please write the expression of the dataframe")
         else:
-            comm.reply("Please, select a dataframe", reply=reply_to)
-            comm.reply(options, "options", reply=reply_to)
+            context.reply("Please, select a dataframe")
+            context.reply(options, "options")
         dataframe = yield
     return dataframe
 
 
-def select_column(comm, reply_to, matches):
+def select_column(context: MessageContext, matches: Match[str] | None) -> Generator[None, str, str]:
     """Extracts column name from pattern matching"""
     if matches and matches.group('column'):
         column = matches.group('column')
         if column.startswith("column "):
             column = column[7:]
-    elif comm.memory['column']:
-        column = comm.memory['column']
+    elif context.comm.memory['column']:
+        column = context.comm.memory['column']
     else:
-        comm.reply("Please, write the column name", reply=reply_to)
+        context.reply("Please, write the column name")
         column = yield
     return column
 
 
-def select_dataframe_column(comm, reply_to, instructions):
+def select_dataframe_column(
+    context: MessageContext,
+    instructions: str
+) -> Generator[None, str, Tuple[str, str]]:
     """Extracts dataframe and column from predefined pattern"""
     dataframe = yield from select_dataframe(
-        comm, reply_to, re.search(r"from (dataframe )?(?P<df>.+?(?=( column )|$))", instructions)
+        context, re.search(r"from (dataframe )?(?P<df>.+?(?=( column )|$))", instructions)
     )
     column = yield from select_column(
-        comm, reply_to, re.search(r"((^(?!from))|(column ))(?P<column>.+?(?=( from )|$))", instructions)
+        context, re.search(r"((^(?!from))|(column ))(?P<column>.+?(?=( from )|$))", instructions)
     )
     return dataframe, column
 
 
 def apply_str_list_operation(
-    comm, reply_to, description, dataframe, column,
-    prefix, str_op, list_op, code=""
-):
+    context: MessageContext, description: str, dataframe: str, column: str,
+    prefix: str, str_op: str, list_op: str, code: str=""
+) -> None:
     """Applies operations for str dataframe column or list dataframe column"""
-    if column in (df := comm.shell.user_ns.get(dataframe, {})) and len(df) > 0:
-        comm.reply(f'For {description} of {column!r} from {dataframe!r}, '
-                   f'please copy the following code to a cell:', reply=reply_to)
+    if column in (df := context.comm.shell.user_ns.get(dataframe, {})) and len(df) > 0:
+        context.reply(f'For {description} of {column!r} from {dataframe!r}, '
+                      f'please copy the following code to a cell:')
         if df[column].dtype == object and isinstance(df.iloc[0][column], str):
             code += f"{dataframe}['{prefix}_{column}'] = {str_op}"
         elif df[column].dtype == object and isinstance(df.iloc[0][column], list):
@@ -79,9 +93,8 @@ def apply_str_list_operation(
         else:
             code = ""
     else:
-        comm.reply(f'I could not find this the column {column!r} from the dataframe {dataframe!r}. '
-                   f'If you know this exists and it has a string type, please copy the following code to a cell:',
-                   reply=reply_to)
+        context.reply(f'I could not find this the column {column!r} from the dataframe {dataframe!r}. '
+                      f'If you know this exists and it has a string type, please copy the following code to a cell:')
         code += f"{dataframe}['{prefix}_{column}'] = {str_op}"
 
-    comm.reply(code, type_="cell", reply=reply_to)
+    context.reply(code, type_="cell")

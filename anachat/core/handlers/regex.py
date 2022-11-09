@@ -1,10 +1,12 @@
 """Provides class related to handling regexes"""
 import json
 import re
+from pathlib import Path
 
-
+from ...comm.context import MessageContext
 from ..resources import data
 from ..states.utils import GoToState
+from ..states.state import StateDefinition
 from .utils import HandlerWithPaths
 
 
@@ -15,7 +17,7 @@ class RegexHandler(HandlerWithPaths):
         self.regexes = []
         super().__init__()
 
-    def load_file(self, filepath):
+    def load_file(self, filepath: Path) -> None:
         """Load regex definition file"""
         with open(filepath, 'r', encoding='utf-8') as subjects:
             regexes = json.load(subjects)
@@ -26,14 +28,15 @@ class RegexHandler(HandlerWithPaths):
                 self.regexes.append(regex)
         self.paths[filepath] = self.getmtime(filepath)
 
-    def inner_reload(self):
+    def inner_reload(self) -> None:
         """Reloads regexes definition"""
         self.regexes = []
         self.paths = {}
         self.load_file(data() / 'regexes.json')
 
-    def inner_process_message(self, comm, text, reply_to, replying_to):
+    def inner_process_message(self, context: MessageContext) -> StateDefinition:
         """Processes user message"""
+        text = context.text
         for regex in self.regexes:
             matches = re.search(regex['regex'], text)
             if matches:

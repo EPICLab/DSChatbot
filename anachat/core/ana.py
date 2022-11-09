@@ -1,15 +1,21 @@
 """Core Module that handles Ana operations"""
+from __future__ import annotations
 import traceback
+from typing import Iterable, Any, TYPE_CHECKING
 
-from anachat.core.handlers.woz import WozHandler
+from ..comm.context import MessageContext
 
-
+from .handlers.woz import WozHandler
 from .handlers.action import ActionHandler
 from .handlers.regex import RegexHandler
 from .handlers.subject import SubjectHandler
 from .handlers.url import URLHandler
 from .resources import import_state_module
 from .states.utils import GoToState
+from .states.state import StateDefinition
+
+if TYPE_CHECKING:
+    from ..comm.anacomm import AnaComm
 
 
 class DefaultState:
@@ -26,16 +32,16 @@ class DefaultState:
             self.subject_handler,
         ]
 
-    def process_message(self, comm, text, reply_to, replying_to):
+    def process_message(self, context: MessageContext) -> StateDefinition:
         """Processes user message"""
         for solver in self.solvers:
-            result = solver.process_message(comm, text, reply_to, replying_to)
+            result = solver.process_message(context)
             if result:
                 return result
-        comm.reply("I could not process this query. Please, try a different query", reply=reply_to)
+        context.reply("I could not process this query. Please, try a different query")
         return self
 
-    def process_query(self, comm, request_id, query):
+    def process_query(self, comm: AnaComm, request_id: int, query: str):
         """Processes subject queries"""
         result = []
         for match, node in self.subject_handler.search(query):
@@ -60,77 +66,78 @@ class AnaCore:
         self.default_state = DefaultState()
         self.state = self.default_state
 
-    def refresh(self, comm):
+    def refresh(self, comm: AnaComm):
         """Refresh chatbot"""
         # pylint: disable=no-self-use
         comm.send(comm.history_message("refresh"))
 
-    def set_state(self, comm, new_state, reply_to, *, params=None):
+    def set_state(
+        self,
+        context: MessageContext,
+        new_state: StateDefinition,
+        *,
+        params: Iterable[Any] | None=None
+    ):
         """Sets new state"""
         params = params or []
         if new_state is True:
             self.state = self.default_state
         elif isinstance(new_state, str):
             if new_state.startswith("!subject"):
-                self.set_state(comm, self.default_state, reply_to)
+                self.set_state(context, self.default_state)
                 self.state = self.default_state
                 subject = new_state[9:]
                 if subject:
-                    subject_state = self.default_state.subject_handler.state_by_key(subject, reply_to)
+                    subject_state = self.default_state.subject_handler.state_by_key(subject)
                     if not subject_state:
-                        comm.reply(
-                            f"Subject {subject} not found. Loading default state", reply=reply_to
-                        )
+                        context.reply(f"Subject {subject} not found. Loading default state")
                     else:
-                        self.set_state(comm, subject_state(comm, reply_to), reply_to)
+                        self.set_state(context, subject_state(context))
             else:
                 module_name, state_func = new_state.split("?", 2)
                 module = import_state_module(module_name)
                 if module is None:
-                    comm.reply(
-                        f"Module {module_name} not found! Back to default state", reply=reply_to
-                    )
+                    context.reply(f"Module {module_name} not found! Back to default state")
                     self.state = self.default_state
                     return
                 if not hasattr(module, state_func):
-                    comm.reply(f"State function {state_func} not found in {module_name}! "
-                               f"Back to default state", reply=reply_to)
+                    context.reply(f"State function {state_func} not found in {module_name}! "
+                               f"Back to default state")
                     self.state = self.default_state
                     return
-                self.set_state(comm, getattr(module, state_func)(comm, reply_to, *params), reply_to)
+                self.set_state(context, getattr(module, state_func)(context, *params))
         elif callable(new_state):
-            self.set_state(comm, new_state(comm, reply_to, *params), reply_to)
+            self.set_state(context, new_state(context, *params))
         elif new_state:
             self.state = new_state
         else:
             self.state = self.default_state
 
-    def process_message(self, comm, text, reply_to, replying_to):
+    def process_message(self, context: MessageContext) -> None:
         """Processes user message"""
+        text = context.text
         if text == "!debug":
-            comm.reply(f"Current state: {self.state!r}", reply=reply_to)
+            context.reply(f"Current state: {self.state!r}")
             return
         if text.startswith("!subject"):
-            self.set_state(comm, text, reply_to)
+            self.set_state(context, text)
             return
         if text.startswith("!show"):
-            keys = text.split()[1:] or comm.memory.keys()
+            keys = text.split()[1:] or context.comm.memory.keys()
             result = []
             for key in keys:
-                result.append(f"{key}: {comm.memory.get(key, '!not found')}")
-            comm.reply("\n".join(result), reply=reply_to)
+                result.append(f"{key}: {context.comm.memory.get(key, '!not found')}")
+            context.reply("\n".join(result))
             return
         try:
-            self.set_state(
-                comm, self.state.process_message(comm, text, reply_to, replying_to), reply_to
-            )
+            self.set_state(context, self.state.process_message(context))
         except GoToState as goto:
-            self.set_state(comm, goto.state, reply_to, params=goto.params)
+            self.set_state(context, goto.state, params=goto.params)
         except Exception:  # pylint: disable=broad-except
-            self.set_state(comm, self.default_state, reply_to)
-            comm.reply("Something is wrong: " + traceback.format_exc(), "error", reply=reply_to)
+            self.set_state(context, self.default_state)
+            context.reply("Something is wrong: " + traceback.format_exc(), "error")
 
-    def process_query(self, comm, query_type, request_id, query):
+    def process_query(self, comm: AnaComm, query_type: str, request_id: int, query: str):
         """Processes user query"""
         if query_type == "subject":
             self.default_state.process_query(comm, request_id, query)
@@ -139,13 +146,13 @@ class AnaCore:
 class DummyState:
     """Dummy state that only repeats user messages"""
 
-    def process_message(self, comm, text, reply_to, replying_to):
+    def process_message(self, context: MessageContext) -> StateDefinition:
         """Processes user messages"""
         # pylint: disable=unused-argument
-        comm.reply(text + ", ditto", reply=reply_to)
+        context.reply(context.text + ", ditto")
         return self
 
-    def process_query(self, comm, query_type, request_id, query):
+    def process_query(self, comm: AnaComm, query_type: str, request_id: int, query: str):
         """Processes user query"""
         # pylint: disable=unused-argument
         # pylint: disable=no-self-use
