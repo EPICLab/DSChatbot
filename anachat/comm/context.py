@@ -1,16 +1,18 @@
 """Defines a MessageContext"""
 from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from dataclasses import dataclass
-from typing import TypedDict, List, TYPE_CHECKING
+
 
 if TYPE_CHECKING:
+    from typing import TypedDict, List
     from .anacomm import AnaComm
 
-
-class Option(TypedDict, total=False):
-    """Defines an Option for a list of options"""
-    key: str
-    label: str
+    class Option(TypedDict, total=False):
+        """Defines an Option for a list of options"""
+        key: str
+        label: str
 
 
 @dataclass

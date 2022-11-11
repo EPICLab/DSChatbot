@@ -1,13 +1,15 @@
 """Interactions helpers"""
 from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import re
 import sys
-from typing import Generator, Match, Tuple, List, Any, TYPE_CHECKING
 
-from ...comm.context import MessageContext, Option
 
 if TYPE_CHECKING:
+    from typing import Generator, Match, Tuple, List, Any
     from ...comm.anacomm import AnaComm
+    from ...comm.context import MessageContext, Option
 
 
 def isdataframe(value: Any) -> bool:

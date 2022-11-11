@@ -1,9 +1,8 @@
 """Core Module that handles Ana operations"""
 from __future__ import annotations
-import traceback
-from typing import Iterable, Any, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
-from ..comm.context import MessageContext
+import traceback
 
 from .handlers.woz import WozHandler
 from .handlers.action import ActionHandler
@@ -12,10 +11,13 @@ from .handlers.subject import SubjectHandler
 from .handlers.url import URLHandler
 from .resources import import_state_module
 from .states.utils import GoToState
-from .states.state import StateDefinition
+
 
 if TYPE_CHECKING:
+    from typing import Iterable, Any
     from ..comm.anacomm import AnaComm
+    from ..comm.context import MessageContext
+    from .states.state import StateDefinition
 
 
 class DefaultState:

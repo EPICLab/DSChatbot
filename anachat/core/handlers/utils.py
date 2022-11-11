@@ -1,10 +1,14 @@
 """Utility functions for handlers"""
+from __future__ import annotations
+from typing import TYPE_CHECKING
 
 from abc import abstractmethod
 import os
 
-from ...comm.context import MessageContext
-from ..states.state import StateDefinition
+
+if TYPE_CHECKING:
+    from ...comm.context import MessageContext
+    from ..states.state import StateDefinition
 
 
 class HandlerWithPaths:

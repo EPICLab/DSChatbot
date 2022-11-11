@@ -1,36 +1,41 @@
 """This module defines the subject state and the subject handler"""
 from __future__ import annotations
+from typing import TYPE_CHECKING
 import json
-from typing import List, Optional, TypedDict
 import uuid
+
 from lunr import lunr  # type: ignore
 from lunr.exceptions import QueryParseError  # type: ignore
 
-
-from ...comm.context import MessageContext
 from ..pagination import pagination
 from ..resources import data
 from ..states.utils import create_panel_state, create_reply_state, create_state_loader
 from ..states.utils import statemanager
-from ..states.state import StateCallable, StateDefinition
-from .action import ActionHandler, StatefulOption
+from .action import ActionHandler
 from .utils import HandlerWithPaths
 
 
-class Action(TypedDict, total=False):
-    """Defines an Action"""
-    name: str
-    state: str
+if TYPE_CHECKING:
+    from typing import List, Optional, TypedDict
+    from ...comm.context import MessageContext
+    from ..states.state import StateCallable, StateDefinition
+    from .action import StatefulOption
 
 
-class Subject(TypedDict, total=False):
-    """Defines a Subject"""
-    name: str | List[str]
-    description: Optional[str]
-    url: Optional[str]
-    parent: Optional[Subject]
-    actions: Optional[List[Action]]
-    children: Optional[List[Subject]]
+    class Action(TypedDict, total=False):
+        """Defines an Action"""
+        name: str
+        state: str
+
+
+    class Subject(TypedDict, total=False):
+        """Defines a Subject"""
+        name: str | List[str]
+        description: Optional[str]
+        url: Optional[str]
+        parent: Optional[Subject]
+        actions: Optional[List[Action]]
+        children: Optional[List[Subject]]
 
 
 def subject_name(subject: Subject, key: str | None=None) -> str:

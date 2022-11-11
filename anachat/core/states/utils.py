@@ -1,15 +1,20 @@
 """State utility functions"""
+from __future__ import annotations
+from typing import TYPE_CHECKING, cast
+
 import inspect
 from functools import wraps
-from typing import Iterable, Any, cast
 
 
-from ...comm.context import MessageContext
-from ..states.state import StateCallable, StateDefinition, StateGenerator
+if TYPE_CHECKING:
+    from typing import Iterable, Any
+    from ...comm.context import MessageContext
+    from ..states.state import StateCallable, StateDefinition, StateGeneratorFunc
+
 
 def statemanager(default: StateDefinition=True):
     """Wraps generator function to support waiting for user replies"""
-    def inner(func: StateCallable | StateGenerator):
+    def inner(func: StateCallable | StateGeneratorFunc):
         """Inner decorator"""
         @wraps(func)
         def helper(context: MessageContext, *args, **kwargs) -> StateDefinition:
@@ -21,7 +26,8 @@ def statemanager(default: StateDefinition=True):
                     return exc.value or default
                 else:
                     return _GeneratorStateManager(gen)
-            return cast(StateCallable, func)(context, *args, **kwargs) or default
+            callable_func: StateCallable = cast('StateCallable', func)
+            return callable_func(context, *args, **kwargs) or default
         return helper
     return inner
 

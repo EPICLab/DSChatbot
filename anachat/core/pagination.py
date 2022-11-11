@@ -1,11 +1,17 @@
 """Provides funcions for creating pagination"""
+from __future__ import annotations
+from typing import TYPE_CHECKING
 
-from typing import List, Tuple
-
-from ..comm.context import MessageContext
-from .handlers.action import ActionHandler, StatefulOption
+from .handlers.action import ActionHandler
 from .states.utils import statemanager
-from .states.state import StateCallable
+
+
+if TYPE_CHECKING:
+    from typing import List, Tuple
+    from ..comm.context import MessageContext
+    from .handlers.action import StatefulOption
+    from .states.state import StateCallable
+
 
 PAGE_ID = 0
 
@@ -23,7 +29,11 @@ def create_page(page: int, count: int, items: List[StatefulOption], last: bool) 
     return more_state
 
 
-def _pagination(options: List[StatefulOption], count: int=5, page: int=1) -> Tuple[List[StatefulOption], bool]:
+def _pagination(
+    options: List[StatefulOption],
+    count: int=5,
+    page: int=1
+) -> Tuple[List[StatefulOption], bool]:
     """Splits options into pages"""
     global PAGE_ID  # pylint: disable=global-statement
     if len(options) <= count + 1:

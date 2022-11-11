@@ -1,16 +1,22 @@
 """Defines interactions for preprocessing the data"""
+from __future__ import annotations
+from typing import TYPE_CHECKING
 
-from typing import Generator
-from ...comm.context import MessageContext
-from .state import StateDefinition
 from .utils import statemanager
 from .helpers import select_dataframe_column, apply_str_list_operation
 
+
+if TYPE_CHECKING:
+    from typing import Generator
+    from ...comm.context import MessageContext
+    from .state import StateDefinition, StateGenerator
+
+
 @statemanager()
 def select_dataframe_state(
-    context: MessageContext, 
+    context: MessageContext,
     dataframe: str | None=None
-) -> Generator[None, str, StateDefinition]:
+) -> StateGenerator:
     """Selects dataframe for operations"""
     if not dataframe:
         context.reply("Please, write the dataframe name")
@@ -19,12 +25,11 @@ def select_dataframe_state(
     context.reply(f'Selected dataframe {dataframe!r}')
     return None
 
-
 @statemanager()
 def select_column_state(
     context: MessageContext,
     column: str | None=None
-) -> Generator[None, str, StateDefinition]:
+) -> StateGenerator:
     """Selects column for operations"""
     if not column:
         context.reply("Please, write the column name")
@@ -38,7 +43,7 @@ def select_column_state(
 def tokenize_column_state(
     context: MessageContext,
     instructions: str | None=None
-) -> Generator[None, str, StateDefinition]:
+) -> StateGenerator:
     """Tokenizes column"""
     set_column = context.comm.memory.get("column", None) is not None
     instructions = instructions or ""
@@ -82,7 +87,7 @@ def transform_case_generic(
 def to_lowercase_state(
     context: MessageContext,
     instructions: str | None=None
-) -> Generator[None, str, StateDefinition]:
+) -> StateGenerator:
     """Transforms case to lowercase"""
     yield from transform_case_generic("lower", context, instructions)
     return None
@@ -92,7 +97,7 @@ def to_lowercase_state(
 def to_uppercase_state(
     context: MessageContext,
     instructions: str | None=None
-) -> Generator[None, str, StateDefinition]:
+) -> StateGenerator:
     """Transforms case to uppercase"""
     yield from transform_case_generic("upper", context, instructions)
     return None
@@ -130,7 +135,7 @@ def minimum_length_state(
     context: MessageContext,
     number: str | None=None,
     instructions: str | None=None
-) -> Generator[None, str, StateDefinition]:
+) -> StateGenerator:
     """Filters column by minimum length (>)"""
     yield from filter_length_generic(">", "gt", context, number, instructions)
     return None
@@ -141,7 +146,7 @@ def minimum_length_inclusive_state(
     context: MessageContext,
     number: str | None=None,
     instructions: str | None=None
-) -> Generator[None, str, StateDefinition]:
+) -> StateGenerator:
     """Filters column by minimum length, inclusive (>=)"""
     yield from filter_length_generic(">=", "ge", context, number, instructions)
     return None
@@ -152,7 +157,7 @@ def maximum_length_state(
     context: MessageContext,
     number: str | None=None,
     instructions: str | None=None
-) -> Generator[None, str, StateDefinition]:
+) -> StateGenerator:
     """Filters column by maximum length (<)"""
     yield from filter_length_generic("<", "lt", context, number, instructions)
     return None
@@ -163,7 +168,7 @@ def maximum_length_inclusive_state(
     context: MessageContext,
     number: str | None=None,
     instructions: str | None=None
-) -> Generator[None, str, StateDefinition]:
+) -> StateGenerator:
     """Filters column by minimum length, inclusive (<=)"""
     yield from filter_length_generic("<=", "le", context, number, instructions)
     return None
@@ -175,7 +180,7 @@ def range_length_state(
     minimum: str | None=None,
     maximum: str | None=None,
     instruction: str | None=None
-) -> Generator[None, str, StateDefinition]:
+) -> StateGenerator:
     """Filters column by lenght in a range (a <= x <= b)"""
     set_column = context.comm.memory.get("column", None) is not None
     minimum = minimum or ""
@@ -207,7 +212,7 @@ def range_length_state(
 def remove_stopwords_state(
     context: MessageContext,
     instructions: str | None=None
-) -> Generator[None, str, StateDefinition]:
+) -> StateGenerator:
     """Removes stopwords from tokenized input"""
     set_column = context.comm.memory.get("column", None) is not None
     instructions = instructions or ""

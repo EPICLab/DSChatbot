@@ -1,13 +1,19 @@
 """Provides class related to handling regexes"""
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+
 import json
 import re
-from pathlib import Path
-
-from ...comm.context import MessageContext
 from ..resources import data
 from ..states.utils import GoToState
-from ..states.state import StateDefinition
 from .utils import HandlerWithPaths
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from ...comm.context import MessageContext
+    from ..states.state import StateDefinition
 
 
 class RegexHandler(HandlerWithPaths):

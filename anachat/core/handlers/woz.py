@@ -1,7 +1,11 @@
 """Provides class related to handling urls"""
+from __future__ import annotations
+from typing import TYPE_CHECKING
 
-from ...comm.context import MessageContext
-from ..states.state import StateDefinition
+
+if TYPE_CHECKING:
+    from ...comm.context import MessageContext
+    from ..states.state import StateDefinition
 
 
 class WozHandler:

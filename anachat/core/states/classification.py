@@ -1,8 +1,14 @@
 """Classification helpers"""
-from ...comm.context import MessageContext
-from ..states.state import StateDefinition
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from ..handlers.action import ActionHandler
 from .utils import create_state_loader
+
+
+if TYPE_CHECKING:
+    from ..states.state import StateDefinition
+    from ...comm.context import MessageContext
 
 
 def classification_steps_state(context: MessageContext, class_state=None) -> StateDefinition:

@@ -1,17 +1,17 @@
 """Provides classes related to handling options"""
 from __future__ import annotations
-from typing import List, Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
-from ...comm.context import MessageContext, Option
-from ..states.state import StateCallable, StateDefinition
 
 if TYPE_CHECKING:
+    from typing import List, Optional, Tuple
     from ...comm.anacomm import AnaComm
+    from ...comm.context import MessageContext, Option
+    from ..states.state import StateCallable, StateDefinition
 
-
-class StatefulOption(Option, total=False):
-    """Defines an Option for a list of options"""
-    state: Optional[StateCallable]
+    class StatefulOption(Option, total=False):
+        """Defines an Option for a list of options"""
+        state: Optional[StateCallable]
 
 
 class ActionHandler:

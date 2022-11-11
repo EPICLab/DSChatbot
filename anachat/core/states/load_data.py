@@ -1,18 +1,22 @@
 """Defines interactions for loading dataset files"""
+from __future__ import annotations
+from typing import TYPE_CHECKING
 
 import os
-from typing import Generator
 
-from ...comm.context import MessageContext
 from .utils import statemanager
-from .state import StateDefinition
+
+
+if TYPE_CHECKING:
+    from ...comm.context import MessageContext
+    from .state import StateGenerator
 
 
 @statemanager()
 def load_file_state(
     context: MessageContext,
     filename: str | None=None
-) -> Generator[None, str, StateDefinition]:
+) -> StateGenerator:
     """Load file data"""
     def prepare_file(text):
         if os.path.exists(text):
