@@ -57,7 +57,7 @@ export class AnaChat extends Panel {
             anaSideModel.set(model);
             if (get(anaRestrict).includes(model.name)) {
               labShell.activateById(this.id);
-            } else if (get(anaRestrict).length == 0) {
+            } else if (get(anaRestrict).length !== 0) {
               labShell.collapseRight();
             }
           }
