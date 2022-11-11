@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing import List, Optional, Tuple
     from ...comm.anacomm import AnaComm
-    from ...comm.context import MessageContext, Option
+    from ...comm.message import MessageContext, IOptionItem
     from ..states.state import StateCallable, StateDefinition
 
-    class StatefulOption(Option, total=False):
+    class StatefulOption(IOptionItem, total=False):
         """Defines an Option for a list of options"""
         state: Optional[StateCallable]
 
@@ -37,7 +37,7 @@ class ActionHandler:
         """Shows options that redirect to states"""
         self.reset(context.comm)
         self.add(context.comm, options)
-        new_options: List[Option] = [{
+        new_options: List[IOptionItem] = [{
             'key': option['key'],
             'label': f"{num + 1}. {option['label']}"
         } for num, option in enumerate(options)]

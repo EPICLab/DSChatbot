@@ -1,14 +1,20 @@
 """Define a Comm for Ana"""
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import traceback
-import uuid
 from collections import defaultdict, namedtuple
-from datetime import datetime
 from ipykernel.comm import Comm
 
-from .context import MessageContext
+from .message import MessageContext
 from .core_loader import BaseLoader
+from .message import KernelProcess
 
 OptionsActions = namedtuple("OptionsActions", ['last', 'all'])
+
+
+if TYPE_CHECKING:
+    from .message import IChatMessage
 
 
 class AnaComm:
@@ -26,12 +32,12 @@ class AnaComm:
         self.loading = False
         self.auto_loading = False
 
-        self.history = [{
-            "id": str(uuid.uuid4()),
-            "text": "Hello, I am Newton, an assistant that can help you with machine learning. You can ask me questions at any given time and go back to previous questions too. How can I help you?",
-            "type": "bot",
-            "timestamp": int(datetime.timestamp(datetime.now())*1000),
-        }]
+        self.history = [MessageContext.create_message(
+            ("Hello, I am Newton, an assistant that can help you with machine learning. "
+             "You can ask me questions at any given time and go back to previous questions too. "
+             "How can I help you?"),
+            "bot"
+        )]
         self.options_actions = OptionsActions([], {})
 
     @property
@@ -89,20 +95,20 @@ class AnaComm:
                 "message": traceback.format_exc(),
             })
 
-    def receive_message(self, message):
+    def receive_message(self, message: IChatMessage):
         """Receives message from user"""
-        if "id" not in message:
-            message["id"] = str(uuid.uuid4())
         self.history.append(message)
         self.send({
             "operation": "reply",
             "message": message
         })
-
-        if not message.get('prevent') and self.message_processing_enabled or message.get('force'):
-            context = MessageContext(
-                self, message.get("text"), message.get('id'), message.get('reply')
-            )
+        process_message = (
+            message.get('kernelProcess') == KernelProcess.PROCESS
+            and self.message_processing_enabled
+            or message.get('kernelProcess') == KernelProcess.FORCE
+        )
+        if process_message:
+            context = MessageContext(self, message)
             self.core.process_message(context)
 
     def receive_query(self, query_type, request_id, query):
@@ -122,13 +128,11 @@ class AnaComm:
 
     def reply(self, text, type_="bot", reply=None):
         """Replies message to user"""
-        message = {
-            "id": str(uuid.uuid4()),
-            "text": text,
-            "type": type_,
-            "timestamp": int(datetime.timestamp(datetime.now())*1000),
-            "reply": reply,
-        }
+        message = MessageContext.create_message(text, type_, reply)
+        self.reply_message(message)
+
+    def reply_message(self, message: IChatMessage):
+        """Replies IChatMessage to user"""
         self.history.append(message)
         self.send({
             "operation": "reply",

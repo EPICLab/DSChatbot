@@ -1,5 +1,5 @@
 <script type="ts">
-  import type { IChatMessage } from "../../../common/anachatInterfaces";
+  import { MessageDisplay, type IChatMessage } from "../../../common/anachatInterfaces";
   import { anaTimes, anaSuperMode, anaSideModel } from "../../../stores";
   export let message: IChatMessage;
   export let width = 100;
@@ -68,6 +68,11 @@
     border-color: red;
   }
 
+  .build {
+    border-style: dotted;
+    border-color: blue;
+  }
+
   .timestamp-user {
     text-align: right;
   }
@@ -95,7 +100,11 @@
       {/if}
     </div>
   {/if}
-  <div class:hidden={message.hidden} class="inner {message.type}" bind:clientWidth={width}>
+  <div 
+    class:hidden={message.display == MessageDisplay.Hidden} 
+    class:build={message.display == MessageDisplay.SupermodeInput} 
+    class="inner {message.type}" bind:clientWidth={width}
+  >
     <slot>
       {#if message.type !== 'user'}
         {@html message.text}

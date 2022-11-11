@@ -1,5 +1,5 @@
 <script type="ts">
-  import type { IChatMessage, IOptionItem } from "../../../common/anachatInterfaces";
+  import { KernelProcess, MessageDisplay, type IChatMessage, type IOptionItem } from "../../../common/anachatInterfaces";
   import Default from "./Default.svelte";
   import { chatHistory } from "../../../stores";
   import ChatInput from "../ChatInput.svelte";
@@ -14,22 +14,22 @@
         id: crypto.randomUUID(),
         text: element.label,
         type: 'user',
-        prevent: false,
         timestamp: +new Date(),
-        force: false,
-        hidden: false,
-        reply: message.id
+        reply: message.id,
+        display: MessageDisplay.Default,
+        kernelProcess: KernelProcess.Process,
+        kernelDisplay: MessageDisplay.Default
       })
     } else {
       chatHistory.addNew({
         id: crypto.randomUUID(),
         text: '!choose ' + element.key,
         type: 'user',
-        prevent: false,
         timestamp: +new Date(),
-        force: false,
-        hidden: false,
-        reply: message.id
+        reply: message.id,
+        display: MessageDisplay.Default,
+        kernelProcess: KernelProcess.Process,
+        kernelDisplay: MessageDisplay.Default
       })
     }
   }

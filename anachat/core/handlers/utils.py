@@ -7,7 +7,7 @@ import os
 
 
 if TYPE_CHECKING:
-    from ...comm.context import MessageContext
+    from ...comm.message import MessageContext
     from ..states.state import StateDefinition
 
 

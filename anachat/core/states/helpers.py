@@ -9,7 +9,7 @@ import sys
 if TYPE_CHECKING:
     from typing import Generator, Match, Tuple, List, Any
     from ...comm.anacomm import AnaComm
-    from ...comm.context import MessageContext, Option
+    from ...comm.message import MessageContext, IOptionItem
 
 
 def isdataframe(value: Any) -> bool:
@@ -38,7 +38,7 @@ def select_dataframe(
     elif context.comm.memory['dataframe']:
         dataframe = context.comm.memory['dataframe']
     else:
-        options: List[Option] = [
+        options: List[IOptionItem] = [
             {'key': str(i + 1), 'label': df} for i, df in enumerate(get_dataframes(context.comm))
         ]
         if not options:

@@ -8,7 +8,7 @@
       if ($anaSuperMode) {
         alert("Supermode disabled!");
         $anaSuperMode = false;
-      } else if (confirm("Do you want to enable Ana supermode?")) {
+      } else if (confirm("Do you want to enable Newton supermode?")) {
         $anaSuperMode = true;
       }
     }

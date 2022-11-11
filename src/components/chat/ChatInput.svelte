@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { IChatMessage, IOptionItem } from "../../common/anachatInterfaces";
+  import { KernelProcess, MessageDisplay, type IChatMessage, type IOptionItem } from "../../common/anachatInterfaces";
   import { chatHistory, anaAutoLoading, anaSideModel, replying } from "../../stores";
   import { tick } from "svelte";
 
@@ -35,11 +35,11 @@
       id: crypto.randomUUID(),
       text: result,
       type: 'user',
-      prevent: false,
-      hidden: false,
-      force: false,
       timestamp: +new Date(),
-      reply: replyto || $replying
+      reply: replyto || $replying,
+      display: MessageDisplay.Default,
+      kernelProcess: KernelProcess.Process,
+      kernelDisplay: MessageDisplay.Default
     }
   }
 

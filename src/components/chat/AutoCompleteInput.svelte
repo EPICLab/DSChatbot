@@ -4,7 +4,7 @@
   import AutoCompleteItem from "./AutoCompleteItem.svelte";
   
   import { chatHistory, anaSideModel, subjectItems, anaSuperMode, anaQueryEnabled } from "../../stores";
-  import type { IAutoCompleteItem } from "../../common/anachatInterfaces";
+  import { KernelProcess, MessageDisplay, type IAutoCompleteItem } from "../../common/anachatInterfaces";
   import SuperChat from "./SuperChat.svelte";
   import ChatInput from "./ChatInput.svelte";
 
@@ -86,11 +86,11 @@
       id: crypto.randomUUID(),
       text: '!subject ' + event.detail.item.key,
       type: 'user',
-      prevent: false,
       timestamp: +new Date(),
-      force: false,
-      hidden: false,
       reply: null,
+      display: MessageDisplay.Default,
+      kernelProcess: KernelProcess.Process,
+      kernelDisplay: MessageDisplay.Default
     })
     clear();
   }

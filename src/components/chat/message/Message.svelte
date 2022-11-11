@@ -1,7 +1,7 @@
 
 
 <script type="ts">
-  import type { IChatMessage } from '../../../common/anachatInterfaces';
+  import { MessageDisplay, type IChatMessage } from '../../../common/anachatInterfaces';
   import { anaSuperMode, replying } from '../../../stores';
   import Eye from '../../icons/eye.svelte';
   import Reply from '../../icons/reply.svelte';
@@ -116,7 +116,7 @@
   </div>
   {/if}
 
-  {#if !message.hidden || $anaSuperMode}
+  {#if message.display === MessageDisplay.Default || $anaSuperMode}
     {#if message.type === 'options'}
       <Options {message}/>
     {:else if message.type === 'cell'}

@@ -8,7 +8,7 @@ from .utils import create_state_loader
 
 if TYPE_CHECKING:
     from ..states.state import StateDefinition
-    from ...comm.context import MessageContext
+    from ...comm.message import MessageContext
 
 
 def classification_steps_state(context: MessageContext, class_state=None) -> StateDefinition:

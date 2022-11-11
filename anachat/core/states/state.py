@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing import Generator, Protocol, TypeAlias, Any, Union, Optional
 
-    from ...comm.context import MessageContext
+    from ...comm.message import MessageContext
 
     StateDefinition: TypeAlias = Union[None, bool, str, 'StateCallable', 'StateProtocol']
     StateGenerator: TypeAlias = Generator[None, str, StateDefinition]

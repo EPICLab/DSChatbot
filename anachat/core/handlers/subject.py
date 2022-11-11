@@ -17,7 +17,7 @@ from .utils import HandlerWithPaths
 
 if TYPE_CHECKING:
     from typing import List, Optional, TypedDict
-    from ...comm.context import MessageContext
+    from ...comm.message import MessageContext
     from ..states.state import StateCallable, StateDefinition
     from .action import StatefulOption
 

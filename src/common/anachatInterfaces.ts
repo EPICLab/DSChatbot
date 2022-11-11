@@ -17,15 +17,27 @@ export interface IOptionItem {
 
 export type IMessageType = 'user' | 'bot' | 'error' | 'options' | 'cell' | 'usercode' | 'botcode';
 
+export enum MessageDisplay {
+  Default = 0,
+  Hidden,
+  SupermodeInput
+}
+
+export enum KernelProcess {
+  Prevent = 0,
+  Process,
+  Force
+}
+
 export interface IChatMessage {
   id: string;
   text: string | IOptionItem[];
   type: IMessageType;
   timestamp: number;
-  prevent: boolean;
-  force: boolean;
-  hidden: boolean;
   reply: string | null;
+  display: MessageDisplay;
+  kernelProcess: KernelProcess;
+  kernelDisplay: MessageDisplay;
 }
 
 export interface IAutoCompleteItem {

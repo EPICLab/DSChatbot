@@ -1,6 +1,6 @@
 import type { JupyterFrontEnd } from '@jupyterlab/application';
 import { type Writable, writable, get } from 'svelte/store';
-import type { IChatMessage, IAutoCompleteItem } from './common/anachatInterfaces';
+import { type IChatMessage, type IAutoCompleteItem, MessageDisplay } from './common/anachatInterfaces';
 import { AnaPanelView } from './components/AnaPanelView';
 import type { AnaSideModel } from './dataAPI/AnaSideModel';
 import { anaChatIcon } from './iconimports';
@@ -125,6 +125,11 @@ function createChatHistory() {
     if (get(anaSuperMode) != (newMessage.type != 'user')) {
       replying.set(newMessage['id']);
     }
+    if (newMessage.display == MessageDisplay.SupermodeInput) {
+      let buildMessage = {...newMessage}
+      buildMessage.display = MessageDisplay.Default
+      superModePreviewMessage.set([...get(superModePreviewMessage), buildMessage]);
+    }
   }
 
   function addNew(newMessage: IChatMessage) {
@@ -207,6 +212,7 @@ export const anaQueryEnabled: Writable<boolean> = writable(true);
 export const anaMessageEnabled: Writable<boolean> = writable(true);
 export const anaTimes: Writable<boolean> = writable(true);
 export const subjectItems: Writable<{responseId: Writable<number>, sitems: Writable<IAutoCompleteItem[]>}> = writable({responseId: writable(-1), sitems: writable([])})
+export const superModePreviewMessage: Writable<IChatMessage[]> = writable([]);
 export const chatHistory = createChatHistory();
 export const kernelStatus = createStatus();
 export const panelWidget = createPanelWidget();

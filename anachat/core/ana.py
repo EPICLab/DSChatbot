@@ -16,7 +16,7 @@ from .states.utils import GoToState
 if TYPE_CHECKING:
     from typing import Iterable, Any
     from ..comm.anacomm import AnaComm
-    from ..comm.context import MessageContext
+    from ..comm.message import MessageContext
     from .states.state import StateDefinition
 
 

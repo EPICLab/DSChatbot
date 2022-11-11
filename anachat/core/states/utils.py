@@ -8,7 +8,7 @@ from functools import wraps
 
 if TYPE_CHECKING:
     from typing import Iterable, Any
-    from ...comm.context import MessageContext
+    from ...comm.message import MessageContext
     from ..states.state import StateCallable, StateDefinition, StateGeneratorFunc
 
 

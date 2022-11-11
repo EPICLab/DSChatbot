@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { IChatMessage, IMessageType, IOptionItem } from "../../common/anachatInterfaces";
-  import { chatHistory, anaSideModel, anaAutoLoading, anaSuperMode, replying } from "../../stores";
+  import { KernelProcess, MessageDisplay, type IChatMessage, type IMessageType, type IOptionItem } from "../../common/anachatInterfaces";
+  import { chatHistory, anaSideModel, anaAutoLoading, anaSuperMode, replying, superModePreviewMessage } from "../../stores";
   import Message from "./message/Message.svelte";
   import { tick } from "svelte";
 
@@ -10,8 +10,7 @@
   let superModeType: IMessageType | 'ordered' = 'bot';
   let superModeErrorMessage: string = "";
   let superModeOptionId = 0;
-  let superModeHide: boolean = false;
-  let superModePreviewMessage: IChatMessage[] = [];
+  let superModeTarget: 'user' | 'kernel' | 'build' = 'user';
 
   function createMessage(text: string): IChatMessage | null {
     let result: string | IOptionItem[];
@@ -49,18 +48,18 @@
       id: crypto.randomUUID(),
       text: result,
       type: mestype,
-      prevent: true,
-      hidden: superModeHide,
-      force: superModeHide,
       timestamp: +new Date(),
-      reply: $replying
+      reply: $replying,
+      display: superModeTarget === 'user' ? MessageDisplay.Default : MessageDisplay.Hidden,
+      kernelProcess: superModeTarget !== 'user' ? KernelProcess.Force : KernelProcess.Prevent,
+      kernelDisplay: superModeTarget === 'build' ? MessageDisplay.SupermodeInput : MessageDisplay.Default
     }
   }
 
   async function handleKeydown(e: any) {
     let key = e.key;
     if (e.altKey) {
-      if (key === "a") {
+      if (key === "n") {
         superModeType = "bot"
         textarea.focus();
       } else if (key === "o") {
@@ -78,8 +77,14 @@
       } else if (key === "e") {
         superModeType = "error"
         textarea.focus();
-      } else if (key === "h") {
-        superModeHide = !superModeHide;
+      } else if (key === "t") {
+        superModeTarget = "user"
+        textarea.focus();
+      } else if (key === "k") {
+        superModeTarget = "kernel"
+        textarea.focus();
+      } else if (key === "b") {
+        superModeTarget = "build"
         textarea.focus();
       }
     }
@@ -92,7 +97,7 @@
     superModeType = 'bot';
     let message = createMessage("Copy the following code to the notebook:");
     if (message !== null) {
-      superModePreviewMessage = [...superModePreviewMessage, message];
+      $superModePreviewMessage = [...$superModePreviewMessage, message];
       superModeType = 'cell';
     }
     textarea.focus();
@@ -105,17 +110,18 @@
   }
 
   function removePreview(index: number) {
-    superModePreviewMessage.splice(index, 1);
-    superModePreviewMessage = superModePreviewMessage;
+    $superModePreviewMessage.splice(index, 1);
+    $superModePreviewMessage = $superModePreviewMessage;
   }
 
   async function onSuperModeSend() {
     let timestamp = +new Date()
-    superModePreviewMessage.forEach((message: IChatMessage) => {
+    $superModePreviewMessage.forEach((message: IChatMessage) => {
       message.timestamp = timestamp;
+      message.reply = $replying;
       chatHistory.addNew(message);
     })
-    superModePreviewMessage = [];
+    $superModePreviewMessage = [];
     if ($anaAutoLoading) {
       $anaSideModel?.sendSupermode({ loading: false });
     }
@@ -125,7 +131,7 @@
   export function enterMessage(text: string): boolean {
     let message = createMessage(text);
     if (message !== null) {
-      superModePreviewMessage = [...superModePreviewMessage, message];
+      $superModePreviewMessage = [...$superModePreviewMessage, message];
       return true;
     }
     return false;
@@ -147,14 +153,26 @@
 
 </style>
 
-<label>
-  <input type=checkbox bind:checked={superModeHide} value="hide">
-  Send hidden message to chatbot
-</label>
+<div class="supermodetypes">
+  <label>
+    <input type=radio bind:group={superModeTarget} name="messageTarget" value="user">
+    User
+  </label>
+  <label>
+    <input type=radio bind:group={superModeTarget} name="messageTarget" value="kernel">
+    Kernel
+  </label>
+  <label>
+    <input type=radio bind:group={superModeTarget} name="messageTarget" value="build">
+    Build
+  </label>
+  <button on:click|preventDefault={onClickHereIsTheCode}>Code</button>
+  <button on:click|preventDefault={onClickContinue}>Continue</button>
+</div>
 <div class="supermodetypes">
   <label>
     <input type=radio bind:group={superModeType} name="messageType" value="bot">
-    Ana
+    Newton
   </label>
   <label>
     <input type=radio bind:group={superModeType} name="messageType" value="ordered">
@@ -176,8 +194,7 @@
     <input type=radio bind:group={superModeType} name="messageType" value="error">
     Error
   </label>
-  <button on:click|preventDefault={onClickHereIsTheCode}>Code</button>
-  <button on:click|preventDefault={onClickContinue}>Continue</button>
+  
 </div>
 {#if superModeErrorMessage}
 <div class="error">
@@ -187,7 +204,7 @@
 
 
 <button on:click|preventDefault={onSuperModeSend}>Send Messages (ctrl + enter)</button>
-{#each superModePreviewMessage as message, i}
+{#each $superModePreviewMessage as message, i}
   <Message {message} remove={() => removePreview(i)}/>
 {/each}
 
