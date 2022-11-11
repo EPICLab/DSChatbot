@@ -104,32 +104,27 @@
           submenu: targetMenu
         });
 
-        if (message.type != 'options') {
-          const typeMenu = new RankedMenu({ commands: commands });
-          typeMenu.id = 'jp-type-menu';
-          typeMenu.title.label = 'Change type';
-          BOT_TYPES.forEach((typeItem) => {
-            if (message.type === typeItem.type) {
-              return;
-            }
-            if (typeItem.type == 'ordered' || typeItem.type == 'options') {
-              return;
-            }
-            const key = `type-${typeItem.type}`
-            commands.addCommand(key, {
-              label: typeItem.label,
-              execute: () => { message.type = typeItem.type as IMessageType }
-            });
-            typeMenu.addItem({
-              command: key,
-            });
-          })
-          contextMenu.addItem({
-            selector: '*',
-            type: 'submenu',
-            submenu: typeMenu
+        const typeMenu = new RankedMenu({ commands: commands });
+        typeMenu.id = 'jp-type-menu';
+        typeMenu.title.label = 'Change type';
+        BOT_TYPES.forEach((typeItem) => {
+          if (message.type === typeItem.type) {
+            return;
+          }
+          const key = `type-${typeItem.type}`
+          commands.addCommand(key, {
+            label: typeItem.label,
+            execute: () => { message.type = typeItem.type as IMessageType }
           });
-        }
+          typeMenu.addItem({
+            command: key,
+          });
+        })
+        contextMenu.addItem({
+          selector: '*',
+          type: 'submenu',
+          submenu: typeMenu
+        });
         
         commands.addCommand('remove', {
           label: '❌ Remove',
@@ -232,7 +227,7 @@
       </div>
     {/if}
 
-    {#if message.type === 'options'}
+    {#if message.type === 'options' || message.type === 'ordered'}
       <Options {message} {index} {preview}/>
     {:else if message.type === 'cell'}
       <Cell {message} {scrollBottom}/>

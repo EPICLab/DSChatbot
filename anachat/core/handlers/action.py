@@ -37,11 +37,7 @@ class ActionHandler:
         """Shows options that redirect to states"""
         self.reset(context.comm)
         self.add(context.comm, options)
-        new_options: List[IOptionItem] = [{
-            'key': option['key'],
-            'label': f"{num + 1}. {option['label']}"
-        } for num, option in enumerate(options)]
-        context.reply(new_options, "options")
+        context.reply_options(options)
 
     def process_message(self, context: MessageContext) -> StateDefinition:
         """Processes users message"""
@@ -82,9 +78,9 @@ class OptionsState:
     def initial(self, context: MessageContext) -> None:
         """Presents label and options"""
         context.reply(self.label)
-        context.reply([
+        context.reply_options([
             {'key': item[0], 'label': item[1]} for item in self.options
-        ], "options")
+        ])
 
     def preprocess(self, text: str) -> str:
         """Removes spaces at the beginning and ending of text and transform it to lowercase"""

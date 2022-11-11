@@ -15,7 +15,7 @@ export interface IOptionItem {
   label: string;
 }
 
-export type IMessageType = 'user' | 'bot' | 'error' | 'options' | 'cell' | 'usercode' | 'botcode';
+export type IMessageType = 'user' | 'bot' | 'error' | 'ordered' | 'options' | 'cell' | 'usercode' | 'botcode';
 
 export enum MessageDisplay {
   Default = 0,
@@ -37,7 +37,7 @@ export interface ITargetDefinition {
 
 export interface IChatMessage extends ITargetDefinition {
   id: string;
-  text: string | IOptionItem[];
+  text: string;
   type: IMessageType;
   timestamp: number;
   reply: string | null;

@@ -58,7 +58,7 @@
     border-radius: 0.5rem 0.5rem 0.5rem 0;
   }
 
-  .options {
+  .options, .ordered {
     margin-right: 4em;
     background-color: #F2F2F2;
     border-radius: 0.5rem 0.5rem 0.5rem 0;

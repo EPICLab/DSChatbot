@@ -3,7 +3,7 @@
   import Default from "./Default.svelte";
   import { chatHistory } from "../../../stores";
   import ChatInput from "../ChatInput.svelte";
-  import { messageTarget } from "../../../common/messages";
+  import { extractOptions, messageTarget } from "../../../common/messages";
   export let message: IChatMessage;
   export let index: number;
   export let preview: boolean = false;
@@ -32,8 +32,9 @@
       })
     }
   }
+  let items: IOptionItem[];
 
-  const items: IOptionItem[] = message.text as IOptionItem[];
+  $: items = extractOptions(message.text, message.type);
 </script>
 
 <style>

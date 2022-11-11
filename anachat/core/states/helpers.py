@@ -46,7 +46,7 @@ def select_dataframe(
                           "Please write the expression of the dataframe")
         else:
             context.reply("Please, select a dataframe")
-            context.reply(options, "options")
+            context.reply_options(options)
         dataframe = yield
     return dataframe
 

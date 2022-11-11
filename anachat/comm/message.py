@@ -9,7 +9,7 @@ from enum import IntEnum
 
 
 if TYPE_CHECKING:
-    from typing import List, TypedDict
+    from typing import Sequence, TypedDict
 
     from .anacomm import AnaComm
 
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     class IChatMessage(TypedDict):
         """Represets a message"""
         id: str
-        text: str | List[IOptionItem]
+        text: str
         type: str
         timestamp: int
         reply: str | None
@@ -54,7 +54,7 @@ class MessageContext:
 
     @staticmethod
     def create_message(
-        text: str | List[IOptionItem],
+        text: str,
         type_: str,
         reply: str | None = None,
         display: MessageDisplay = MessageDisplay.DEFAULT
@@ -76,7 +76,7 @@ class MessageContext:
         """Returns original message text"""
         return self.original_message['text']
 
-    def reply(self, message: str | List[IOptionItem], type_: str="bot"):
+    def reply(self, message: str, type_: str="bot"):
         """Reply indicating the reply_to field"""
         self.comm.reply_message(self.create_message(
             message,
@@ -84,3 +84,12 @@ class MessageContext:
             self.original_message['id'],
             self.original_message['kernelDisplay']
         ))
+
+    def reply_options(self, options: Sequence[IOptionItem], ordered=True):
+        """Reply list of options"""
+        # pylint: disable=consider-using-f-string
+        type_ = 'ordered' if ordered else 'options'
+        result = []
+        for option in options:
+            result.append("{key}::bot::{label}".format(**option))
+        self.reply('-' + '\n-'.join(result), type_)

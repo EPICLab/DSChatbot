@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { IChatMessage, IMessageType, IOptionItem } from "../../common/anachatInterfaces";
-  import { chatHistory, anaSideModel, anaAutoLoading, anaSuperMode, replying, superModePreviewMessage } from "../../stores";
+  import type { IChatMessage, IMessageType } from "../../common/anachatInterfaces";
+  import { chatHistory, anaSideModel, anaAutoLoading, replying, superModePreviewMessage } from "../../stores";
   import Message from "./message/Message.svelte";
   import { tick } from "svelte";
   import { BOT_TARGETS, BOT_TYPES, messageTarget, type IMessageTarget } from "../../common/messages";
@@ -8,47 +8,18 @@
   export let textarea: HTMLElement;
   export let value: string;
 
-  let superModeType: IMessageType | 'ordered' = 'bot';
-  let superModeErrorMessage: string = "";
-  let superModeOptionId = 0;
+  let superModeType: IMessageType = 'bot';
   let superModeTarget: IMessageTarget = 'user';
 
   function createMessage(text: string): IChatMessage | null {
-    let result: string | IOptionItem[];
-    superModeErrorMessage = "";
     text = text.trim();
     if (text === '') {
       return null;
     }
-
-    if ($anaSuperMode && (superModeType === 'options' || superModeType === 'ordered')){
-      if (text[0] !== '-' && text[0] !== '!') {
-        superModeErrorMessage = 'You must start the options by "-"';
-        return null;
-      }
-      let options: IOptionItem[] = [];
-      let lines = text.substring(1).trim().split("\n-");
-      options = lines.map((line, index) => {
-        let newText = line.trim();
-        if (superModeType == 'ordered') {
-          newText = (index + 1) + '. ' + newText;
-        }
-        return {
-          'key': `SU-${superModeOptionId++}: ${newText}`,
-          'label': newText
-        }
-      })
-      result = options;
-    } else {
-      result = text;
-    }
-    
-    let mestype: IMessageType = (superModeType === 'ordered') ? 'options' : superModeType;
-
     return {
       id: crypto.randomUUID(),
-      text: result,
-      type: mestype,
+      text: text,
+      type: superModeType,
       timestamp: +new Date(),
       reply: $replying,
       ...messageTarget(superModeTarget)
@@ -122,15 +93,9 @@
 
 
 <style>
-
-  .error {
-    color: red;
-  }
-
   .supermodetypes {
     display: flex;
   }
-
 </style>
 
 <div class="supermodetypes">
@@ -151,11 +116,6 @@
     </label>
   {/each}
 </div>
-{#if superModeErrorMessage}
-<div class="error">
-  {superModeErrorMessage}
-</div>
-{/if}
 
 
 <button on:click|preventDefault={onSuperModeSend}>Send Messages (ctrl + enter)</button>

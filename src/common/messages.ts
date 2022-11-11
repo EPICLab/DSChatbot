@@ -1,4 +1,4 @@
-import { KernelProcess, MessageDisplay, type IChatMessage, type IMessageType, type ITargetDefinition } from "./anachatInterfaces";
+import { KernelProcess, MessageDisplay, type IChatMessage, type IMessageType, type IOptionItem, type ITargetDefinition } from "./anachatInterfaces";
 
 export function cloneMessage(message: IChatMessage, other?: Partial<IChatMessage>) {
   let newMessage = { ...message, ...other }
@@ -61,9 +61,8 @@ export const BOT_TARGETS: ITargetItem[] = [
   {target: 'build', label: 'Build', key: 'b'},
 ]
 
-
 export interface ITypeItem {
-  type: IMessageType | 'ordered';
+  type: IMessageType;
   label: string;
   key: string;
 }
@@ -76,3 +75,33 @@ export const BOT_TYPES: ITypeItem[] = [
   {type: 'user', label: 'User', key: 'u'},
   {type: 'error', label: 'Error', key: 'e'}
 ]
+
+export function extractOptions(text: string, type: IMessageType): IOptionItem[] {
+  let optionId = 0;
+  let options: IOptionItem[] = [];
+  if (!text) {
+    return options;
+  }
+  text = text.trim();
+  if (text[0] == '-' || text[0] == '!') {
+    text = text.substring(1).trim()
+  }
+  let lines = text.split("\n-");
+  options = lines.map((line, index) => {
+    let newText = line.trim() 
+    let key = `OP-${optionId++}: ${newText}`
+    const fields = newText.split("::bot::")
+    if (fields.length == 2) {
+      key = fields[0].trim()
+      newText = fields[1].trim()
+    } 
+    if (type == 'ordered') {
+      newText = (index + 1) + '. ' + newText;
+    }
+    return {
+      'key': key,
+      'label': newText
+    }
+  })
+  return options;
+}
