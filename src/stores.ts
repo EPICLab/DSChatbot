@@ -5,6 +5,7 @@ import { AnaPanelView } from './components/AnaPanelView';
 import type { AnaSideModel } from './dataAPI/AnaSideModel';
 import { anaChatIcon } from './iconimports';
 import { requestAPI } from './server';
+import { cloneMessage, messageTarget } from './common/messages';
 
 function createErrorHandler() {
   let current: string[] = [];
@@ -126,8 +127,7 @@ function createChatHistory() {
       replying.set(newMessage['id']);
     }
     if (newMessage.display == MessageDisplay.SupermodeInput) {
-      let buildMessage = {...newMessage}
-      buildMessage.display = MessageDisplay.Default
+      let buildMessage = cloneMessage(newMessage, messageTarget('user'))
       superModePreviewMessage.set([...get(superModePreviewMessage), buildMessage]);
     }
   }

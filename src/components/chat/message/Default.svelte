@@ -4,7 +4,8 @@
   export let message: IChatMessage;
   export let width = 100;
   export let loading = false;
-  export let index: number | null = null;
+  export let index: number;
+  export let preview: boolean = false;
 
   let timestamp = message.timestamp;
   if (!Number.isInteger(timestamp)) {
@@ -21,7 +22,7 @@
     }
   }
 
-  $: toggleableLoading = ($anaSuperMode && (index !== null));
+  $: toggleableLoading = ($anaSuperMode && !preview);
 </script>
 
 <style>
@@ -65,12 +66,20 @@
 
   .hidden {
     border-style: dotted;
+    border-width: 2px;
     border-color: red;
   }
 
   .build {
     border-style: dotted;
+    border-width: 2px;
     border-color: blue;
+  }
+
+  .tobuild {
+    border-style: dotted;
+    border-width: 2px;
+    border-color: green;
   }
 
   .timestamp-user {
@@ -92,7 +101,7 @@
 </style>
 
 <div class="outer">
-  {#if $anaTimes}
+  {#if $anaTimes && !preview}
     <div class:togglableLoading={toggleableLoading && !loading} class="timestamp-{message.type}"> 
       { new Date(timestamp).toLocaleTimeString("en-US") }
       {#if loading || toggleableLoading}
@@ -103,6 +112,7 @@
   <div 
     class:hidden={message.display == MessageDisplay.Hidden} 
     class:build={message.display == MessageDisplay.SupermodeInput} 
+    class:tobuild={message.kernelDisplay == MessageDisplay.SupermodeInput} 
     class="inner {message.type}" bind:clientWidth={width}
   >
     <slot>

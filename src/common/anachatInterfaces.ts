@@ -29,15 +29,18 @@ export enum KernelProcess {
   Force
 }
 
-export interface IChatMessage {
+export interface ITargetDefinition {
+  display: MessageDisplay;
+  kernelProcess: KernelProcess;
+  kernelDisplay: MessageDisplay;
+}
+
+export interface IChatMessage extends ITargetDefinition {
   id: string;
   text: string | IOptionItem[];
   type: IMessageType;
   timestamp: number;
   reply: string | null;
-  display: MessageDisplay;
-  kernelProcess: KernelProcess;
-  kernelDisplay: MessageDisplay;
 }
 
 export interface IAutoCompleteItem {

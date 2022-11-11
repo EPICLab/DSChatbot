@@ -1,8 +1,12 @@
 
 
 <script type="ts">
-  import { MessageDisplay, type IChatMessage } from '../../../common/anachatInterfaces';
-  import { anaSuperMode, replying } from '../../../stores';
+  import { MessageDisplay, type IChatMessage, type IMessageType } from '../../../common/anachatInterfaces';
+  import { anaSuperMode, replying, superModePreviewMessage, chatHistory, anaSideModel } from '../../../stores';
+  import { ContextMenu } from '@lumino/widgets';
+  import { CommandRegistry } from '@lumino/commands';
+  import { BOT_TARGETS, BOT_TYPES, checkTarget, cloneMessage, messageTarget } from "../../../common/messages";
+
   import Eye from '../../icons/eye.svelte';
   import Reply from '../../icons/reply.svelte';
 
@@ -10,13 +14,16 @@
   import Default from './Default.svelte';
   import Options from './Options.svelte';
   import UserCode from './UserCode.svelte';
+  import { RankedMenu } from '@jupyterlab/ui-components';
 
   export let message: IChatMessage;
   export let scrollBottom: () => void = () => {};
-  export let remove: (() => void) | null = null;
   export let loading = false;
-  export let index: number | null = null;
+  export let index: number;
   export let chat: HTMLElement | null = null;
+  export let preview: boolean = false;
+  
+  let div: HTMLElement | null = null;
 
   function select(e: any) {
     if ($replying == message.id) {
@@ -26,14 +33,137 @@
     }
   }
 
+  function blink(element: HTMLElement | null) {
+    if (element) {
+      element.onanimationend = () => {
+        element.classList.remove("blink-message")
+      }
+      element.classList.add("blink-message")
+    }
+  }
+
   function scroll(e: any) {
     if (chat && message.reply) {
       const element: HTMLElement = chat.getElementsByClassName(`message-${message.reply}`)[0] as HTMLElement;
-      element.onanimationend = () => {
-        element.classList.remove("blink-message");
-      }
-      element.classList.add("blink-message")
+      blink(element);
       chat.scrollTop = Math.max(0, element.offsetTop - 30);
+    }
+  }
+
+  function onRightClick(event: any) {
+    if ($anaSuperMode) {
+      blink(div);
+      const commands = new CommandRegistry();
+      const contextMenu = new ContextMenu({ commands });
+      commands.addCommand('add-reply', {
+        label: 'Add to reply',
+        execute: () => {
+          let newMessage = cloneMessage(message, messageTarget('user'))
+          $superModePreviewMessage = [...$superModePreviewMessage, newMessage];
+        }
+      });
+      contextMenu.addItem({
+        command: 'add-reply',
+        selector: '*',
+      });
+      commands.addCommand('build', {
+        label: 'Send to kernel (build)',
+        execute: () => {
+          let newMessage = cloneMessage(message, {
+            reply: $replying,
+            ...messageTarget('build')
+          })
+          chatHistory.addNew(newMessage);
+        }
+      });
+      contextMenu.addItem({
+        command: 'build',
+        selector: '*',
+      });
+
+      if (preview) {
+        const targetMenu = new RankedMenu({ commands: commands });
+        targetMenu.id = 'jp-target-menu';
+        targetMenu.title.label = 'Change target';
+        BOT_TARGETS.forEach((targetItem) => {
+          if (checkTarget(message) === targetItem.target) {
+            return;
+          }
+          const key = `target-${targetItem.target}`
+          commands.addCommand(key, {
+            label: targetItem.label,
+            execute: () => { message = { ...message, ...messageTarget(targetItem.target) } }
+          });
+          targetMenu.addItem({
+            command: key,
+          });
+        })
+        contextMenu.addItem({
+          selector: '*',
+          type: 'submenu',
+          submenu: targetMenu
+        });
+
+        if (message.type != 'options') {
+          const typeMenu = new RankedMenu({ commands: commands });
+          typeMenu.id = 'jp-type-menu';
+          typeMenu.title.label = 'Change type';
+          BOT_TYPES.forEach((typeItem) => {
+            if (message.type === typeItem.type) {
+              return;
+            }
+            if (typeItem.type == 'ordered' || typeItem.type == 'options') {
+              return;
+            }
+            const key = `type-${typeItem.type}`
+            commands.addCommand(key, {
+              label: typeItem.label,
+              execute: () => { message.type = typeItem.type as IMessageType }
+            });
+            typeMenu.addItem({
+              command: key,
+            });
+          })
+          contextMenu.addItem({
+            selector: '*',
+            type: 'submenu',
+            submenu: typeMenu
+          });
+        }
+        
+        commands.addCommand('remove', {
+          label: '❌ Remove',
+          execute: () => {
+            $superModePreviewMessage.splice(index, 1);
+            $superModePreviewMessage = $superModePreviewMessage;
+          }
+        });
+        contextMenu.addItem({
+          command: 'remove',
+          selector: '*',
+        });
+
+      } else {
+        commands.addCommand('loading', {
+        label: 'Toggle loading',
+        execute: () => {
+          if (loading) {
+            $anaSideModel?.sendSupermode({ loading: false });
+            loading = false;
+          } else {
+            $anaSideModel?.sendSupermode({ loading: index });
+          }
+        }
+      });
+      contextMenu.addItem({
+        command: 'loading',
+        selector: '*',
+      });
+      }
+
+      contextMenu.open(event as any);
+      event.preventDefault();
+      event.stopPropagation();
     }
   }
 
@@ -52,18 +182,6 @@
   }
 
   :global(.blink-message) { animation: blinking 2s 1; }
-  
-
-  span {
-    height: 0px;
-    position: relative;
-    top: 5px;
-    z-index: 1000;
-  }
-
-  span:hover {
-    cursor: pointer;
-  }
 
   .icons {
     height: 0px;
@@ -94,37 +212,34 @@
 </style>
 
 
-<div class="message-{message.id}"> 
-  {#if remove}
-  <span on:click={remove}>❌</span>
-  {:else}
-  <div class="icons {message.type}">
+<div bind:this={div} class="message-{message.id}" on:contextmenu={onRightClick}> 
+  
+  {#if message.display === MessageDisplay.Default || $anaSuperMode}
+    {#if !preview}
+      <div class="icons {message.type}">
 
-    {#if chat && message.reply}
-      <div title="View replied message" class="icon" on:click={scroll}><Eye/></div>
+        {#if chat && message.reply}
+          <div title="View replied message" class="icon" on:click={scroll}><Eye/></div>
+        {/if}
+
+        <div 
+          title={selected? "Replying to" : "Reply to"}
+          class="icon"
+          class:selected={selected} 
+          class:hideuserreply={!$anaSuperMode && message.type == 'user'}
+          on:click={select}
+        ><Reply/></div>
+      </div>
     {/if}
 
-    <div 
-      title={selected? "Replying to" : "Reply to"}
-      class="icon"
-      class:selected={selected} 
-      class:hideuserreply={!$anaSuperMode && message.type == 'user'}
-      on:click={select}
-    ><Reply/></div>
-
-
-  </div>
-  {/if}
-
-  {#if message.display === MessageDisplay.Default || $anaSuperMode}
     {#if message.type === 'options'}
-      <Options {message}/>
+      <Options {message} {index} {preview}/>
     {:else if message.type === 'cell'}
       <Cell {message} {scrollBottom}/>
     {:else if message.type === 'usercode' || message.type === 'botcode'}
       <UserCode {message} {scrollBottom}/>
     {:else}
-      <Default {message} {loading} {index}/>
+      <Default {message} bind:loading={loading} {index} {preview}/>
     {/if}
   {/if}
 </div>

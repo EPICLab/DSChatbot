@@ -68,7 +68,7 @@ class MessageContext:
             "reply": reply,
             "display": int(display),
             "kernelProcess": int(KernelProcess.PREVENT),
-            "kernelDisplay": int(display),
+            "kernelDisplay": int(MessageDisplay.DEFAULT),
         }
 
     @property

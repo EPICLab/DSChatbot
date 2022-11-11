@@ -4,9 +4,10 @@
   import AutoCompleteItem from "./AutoCompleteItem.svelte";
   
   import { chatHistory, anaSideModel, subjectItems, anaSuperMode, anaQueryEnabled } from "../../stores";
-  import { KernelProcess, MessageDisplay, type IAutoCompleteItem } from "../../common/anachatInterfaces";
+  import type { IAutoCompleteItem } from "../../common/anachatInterfaces";
   import SuperChat from "./SuperChat.svelte";
   import ChatInput from "./ChatInput.svelte";
+  import { messageTarget } from "../../common/messages";
 
   export let value: string = "";
   export let text: string|undefined = undefined;
@@ -88,9 +89,7 @@
       type: 'user',
       timestamp: +new Date(),
       reply: null,
-      display: MessageDisplay.Default,
-      kernelProcess: KernelProcess.Process,
-      kernelDisplay: MessageDisplay.Default
+      ...messageTarget('user')
     })
     clear();
   }

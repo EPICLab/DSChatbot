@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { KernelProcess, MessageDisplay, type IChatMessage, type IOptionItem } from "../../common/anachatInterfaces";
+  import type { IChatMessage, IOptionItem } from "../../common/anachatInterfaces";
   import { chatHistory, anaAutoLoading, anaSideModel, replying } from "../../stores";
   import { tick } from "svelte";
+  import { messageTarget } from "../../common/messages";
 
   export let subclass = "";
   export let value: string = "";
@@ -37,9 +38,7 @@
       type: 'user',
       timestamp: +new Date(),
       reply: replyto || $replying,
-      display: MessageDisplay.Default,
-      kernelProcess: KernelProcess.Process,
-      kernelDisplay: MessageDisplay.Default
+      ...messageTarget('bot')
     }
   }
 

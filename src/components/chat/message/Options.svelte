@@ -1,9 +1,12 @@
 <script type="ts">
-  import { KernelProcess, MessageDisplay, type IChatMessage, type IOptionItem } from "../../../common/anachatInterfaces";
+  import type { IChatMessage, IOptionItem } from "../../../common/anachatInterfaces";
   import Default from "./Default.svelte";
   import { chatHistory } from "../../../stores";
   import ChatInput from "../ChatInput.svelte";
+  import { messageTarget } from "../../../common/messages";
   export let message: IChatMessage;
+  export let index: number;
+  export let preview: boolean = false;
   
   let width: number;
   let textarea: HTMLElement|null = null;
@@ -16,9 +19,7 @@
         type: 'user',
         timestamp: +new Date(),
         reply: message.id,
-        display: MessageDisplay.Default,
-        kernelProcess: KernelProcess.Process,
-        kernelDisplay: MessageDisplay.Default
+        ...messageTarget('bot')
       })
     } else {
       chatHistory.addNew({
@@ -27,9 +28,7 @@
         type: 'user',
         timestamp: +new Date(),
         reply: message.id,
-        display: MessageDisplay.Default,
-        kernelProcess: KernelProcess.Process,
-        kernelDisplay: MessageDisplay.Default
+        ...messageTarget('bot')
       })
     }
   }
@@ -88,7 +87,7 @@
 
 </style>
 
-<Default {message} bind:width>
+<Default {message} {index} {preview} bind:width>
   <div> Suggestions (clickable): </div>
   <div class="inner">
     {#each items as element}

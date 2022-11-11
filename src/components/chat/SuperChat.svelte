@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { KernelProcess, MessageDisplay, type IChatMessage, type IMessageType, type IOptionItem } from "../../common/anachatInterfaces";
+  import type { IChatMessage, IMessageType, IOptionItem } from "../../common/anachatInterfaces";
   import { chatHistory, anaSideModel, anaAutoLoading, anaSuperMode, replying, superModePreviewMessage } from "../../stores";
   import Message from "./message/Message.svelte";
   import { tick } from "svelte";
+  import { BOT_TARGETS, BOT_TYPES, messageTarget, type IMessageTarget } from "../../common/messages";
 
   export let textarea: HTMLElement;
   export let value: string;
@@ -10,7 +11,7 @@
   let superModeType: IMessageType | 'ordered' = 'bot';
   let superModeErrorMessage: string = "";
   let superModeOptionId = 0;
-  let superModeTarget: 'user' | 'kernel' | 'build' = 'user';
+  let superModeTarget: IMessageTarget = 'user';
 
   function createMessage(text: string): IChatMessage | null {
     let result: string | IOptionItem[];
@@ -50,43 +51,25 @@
       type: mestype,
       timestamp: +new Date(),
       reply: $replying,
-      display: superModeTarget === 'user' ? MessageDisplay.Default : MessageDisplay.Hidden,
-      kernelProcess: superModeTarget !== 'user' ? KernelProcess.Force : KernelProcess.Prevent,
-      kernelDisplay: superModeTarget === 'build' ? MessageDisplay.SupermodeInput : MessageDisplay.Default
+      ...messageTarget(superModeTarget)
     }
   }
 
   async function handleKeydown(e: any) {
     let key = e.key;
     if (e.altKey) {
-      if (key === "n") {
-        superModeType = "bot"
-        textarea.focus();
-      } else if (key === "o") {
-        superModeType = "ordered"
-        textarea.focus();
-      } else if (key === "i") {
-        superModeType = "options"
-        textarea.focus();
-      } else if (key === "c") {
-        superModeType = "cell"
-        textarea.focus();
-      } else if (key === "u") {
-        superModeType = "user"
-        textarea.focus();
-      } else if (key === "e") {
-        superModeType = "error"
-        textarea.focus();
-      } else if (key === "t") {
-        superModeTarget = "user"
-        textarea.focus();
-      } else if (key === "k") {
-        superModeTarget = "kernel"
-        textarea.focus();
-      } else if (key === "b") {
-        superModeTarget = "build"
-        textarea.focus();
-      }
+      BOT_TARGETS.forEach((targetItem) => {
+        if (targetItem.key === key) {
+          superModeTarget = targetItem.target;
+          textarea.focus();
+        }
+      })
+      BOT_TYPES.forEach((typeItem) => {
+        if (typeItem.key === key) {
+          superModeType = typeItem.type;
+          textarea.focus();
+        }
+      })
     }
     if ((document.activeElement == textarea) && (key === "Enter") && e.ctrlKey) {
       await onSuperModeSend();
@@ -109,10 +92,7 @@
     textarea.focus();
   }
 
-  function removePreview(index: number) {
-    $superModePreviewMessage.splice(index, 1);
-    $superModePreviewMessage = $superModePreviewMessage;
-  }
+  
 
   async function onSuperModeSend() {
     let timestamp = +new Date()
@@ -154,47 +134,22 @@
 </style>
 
 <div class="supermodetypes">
-  <label>
-    <input type=radio bind:group={superModeTarget} name="messageTarget" value="user">
-    User
-  </label>
-  <label>
-    <input type=radio bind:group={superModeTarget} name="messageTarget" value="kernel">
-    Kernel
-  </label>
-  <label>
-    <input type=radio bind:group={superModeTarget} name="messageTarget" value="build">
-    Build
-  </label>
+  {#each BOT_TARGETS as targetItem}
+    <label title="Key: {targetItem.key}">
+      <input type=radio bind:group={superModeTarget} name="messageTarget" value={targetItem.target}>
+      {targetItem.label}
+    </label>
+  {/each}
   <button on:click|preventDefault={onClickHereIsTheCode}>Code</button>
   <button on:click|preventDefault={onClickContinue}>Continue</button>
 </div>
 <div class="supermodetypes">
-  <label>
-    <input type=radio bind:group={superModeType} name="messageType" value="bot">
-    Newton
-  </label>
-  <label>
-    <input type=radio bind:group={superModeType} name="messageType" value="ordered">
-    Ordered
-  </label>
-  <label>
-    <input type=radio bind:group={superModeType} name="messageType" value="options">
-    Items
-  </label>
-  <label>
-    <input type=radio bind:group={superModeType} name="messageType" value="cell">
-    Code
-  </label>
-  <label>
-    <input type=radio bind:group={superModeType} name="messageType" value="user">
-    User
-  </label>
-  <label>
-    <input type=radio bind:group={superModeType} name="messageType" value="error">
-    Error
-  </label>
-  
+  {#each BOT_TYPES as typeItem}
+    <label title="Key: {typeItem.key}">
+      <input type=radio bind:group={superModeType} name="messageType" value={typeItem.type}>
+      {typeItem.label}
+    </label>
+  {/each}
 </div>
 {#if superModeErrorMessage}
 <div class="error">
@@ -204,8 +159,8 @@
 
 
 <button on:click|preventDefault={onSuperModeSend}>Send Messages (ctrl + enter)</button>
-{#each $superModePreviewMessage as message, i}
-  <Message {message} remove={() => removePreview(i)}/>
+{#each $superModePreviewMessage as message, index}
+  <Message bind:message={message} {index} preview={true}/>
 {/each}
 
 
