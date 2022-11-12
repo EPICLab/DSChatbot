@@ -5,13 +5,12 @@
   import ChatInput from "../ChatInput.svelte";
   import { extractOptions, messageTarget } from "../../../common/messages";
   export let message: IChatMessage;
-  export let index: number;
   export let preview: boolean = false;
   
   let width: number;
   let textarea: HTMLElement|null = null;
 
-  const click = (element: IOptionItem) => (): void => {
+  const click = (element: IOptionItem) => (e: any): void => {
     if ($chatHistory[$chatHistory.length - 1] == message) {
       chatHistory.addNew({
         id: crypto.randomUUID(),
@@ -31,6 +30,7 @@
         ...messageTarget('bot')
       })
     }
+    e.target.blur();
   }
   let items: IOptionItem[];
 
@@ -38,9 +38,13 @@
 </script>
 
 <style>
-  div.button {
+  button {
     flex: 1 0 100%;
-    padding-left: 5px;
+    border: none;
+    border-radius: 0!important;
+    padding: 0 0 0 5px!important;
+    text-align: left;
+    font-size: 1em!important;
   }
 
   .button:first-child {
@@ -57,9 +61,13 @@
     border-top: 1px solid black;
   }
   
-  div.button:hover {
+  button:hover {
     background-color: #D0FDFF;
     cursor: pointer;
+  }
+
+  button:focus {
+    text-decoration: underline dotted;
   }
 
   .inner {
@@ -88,13 +96,13 @@
 
 </style>
 
-<Default {message} {index} {preview} bind:width>
+<Default {message} {preview} bind:width>
   <div> Suggestions (clickable): </div>
   <div class="inner">
     {#each items as element}
-      <div class="button" on:click={click(element)} title={element.key}>
+      <button class="button" on:click={click(element)} title={element.key}>
         {element.label}
-      </div>
+      </button>
     {/each}
   </div>
   <div class="text">

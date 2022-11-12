@@ -178,12 +178,23 @@
 
   :global(.blink-message) { animation: blinking 2s 1; }
 
+  button {
+    background: none!important;
+    border: none;
+    padding: 0!important;
+    cursor: pointer;
+  }
+
+  button:focus {
+    border-bottom: 1px dotted black;
+  }
+
   .icons {
     height: 0px;
     position: relative;
     top: 5px;
     z-index: 1000;
-    width: 13px;
+    width: 15px;
     float: right;
   }
 
@@ -214,27 +225,27 @@
       <div class="icons {message.type}">
 
         {#if chat && message.reply}
-          <div title="View replied message" class="icon" on:click={scroll}><Eye/></div>
+          <button title="View replied message" class="icon" on:click={scroll}><Eye/></button>
         {/if}
 
-        <div 
+        <button 
           title={selected? "Replying to" : "Reply to"}
           class="icon"
           class:selected={selected} 
           class:hideuserreply={!$anaSuperMode && message.type == 'user'}
           on:click={select}
-        ><Reply/></div>
+        ><Reply/></button>
       </div>
     {/if}
 
     {#if message.type === 'options' || message.type === 'ordered'}
-      <Options {message} {index} {preview}/>
+      <Options {message} {preview}/>
     {:else if message.type === 'cell'}
       <Cell {message} {scrollBottom}/>
     {:else if message.type === 'usercode' || message.type === 'botcode'}
       <UserCode {message} {scrollBottom}/>
     {:else}
-      <Default {message} bind:loading={loading} {index} {preview}/>
+      <Default {message} {loading} {preview}/>
     {/if}
   {/if}
 </div>

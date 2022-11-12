@@ -1,6 +1,7 @@
 <script lang="ts">
   import { anaSideModel, anaSuperMode, anaMessageEnabled, anaLoading, anaAutoLoading, anaTimes } from "../../stores";
   import Renderer from "./status/Renderer.svelte";
+  import { onKeyPress } from '../../common/utils';
 
   export let title: string;
   
@@ -16,10 +17,10 @@
     $anaSideModel?.sendSupermode({ auto_loading: event.target.checked });
   }
 
-
   const refresh = (): void => {
     $anaSideModel?.refresh();
   }
+  
 </script>
 
 <style>
@@ -57,7 +58,7 @@
 
 <div>
   <header>
-    <div class="title" class:supermode={$anaSuperMode} on:click={refresh} title="Click to refresh">{title}</div>
+    <div class="title" class:supermode={$anaSuperMode} on:click={refresh} on:keypress={(e) => onKeyPress(refresh, e)} title="Click to refresh">{title}</div>
     <Renderer/>
     {#if $anaLoading === true}
     <span>⌛️</span>

@@ -4,15 +4,20 @@
 </script>
 
 <style>
-  span {
+  button {
     float: left;
     margin: 0 3px;
+
+    background: none!important;
+    border: none;
+    padding: 0!important;
+    cursor: pointer;
   }
-  span:hover {
+  button:hover {
     cursor: pointer !important;
   }
 </style>
 
 {#if $errorHandler.length > 0}
-  <span on:click={clickError} title="Click to see errors">[Error]</span>
+  <button on:click|preventDefault={clickError} title="Click to see errors">[Error]</button>
 {/if}

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import type { IAutoCompleteItem } from "../../common/anachatInterfaces";
+  import { onKeyPress } from '../../common/utils';
   import { panelWidget } from '../../stores';
   import Eye from '../icons/eye.svelte';
   export let item: IAutoCompleteItem;
@@ -8,16 +9,18 @@
   export let position: number;
   const dispatch = createEventDispatcher();
 
-  function onClick() {
+  function onClick(e: Event) {
     dispatch('select', { item: item });
   }
-  function clickURL(e: any) {
+ 
+  function clickURL(e: Event) {
     e.preventDefault()
     panelWidget.load_url(
       item.url as string,
       item.key as string,
     )
   }
+
 </script>
 
 <style>
@@ -38,9 +41,13 @@
   class="autocomplete-list-item"
   class:selected={position === highlightIndex}
   on:click={onClick}
+  on:keypress={(e) => onKeyPress(onClick, e)}
 >
   {item.key}
   {#if item.url}
-    <span on:click={clickURL}><Eye/></span>
+    <span 
+      on:click={clickURL}
+      on:keypress={(e) => onKeyPress(clickURL, e)}
+    ><Eye/></span>
   {/if}
 </div>

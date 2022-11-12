@@ -1,28 +1,15 @@
 <script type="ts">
   import { MessageDisplay, type IChatMessage } from "../../../common/anachatInterfaces";
-  import { anaTimes, anaSuperMode, anaSideModel } from "../../../stores";
+  import { anaTimes } from "../../../stores";
   export let message: IChatMessage;
   export let width = 100;
   export let loading = false;
-  export let index: number;
   export let preview: boolean = false;
 
   let timestamp = message.timestamp;
   if (!Number.isInteger(timestamp)) {
     timestamp = timestamp * 1000;
   }
-
-  function clickLoading() {
-    if (!$anaSuperMode || !toggleableLoading) return;
-    if (loading) {
-      $anaSideModel?.sendSupermode({ loading: false });
-      loading = false;
-    } else {
-      $anaSideModel?.sendSupermode({ loading: index });
-    }
-  }
-
-  $: toggleableLoading = ($anaSuperMode && !preview);
 </script>
 
 <style>
@@ -86,26 +73,14 @@
     text-align: right;
   }
 
-  
-  .togglableLoading span {
-    display: none;
-  }
-
-  .togglableLoading:hover span {
-    display: inline-block;
-  }
-
-  span.clickable:hover {
-    cursor: pointer;
-  }
 </style>
 
 <div class="outer">
   {#if $anaTimes && !preview}
-    <div class:togglableLoading={toggleableLoading && !loading} class="timestamp-{message.type}"> 
+    <div class="timestamp-{message.type}"> 
       { new Date(timestamp).toLocaleTimeString("en-US") }
-      {#if loading || toggleableLoading}
-        <span class:clickable={$anaSuperMode} on:click|preventDefault={clickLoading}>⌛️</span>
+      {#if loading}
+        <span>⌛️</span>
       {/if}
     </div>
   {/if}
