@@ -38,7 +38,7 @@ class AnaComm:
              "How can I help you?"),
             "bot"
         )]
-        self.options_actions = OptionsActions([], {})
+        self.checkpoints = {}
 
     @property
     def core(self):

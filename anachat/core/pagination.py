@@ -2,14 +2,14 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from .handlers.action import ActionHandler
+from .action import show_options
 from .states.utils import statemanager
 
 
 if TYPE_CHECKING:
     from typing import List, Tuple
     from ..comm.message import MessageContext
-    from .handlers.action import StatefulOption
+    from .action import StatefulOption
     from .states.state import StateCallable
 
 
@@ -25,7 +25,7 @@ def create_page(page: int, count: int, items: List[StatefulOption], last: bool) 
         if last:
             end_pos = start_pos + len(items)
         context.reply(f"Showing {start_pos}..{end_pos} (page {page})")
-        ActionHandler().show_options(context, items)
+        show_options(context, items)
     return more_state
 
 
@@ -55,4 +55,4 @@ def pagination(context: MessageContext, items: List[StatefulOption], *, count: i
     items, last = _pagination(items, count=count)
     if not last:
         context.reply(f"Showing 1..{count} (page 1)")
-    ActionHandler().show_options(context, items)
+    show_options(context, items)

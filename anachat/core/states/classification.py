@@ -2,7 +2,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from ..handlers.action import ActionHandler
+from ..action import show_options
 from .utils import create_state_loader
 
 
@@ -17,7 +17,7 @@ def classification_steps_state(context: MessageContext, class_state=None) -> Sta
         context.comm.memory["class_state"] = class_state
     context.comm.memory["sub_state"] = "Classification"
     context.reply("Sounds good. Here are the steps for a classification:")
-    ActionHandler().show_options(context, [
+    show_options(context, [
         {'key': '1', 'label': 'Preprocessing',
          'state': create_state_loader('!subject Classification > Preprocessing')},
         {'key': '2', 'label': 'Algorithm Specification',

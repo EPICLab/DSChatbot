@@ -8,7 +8,9 @@ from datetime import datetime
 from enum import IntEnum
 
 
+
 if TYPE_CHECKING:
+    from ..core.states.state import StateDefinition
     from typing import Sequence, TypedDict
 
     from .anacomm import AnaComm
@@ -57,7 +59,7 @@ class MessageContext:
         text: str,
         type_: str,
         reply: str | None = None,
-        display: MessageDisplay = MessageDisplay.DEFAULT
+        display: MessageDisplay = MessageDisplay.DEFAULT,
     ) -> IChatMessage:
         """Creates IChatMessage"""
         return {
@@ -76,20 +78,28 @@ class MessageContext:
         """Returns original message text"""
         return self.original_message['text']
 
-    def reply(self, message: str, type_: str="bot"):
+    def reply(self, message: str, type_: str="bot", checkpoint: StateDefinition | None = None):
         """Reply indicating the reply_to field"""
-        self.comm.reply_message(self.create_message(
+        message = self.create_message(
             message,
             type_,
             self.original_message['id'],
             self.original_message['kernelDisplay']
-        ))
+        )
+        if checkpoint is not None:
+            self.comm.checkpoints[message['id']] = checkpoint
+        self.comm.reply_message(message)
 
-    def reply_options(self, options: Sequence[IOptionItem], ordered=True):
+    def reply_options(
+        self,
+        options: Sequence[IOptionItem],
+        ordered: bool = True,
+        checkpoint: StateDefinition | None = None
+    ):
         """Reply list of options"""
         # pylint: disable=consider-using-f-string
         type_ = 'ordered' if ordered else 'options'
         result = []
         for option in options:
             result.append("{key}::bot::{label}".format(**option))
-        self.reply('-' + '\n-'.join(result), type_)
+        self.reply('-' + '\n-'.join(result), type_, checkpoint=checkpoint)

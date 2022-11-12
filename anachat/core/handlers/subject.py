@@ -11,7 +11,7 @@ from ..pagination import pagination
 from ..resources import data
 from ..states.utils import create_panel_state, create_reply_state, create_state_loader
 from ..states.utils import statemanager
-from .action import ActionHandler
+from ..action import show_options
 from .utils import HandlerWithPaths
 
 
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from typing import List, Optional, TypedDict
     from ...comm.message import MessageContext
     from ..states.state import StateCallable, StateDefinition
-    from .action import StatefulOption
+    from ..action import StatefulOption
 
 
     class Action(TypedDict, total=False):
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 def subject_name(subject: Subject, key: str | None=None) -> str:
     """Return subject name"""
     if key:
-        return key.rsplit(" > ", 2)[-1]
+        return key.rsplit(" > ", 1)[-1]
     name = subject['name']
     if isinstance(name, list):
         return name[0]
@@ -55,7 +55,7 @@ def create_subject_state(subject: Subject, key: str | None=None) -> StateCallabl
         key = str(uuid.uuid4())
         parent_key = str(uuid.uuid4())
     else:
-        parent_key = key.rsplit(" > ", 2)[0]
+        parent_key = key.rsplit(" > ", 1)[0]
     @statemanager()
     def subject_state(context: MessageContext):
         options: List[StatefulOption] = []
@@ -113,7 +113,7 @@ def create_subject_state(subject: Subject, key: str | None=None) -> StateCallabl
             )
         else:
             context.reply(f"What do you want to know about {name}?")
-            ActionHandler().show_options(context, options)
+            show_options(context, options)
     return subject_state
 
 

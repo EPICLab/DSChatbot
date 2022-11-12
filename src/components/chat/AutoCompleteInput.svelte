@@ -89,7 +89,7 @@
       type: 'user',
       timestamp: +new Date(),
       reply: null,
-      ...messageTarget('user')
+      ...messageTarget('bot')
     })
     clear();
   }

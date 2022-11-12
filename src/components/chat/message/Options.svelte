@@ -11,25 +11,14 @@
   let textarea: HTMLElement|null = null;
 
   const click = (element: IOptionItem) => (e: any): void => {
-    if ($chatHistory[$chatHistory.length - 1] == message) {
-      chatHistory.addNew({
-        id: crypto.randomUUID(),
-        text: element.label,
-        type: 'user',
-        timestamp: +new Date(),
-        reply: message.id,
-        ...messageTarget('bot')
-      })
-    } else {
-      chatHistory.addNew({
-        id: crypto.randomUUID(),
-        text: '!choose ' + element.key,
-        type: 'user',
-        timestamp: +new Date(),
-        reply: message.id,
-        ...messageTarget('bot')
-      })
-    }
+    chatHistory.addNew({
+      id: crypto.randomUUID(),
+      text: element.label,
+      type: 'user',
+      timestamp: +new Date(),
+      reply: message.id,
+      ...messageTarget('bot')
+    })
     e.target.blur();
   }
   let items: IOptionItem[];

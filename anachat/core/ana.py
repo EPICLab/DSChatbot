@@ -4,8 +4,6 @@ from typing import TYPE_CHECKING
 
 import traceback
 
-from .handlers.woz import WozHandler
-from .handlers.action import ActionHandler
 from .handlers.regex import RegexHandler
 from .handlers.subject import SubjectHandler
 from .handlers.url import URLHandler
@@ -27,8 +25,6 @@ class DefaultState:
         self.subject_handler = SubjectHandler()
 
         self.solvers = [
-            WozHandler(),
-            ActionHandler(),
             RegexHandler(),
             URLHandler(),
             self.subject_handler,
@@ -131,6 +127,14 @@ class AnaCore:
                 result.append(f"{key}: {context.comm.memory.get(key, '!not found')}")
             context.reply("\n".join(result))
             return
+
+        reply = context.original_message.get('reply', '')
+        if check_state := context.comm.checkpoints.get(reply, None):
+            self.set_state(context, check_state)
+            return
+        elif reply and len(context.comm.history) >= 2 and reply != context.comm.history[-2]['id']:
+            self.set_state(context, self.default_state)
+
         try:
             self.set_state(context, self.state.process_message(context))
         except GoToState as goto:
