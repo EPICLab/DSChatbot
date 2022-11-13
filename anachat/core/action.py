@@ -16,7 +16,12 @@ if TYPE_CHECKING:
         state: Optional[StateCallable]
 
 
-def show_options(context: MessageContext, options: List[StatefulOption]) -> None:
+def show_options(
+    context: MessageContext,
+    options: List[StatefulOption],
+    ordered: bool = True,
+    text: str | None = None
+) -> None:
     """Shows options that redirect to states"""
     @statemanager()
     def select_option(context: MessageContext):
@@ -36,4 +41,6 @@ def show_options(context: MessageContext, options: List[StatefulOption]) -> None
                 return state(context)
 
         return None
-    context.reply_options(options, checkpoint=select_option)
+    if text is not None:
+        context.reply(text, checkpoint=select_option)
+    context.reply_options(options, ordered=ordered, checkpoint=select_option)

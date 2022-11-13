@@ -112,8 +112,7 @@ def create_subject_state(subject: Subject, key: str | None=None) -> StateCallabl
                 f"Unfortunately, there is nothing in my knowlegde base about {name}.",
             )
         else:
-            context.reply(f"What do you want to know about {name}?")
-            show_options(context, options)
+            show_options(context, options, text=f"What do you want to know about {name}?")
     return subject_state
 
 
@@ -121,8 +120,8 @@ def create_state_list(name: str, children: List[StatefulOption], theme: str) -> 
     """Creates state for list of children of subject"""
     @statemanager()
     def children_state(context: MessageContext) -> StateDefinition:
-        context.reply(f"{name} has {len(children)} {theme}. Please select one:")
-        pagination(context, children)
+        text = f"{name} has {len(children)} {theme}. Please select one:"
+        pagination(context, children, text=text)
         return None
     return children_state
 
@@ -191,13 +190,13 @@ class SubjectHandler(HandlerWithPaths):
         """Processes users message"""
         matches = list(self.search(context.text))
         if matches:
-            context.reply(f"I found {len(matches)} subjects. "
-                          f"Which one of these best describe your query?")
+            text = (f"I found {len(matches)} subjects. "
+                    f"Which one of these best describe your query?")
             pagination(context, [{
                 'key': match['ref'],
                 'label': subject_name(node['name'], match['ref']),
                 'state': create_subject_state(node, key=match['ref'])
-            } for match, node in matches])
+            } for match, node in matches], text=text)
             return True
         return None
 

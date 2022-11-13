@@ -16,7 +16,6 @@ def classification_steps_state(context: MessageContext, class_state=None) -> Sta
     if class_state:
         context.comm.memory["class_state"] = class_state
     context.comm.memory["sub_state"] = "Classification"
-    context.reply("Sounds good. Here are the steps for a classification:")
     show_options(context, [
         {'key': '1', 'label': 'Preprocessing',
          'state': create_state_loader('!subject Classification > Preprocessing')},
@@ -26,5 +25,5 @@ def classification_steps_state(context: MessageContext, class_state=None) -> Sta
          'state': create_state_loader('!subject Classification > Validation')},
         {'key': '4', 'label': 'Feature Engineering',
          'state': create_state_loader('!subject Classification > Feature Engineering')},
-    ])
+    ], text="Sounds good. Here are the steps for a classification:")
     return None

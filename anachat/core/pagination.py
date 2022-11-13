@@ -13,9 +13,6 @@ if TYPE_CHECKING:
     from .states.state import StateCallable
 
 
-PAGE_ID = 0
-
-
 def create_page(page: int, count: int, items: List[StatefulOption], last: bool) -> StateCallable:
     """Creates page state"""
     @statemanager()
@@ -24,8 +21,10 @@ def create_page(page: int, count: int, items: List[StatefulOption], last: bool) 
         end_pos = start_pos + count - 1
         if last:
             end_pos = start_pos + len(items)
-        context.reply(f"Showing {start_pos}..{end_pos} (page {page})")
-        show_options(context, items)
+        show_options(
+            context, items, ordered=False,
+            text=f"Showing {start_pos}..{end_pos} (page {page})"
+        )
     return more_state
 
 
@@ -35,24 +34,37 @@ def _pagination(
     page: int=1
 ) -> Tuple[List[StatefulOption], bool]:
     """Splits options into pages"""
-    global PAGE_ID  # pylint: disable=global-statement
     if len(options) <= count + 1:
         return options, True
     current, extra = options[:count], options[count:]
-    key = f"<page {PAGE_ID}>"
-    PAGE_ID += 1
+    next_page = page + 1
     current.append({
-        'key': key, 'label': "More...",
+        'key': f"<page {next_page}>",
+        'label': "More...",
         'state': create_page(
-            page, count, *_pagination(extra, count, page=page + 1)
+            next_page, count, *_pagination(extra, count, page=next_page)
         )
     })
     return current, False
 
 
-def pagination(context: MessageContext, items: List[StatefulOption], *, count: int=5):
+def pagination(
+    context: MessageContext,
+    items: List[StatefulOption],
+    *,
+    count: int=5,
+    create_order: bool=True,
+    text: str | None = None
+):
     """Paginates options and shows first page for consistency"""
+    if create_order:
+        items = [{
+            'key': item['key'],
+            'label': f'{num + 1}. {item["label"]}',
+            'state': item['state']
+        } for num, item in enumerate(items)]
     items, last = _pagination(items, count=count)
     if not last:
-        context.reply(f"Showing 1..{count} (page 1)")
-    show_options(context, items)
+        text = text + "\n" if text else ""
+        text += f"Showing 1..{count} (page 1)"
+    show_options(context, items, ordered=False, text=text)
