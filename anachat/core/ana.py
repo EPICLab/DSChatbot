@@ -4,11 +4,12 @@ from typing import TYPE_CHECKING
 
 import traceback
 
+
 from .handlers.regex import RegexHandler
 from .handlers.subject import SubjectHandler
 from .handlers.url import URLHandler
 from .resources import import_state_module
-from .states.utils import GoToState
+from .states.utils import GoToState, state_checkpoint
 
 
 if TYPE_CHECKING:
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
     from ..comm.anacomm import AnaComm
     from ..comm.message import MessageContext
     from .states.state import StateDefinition
+
 
 
 class DefaultState:
@@ -36,7 +38,8 @@ class DefaultState:
             result = solver.process_message(context)
             if result:
                 return result
-        context.reply("I could not process this query. Please, try a different query")
+        context.reply("I could not process this query. Please, try a different query",
+                      checkpoint=state_checkpoint(self))
         return self
 
     def process_query(self, comm: AnaComm, request_id: int, query: str):
@@ -95,19 +98,23 @@ class AnaCore:
                 if subject:
                     subject_state = self.default_state.subject_handler.state_by_key(subject)
                     if not subject_state:
-                        context.reply(f"Subject {subject} not found. Loading default state")
+                        context.reply(f"Subject {subject} not found. Loading default state",
+                                      checkpoint=state_checkpoint(self.default_state))
+                        self.state = self.default_state
                     else:
                         self.set_state(context, subject_state(context))
             else:
                 module_name, state_func = new_state.split("?", 1)
                 module = import_state_module(module_name)
                 if module is None:
-                    context.reply(f"Module {module_name} not found! Back to default state")
+                    context.reply(f"Module {module_name} not found! Back to default state",
+                                  checkpoint=state_checkpoint(self.default_state))
                     self.state = self.default_state
                     return
                 if not hasattr(module, state_func):
                     context.reply(f"State function {state_func} not found in {module_name}! "
-                               f"Back to default state")
+                                  f"Back to default state",
+                                  checkpoint=state_checkpoint(self.default_state))
                     self.state = self.default_state
                     return
                 self.set_state(context, getattr(module, state_func)(context, *params))
@@ -125,7 +132,8 @@ class AnaCore:
         if control:
             text = context.text
             if text == "!debug":
-                context.reply(f"Current state: {self.state!r}")
+                context.reply(f"Current state: {self.state!r}",
+                              checkpoint=state_checkpoint(self.state))
                 return
             if text.startswith("!subject"):
                 self.set_state(context, text)
@@ -135,7 +143,8 @@ class AnaCore:
                 result = []
                 for key in keys:
                     result.append(f"{key}: {context.comm.memory.get(key, '!not found')}")
-                context.reply("\n".join(result))
+                context.reply("\n".join(result),
+                              checkpoint=state_checkpoint(self.state))
                 return
 
             reply = context.original_message.get('reply', '')
@@ -152,7 +161,8 @@ class AnaCore:
             self.set_state(context, goto.state, params=goto.params)
         except Exception:  # pylint: disable=broad-except
             self.set_state(context, self.default_state)
-            context.reply("Something is wrong: " + traceback.format_exc(), "error")
+            context.reply("Something is wrong: " + traceback.format_exc(), "error",
+                          checkpoint=state_checkpoint(self.state))
 
     def process_query(self, comm: AnaComm, query_type: str, request_id: int, query: str):
         """Processes user query"""

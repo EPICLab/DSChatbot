@@ -110,6 +110,7 @@ def create_subject_state(subject: Subject, key: str | None=None) -> StateCallabl
         if not options:
             context.reply(
                 f"Unfortunately, there is nothing in my knowlegde base about {name}.",
+                checkpoint=subject_state
             )
         else:
             show_options(context, options, text=f"What do you want to know about {name}?")

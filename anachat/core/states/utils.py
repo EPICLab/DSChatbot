@@ -86,3 +86,11 @@ def create_state_loader(state: StateDefinition):
     def state_loader(context: MessageContext) -> StateDefinition:
         raise GoToState(state)
     return state_loader
+
+
+def state_checkpoint(state: StateDefinition):
+    """Creates checkpoint for current state"""
+    @statemanager()
+    def checkpoint(context: MessageContext):
+        return state.process_message(context)
+    return checkpoint
