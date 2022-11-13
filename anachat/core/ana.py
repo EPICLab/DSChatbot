@@ -78,9 +78,16 @@ class AnaCore:
     ):
         """Sets new state"""
         params = params or []
+        process_now = False
         if new_state is True:
             self.state = self.default_state
+        elif new_state is False:
+            self.state = self.default_state
+            process_now = True
         elif isinstance(new_state, str):
+            if new_state.startswith('>'):
+                process_now = True
+                new_state = new_state[1:]
             if new_state.startswith("!subject"):
                 self.set_state(context, self.default_state)
                 self.state = self.default_state
@@ -92,7 +99,7 @@ class AnaCore:
                     else:
                         self.set_state(context, subject_state(context))
             else:
-                module_name, state_func = new_state.split("?", 2)
+                module_name, state_func = new_state.split("?", 1)
                 module = import_state_module(module_name)
                 if module is None:
                     context.reply(f"Module {module_name} not found! Back to default state")
@@ -110,30 +117,34 @@ class AnaCore:
             self.state = new_state
         else:
             self.state = self.default_state
+        if process_now:
+            self.process_message(context, control=False)
 
-    def process_message(self, context: MessageContext) -> None:
+    def process_message(self, context: MessageContext, control:bool=True) -> None:
         """Processes user message"""
-        text = context.text
-        if text == "!debug":
-            context.reply(f"Current state: {self.state!r}")
-            return
-        if text.startswith("!subject"):
-            self.set_state(context, text)
-            return
-        if text.startswith("!show"):
-            keys = text.split()[1:] or context.comm.memory.keys()
-            result = []
-            for key in keys:
-                result.append(f"{key}: {context.comm.memory.get(key, '!not found')}")
-            context.reply("\n".join(result))
-            return
+        if control:
+            text = context.text
+            if text == "!debug":
+                context.reply(f"Current state: {self.state!r}")
+                return
+            if text.startswith("!subject"):
+                self.set_state(context, text)
+                return
+            if text.startswith("!show"):
+                keys = text.split()[1:] or context.comm.memory.keys()
+                result = []
+                for key in keys:
+                    result.append(f"{key}: {context.comm.memory.get(key, '!not found')}")
+                context.reply("\n".join(result))
+                return
 
-        reply = context.original_message.get('reply', '')
-        if check_state := context.comm.checkpoints.get(reply, None):
-            self.set_state(context, check_state)
-            return
-        elif reply and len(context.comm.history) >= 2 and reply != context.comm.history[-2]['id']:
-            self.set_state(context, self.default_state)
+            reply = context.original_message.get('reply', '')
+            history = context.comm.history
+            if check_state := context.comm.checkpoints.get(reply, None):
+                self.set_state(context, check_state)
+                return
+            elif reply and len(history) >= 2 and reply != history[-2]['id']:
+                self.set_state(context, self.default_state)
 
         try:
             self.set_state(context, self.state.process_message(context))

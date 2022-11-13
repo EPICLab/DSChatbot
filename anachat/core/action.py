@@ -23,7 +23,7 @@ def show_options(
     text: str | None = None
 ) -> None:
     """Shows options that redirect to states"""
-    @statemanager()
+    @statemanager(False)
     def select_option(context: MessageContext):
         """State for option selection"""
         no_state = lambda _: None
@@ -39,8 +39,6 @@ def show_options(
             if option['key'] == text or option['label'].lower() == text.lower():
                 state = option.get('state', None) or no_state
                 return state(context)
-
-        return None
     if text is not None:
         context.reply(text, checkpoint=select_option)
     context.reply_options(options, ordered=ordered, checkpoint=select_option)

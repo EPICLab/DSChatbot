@@ -27,7 +27,10 @@ def statemanager(default: StateDefinition=True):
                 else:
                     return _GeneratorStateManager(gen)
             callable_func: StateCallable = cast('StateCallable', func)
-            return callable_func(context, *args, **kwargs) or default
+            result = callable_func(context, *args, **kwargs)
+            if result is None:
+                result = default
+            return result
         return helper
     return inner
 
