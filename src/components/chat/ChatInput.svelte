@@ -110,7 +110,6 @@
 		aria-hidden="true"
 		style="min-height: {minHeight}; max-height: {maxHeight}"
 	>{value + '\n'}</pre>
-
   <textarea
     bind:this={textarea}
     bind:value={value}

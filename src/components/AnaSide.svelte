@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { anaSideReady, anaSideModel, kernelStatus, anaRestrict } from '../stores';
+  import { anaSideReady, anaSideModel, kernelStatus, anaRestrict, anaSuperMode } from '../stores';
   import Chat from './chat/Chat.svelte';
   import AutoCompleteInput from './chat/AutoCompleteInput.svelte';
   import Header from './header/Header.svelte';
+  import SuperChat from './chat/SuperChat.svelte';
 
   // Locals
   let name: string;
@@ -13,13 +14,17 @@
 </script>
 
 {#if $anaSideModel && ($anaRestrict.length === 0 || $anaRestrict.includes(name)) }
-  <Header title="Newton - {name}"></Header>
-  <Chat></Chat>
+  <Header title="Newton - {name}"/>
+  <Chat/>
   {#if $hasKernel}
-    <AutoCompleteInput></AutoCompleteInput>
+    {#if $anaSuperMode}
+      <SuperChat/>
+    {:else}
+      <AutoCompleteInput/>
+    {/if}
   {/if}
 {:else}
-  <Header title="Newton"></Header>
+  <Header title="Newton"/>
   {#if $anaRestrict.length !== 0}
     Currently, the chatbot only works on files named {$anaRestrict.join(" or ")}.
   {/if}

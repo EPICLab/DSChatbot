@@ -194,7 +194,7 @@
     height: 0px;
     position: relative;
     top: 5px;
-    z-index: 1000;
+    z-index: 0;
     width: 15px;
     float: right;
   }

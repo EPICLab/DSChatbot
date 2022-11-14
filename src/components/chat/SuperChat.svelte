@@ -4,9 +4,11 @@
   import Message from "./message/Message.svelte";
   import { tick } from "svelte";
   import { BOT_TARGETS, BOT_TYPES, messageTarget, type IMessageTarget } from "../../common/messages";
+  import BottomChat from "./BottomChat.svelte";
 
-  export let textarea: HTMLElement;
-  export let value: string;
+  let value: string = "";
+  let textarea: HTMLElement;
+  let bottomChat: BottomChat;
 
   let superModeType: IMessageType = 'bot';
   let superModeTarget: IMessageTarget = 'user';
@@ -79,15 +81,15 @@
     await tick();
   }
 
-  export function enterMessage(text: string): boolean {
-    let message = createMessage(text);
+  async function alternativeEnter(e: any) {
+    e.preventDefault();
+    let message = createMessage(value);
     if (message !== null) {
       $superModePreviewMessage = [...$superModePreviewMessage, message];
-      return true;
+      bottomChat.clear()
     }
-    return false;
+    return true;
   }
-
 
 </script>
 
@@ -97,6 +99,14 @@
     display: flex;
   }
 </style>
+
+
+<BottomChat 
+  bind:textarea
+  bind:value
+  {alternativeEnter}
+  bind:this={bottomChat}>
+</BottomChat>
 
 <div class="supermodetypes">
   {#each BOT_TARGETS as targetItem}

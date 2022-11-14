@@ -3,11 +3,10 @@
 
   import AutoCompleteItem from "./AutoCompleteItem.svelte";
   
-  import { chatHistory, anaSideModel, subjectItems, anaSuperMode, anaQueryEnabled } from "../../stores";
+  import { chatHistory, anaSideModel, subjectItems, anaQueryEnabled } from "../../stores";
   import type { IAutoCompleteItem } from "../../common/anachatInterfaces";
-  import SuperChat from "./SuperChat.svelte";
-  import ChatInput from "./ChatInput.svelte";
   import { messageTarget } from "../../common/messages";
+  import BottomChat from "./BottomChat.svelte";
 
   export let value: string = "";
   export let text: string|undefined = undefined;
@@ -23,8 +22,6 @@
   let list: HTMLElement;
   let inputDelayTimeout: NodeJS.Timeout;
   let listHeight: number = 0;
-
-  let superchat: SuperChat | null = null;
 
   const uniqueId = "sautocomplete-" + Math.floor(Math.random() * 1000)
   
@@ -149,11 +146,6 @@
     if (highlightIndex != -1) {
       selectItem({detail: { item: items[highlightIndex] }});
       return true;
-    } else if (superchat) {
-      if (superchat.enterMessage(value)) {
-        clear()
-      }
-      return true;
     }
     return false;
   }
@@ -178,7 +170,7 @@
     $anaSideModel?.sendSupermode({ query_processing: event.target.checked });
   }
 
-  $: showList = opened && !$anaSuperMode && ((items && items.length > 0) || (filteredTextLength > 0 && loading && $anaQueryEnabled));
+  $: showList = opened && ((items && items.length > 0) || (filteredTextLength > 0 && loading && $anaQueryEnabled));
   $: ({ responseId, sitems } = $subjectItems);
   $: {
     if ($responseId == lastRequestId) {
@@ -200,15 +192,7 @@
 </script>
 
 <style>
-  .text {
-    background-color: white;
-    position: sticky;
-    bottom: 0;
-    border-top: 1px solid gray;
-    padding: 0.4em;
-    padding-right: 1em;
-  }
-
+  
   :global(.autocomplete) {
     min-width: 200px;
     max-width: 100%;
@@ -256,58 +240,49 @@
 
 </style>
 
-
-
-<div class="text">
-  {#if !$anaSuperMode}
-    <label>
-      <input type=checkbox on:change={superModeToggleAutoComplete} checked={$anaQueryEnabled}>
-      Autocomplete
-    </label>
-  {/if}
-  <ChatInput 
-    subclass="autocomplete select is-fullwidth {uniqueId}"
-    placeholder="Talk to Newton here..."
-    bind:textarea
-    bind:value
-    on:focus={resetListToAllItemsAndOpen}
-    on:click={resetListToAllItemsAndOpen}
-    {alternativeKeyDown}
-    {alternativeEnter}
-    {alternativeInput}
-    {clear}
+<BottomChat
+  subclass="autocomplete select is-fullwidth {uniqueId}"
+  bind:textarea
+  bind:value
+  on:focus={resetListToAllItemsAndOpen}
+  on:click={resetListToAllItemsAndOpen}
+  {alternativeKeyDown}
+  {alternativeEnter}
+  {alternativeInput}
+  {clear}
+>
+  <label slot="before">
+    <input type=checkbox on:change={superModeToggleAutoComplete} checked={$anaQueryEnabled}>
+    Autocomplete
+  </label>
+  <div
+    class="autocomplete-list {showList ? '' : 'hidden'} is-fullwidth"
+    bind:this={list}
+    bind:clientHeight={listHeight}
+    slot="chat"
   >
-    <div
-      class="autocomplete-list {showList ? '' : 'hidden'} is-fullwidth"
-      bind:this={list}
-      bind:clientHeight={listHeight}
-    >
-      {#if items && items.length > 0}
-        {#each items as listItem, i}
-          {#if listItem}
-            <AutoCompleteItem 
-              item={listItem}
-              position={i}
-              bind:highlightIndex
-              on:select={selectItem}
-            />
-          {/if}
-        {/each}
-      {:else if loading}
-        <div class="autocomplete-list-item-loading">
-          Loading...
-        </div>
-      {:else}
-        <div class="autocomplete-list-item-no-results">
-          No results...
-        </div>
-      {/if}
-    </div>
-  </ChatInput>
-</div>
+    {#if items && items.length > 0}
+      {#each items as listItem, i}
+        {#if listItem}
+          <AutoCompleteItem 
+            item={listItem}
+            position={i}
+            bind:highlightIndex
+            on:select={selectItem}
+          />
+        {/if}
+      {/each}
+    {:else if loading}
+      <div class="autocomplete-list-item-loading">
+        Loading...
+      </div>
+    {:else}
+      <div class="autocomplete-list-item-no-results">
+        No results...
+      </div>
+    {/if}
+  </div>
 
-{#if $anaSuperMode}
-  <SuperChat bind:this={superchat} {textarea} bind:value={value}/>
-{/if}
+</BottomChat>
 
 <svelte:window on:click={onDocumentClick} />
