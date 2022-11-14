@@ -15,6 +15,7 @@
   import Options from './Options.svelte';
   import UserCode from './UserCode.svelte';
   import { RankedMenu } from '@jupyterlab/ui-components';
+  import Unified from './Unified.svelte';
 
   export let message: IChatMessage;
   export let scrollBottom: () => void = () => {};
@@ -240,6 +241,8 @@
 
     {#if message.type === 'options' || message.type === 'ordered'}
       <Options {message} {preview}/>
+    {:else if message.type === 'unified'}
+      <Unified {message} {loading} {preview} {scrollBottom}/>
     {:else if message.type === 'cell'}
       <Cell {message} {scrollBottom}/>
     {:else if message.type === 'usercode' || message.type === 'botcode'}

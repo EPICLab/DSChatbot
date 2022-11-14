@@ -15,7 +15,7 @@ export interface IOptionItem {
   label: string;
 }
 
-export type IMessageType = 'user' | 'bot' | 'error' | 'ordered' | 'options' | 'cell' | 'usercode' | 'botcode';
+export type IMessageType = 'user' | 'bot' | 'error' | 'ordered' | 'options' | 'cell' | 'usercode' | 'botcode' | 'unified';
 
 export enum MessageDisplay {
   Default = 0,
@@ -52,4 +52,14 @@ export interface IAutoCompleteItem {
 
 export interface IServerConfig {
   restrict: string[];
+}
+
+export type IMessagePartType =
+  'text' | 'html' 
+  | 'ul' | 'ol' | 'ful' | 'fol'
+  | 'code' | 'direct-code' | 'input';
+
+export interface IMessagePart {
+  type: IMessagePartType;
+  text: string;
 }

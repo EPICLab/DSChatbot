@@ -74,7 +74,6 @@
   .buttons {
     padding: 0 20px;
   }
-
 </style>
 
 <div class="outer">

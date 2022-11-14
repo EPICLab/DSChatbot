@@ -1,4 +1,30 @@
-import { KernelProcess, MessageDisplay, type IChatMessage, type IMessageType, type IOptionItem, type ITargetDefinition } from "./anachatInterfaces";
+import { KernelProcess, MessageDisplay, type IChatMessage, type IMessagePart, type IMessagePartType, type IMessageType, type IOptionItem, type ITargetDefinition } from "./anachatInterfaces";
+
+const TYPE_DEFS: { [key: string]: IMessagePartType } = {
+  't': 'text',
+  'text': 'text',
+  'h': 'html',
+  'html': 'html',
+  'u': 'ul',
+  'ul': 'ul',
+  'unordered': 'ul',
+  'o': 'ol',
+  'ol': 'ol',
+  'ordered': 'ol',
+  'fu': 'ful',
+  'ful': 'ful',
+  'full-unordered': 'ful',
+  'fo': 'fol',
+  'fol': 'fol',
+  'full-ordered': 'fol',
+  'c': 'code',
+  'code': 'code',
+  'dc': 'direct-code',
+  'direct-code': 'direct-code',
+  'i': 'input',
+  'input': 'input'
+}
+
 
 export function cloneMessage(message: IChatMessage, other?: Partial<IChatMessage>) {
   let newMessage = { ...message, ...other }
@@ -73,7 +99,8 @@ export const BOT_TYPES: ITypeItem[] = [
   {type: 'options', label: 'Items', key: 'i'},
   {type: 'cell', label: 'Code', key: 'c'},
   {type: 'user', label: 'User', key: 'u'},
-  {type: 'error', label: 'Error', key: 'e'}
+  {type: 'error', label: 'Error', key: 'e'},
+  {type: 'unified', label: 'Unified', key: 'a'}
 ]
 
 export function extractOptions(text: string, type: IMessageType): IOptionItem[] {
@@ -104,4 +131,28 @@ export function extractOptions(text: string, type: IMessageType): IOptionItem[] 
     }
   })
   return options;
+}
+
+export function splitUnifiedMessage(text: string): IMessagePart[] {
+  let items: IMessagePart[] = [];
+  for (let partText of text.split('####')) {
+    let trim = partText.trim()
+    if (trim.length == 0) {
+      continue;
+    }
+    let septype: string[] = trim.split('#:', 2)
+    if (septype.length == 1) {
+      items.push({
+        type: 'text',
+        text: septype[0].trim()
+      })
+    } else {
+      let type = TYPE_DEFS[septype[0].trim().toLowerCase()] || 'text';
+      items.push({
+        type: type,
+        text: septype[1].trim()
+      })
+    }
+  }
+  return items;
 }

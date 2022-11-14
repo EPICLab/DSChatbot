@@ -32,12 +32,11 @@
     border-radius: 0.5rem 0.5rem 0 0.5rem;
   }
 
-  .bot {
+  .bot, .unified {
     margin-right: 4em;
     background-color: #F2F2F2;
     border-radius: 0.5rem 0.5rem 0.5rem 0;
   }
-
 
   .error {
     margin-right: 4em;
