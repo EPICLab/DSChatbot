@@ -10,12 +10,8 @@
   import Eye from '../../icons/eye.svelte';
   import Reply from '../../icons/reply.svelte';
 
-  import Cell from './Cell.svelte';
-  import Default from './Default.svelte';
-  import Options from './Options.svelte';
-  import UserCode from './UserCode.svelte';
   import { RankedMenu } from '@jupyterlab/ui-components';
-  import Unified from './Unified.svelte';
+  import MessageBalloon from './MessageBalloon.svelte';
 
   export let message: IChatMessage;
   export let scrollBottom: () => void = () => {};
@@ -238,17 +234,6 @@
         ><Reply/></button>
       </div>
     {/if}
-
-    {#if message.type === 'options' || message.type === 'ordered'}
-      <Options {message} {preview}/>
-    {:else if message.type === 'unified'}
-      <Unified {message} {loading} {preview} {scrollBottom}/>
-    {:else if message.type === 'cell'}
-      <Cell {message} {scrollBottom}/>
-    {:else if message.type === 'usercode' || message.type === 'botcode'}
-      <UserCode {message} {scrollBottom}/>
-    {:else}
-      <Default {message} {loading} {preview}/>
-    {/if}
+    <MessageBalloon {message} {loading} {preview} {scrollBottom}/>
   {/if}
 </div>

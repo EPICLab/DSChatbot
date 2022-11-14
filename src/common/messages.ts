@@ -82,7 +82,7 @@ export interface ITargetItem {
 }
 
 export const BOT_TARGETS: ITargetItem[] = [
-  {target: 'user', label: 'User', key: 't'},
+  {target: 'user', label: 'User', key: 's'},
   {target: 'kernel', label: 'Kernel', key: 'k'},
   {target: 'build', label: 'Build', key: 'b'},
 ]
@@ -95,15 +95,26 @@ export interface ITypeItem {
 
 export const BOT_TYPES: ITypeItem[] = [
   {type: 'bot', label: 'Newton', key: 'n'},
-  {type: 'ordered', label: 'Ordered', key: 'o'},
-  {type: 'options', label: 'Items', key: 'i'},
-  {type: 'cell', label: 'Code', key: 'c'},
   {type: 'user', label: 'User', key: 'u'},
   {type: 'error', label: 'Error', key: 'e'},
-  {type: 'unified', label: 'Unified', key: 'a'}
 ]
 
-export function extractOptions(text: string, type: IMessageType): IOptionItem[] {
+export interface IEditorTypeItem {
+  label: string;
+  text: string;
+  key: string;
+}
+
+export const BOT_EDITOR_TYPES: IEditorTypeItem[] = [
+  {label: 'Text/A', text:'####text#:\n', key: 'a'},
+  {label: 'Ordered/O', text:'####fol#:\n', key: 'o'},
+  {label: 'Options/I', text:'####ful#:\n', key: 'i'},
+  {label: 'Continue/Y', text:'####fol#:\n- Continue', key: 'y'},
+  {label: 'Code/C', text:'####text#:\nCopy the following code to the notebook:\n####code#:\n', key: 'c'},
+  {label: 'Just Code/F', text:'####code#:\n', key: 'f'}
+]
+
+export function extractOptions(text: string, type: 'ul' | 'ol'): IOptionItem[] {
   let optionId = 0;
   let options: IOptionItem[] = [];
   if (!text) {
@@ -122,7 +133,7 @@ export function extractOptions(text: string, type: IMessageType): IOptionItem[] 
       key = fields[0].trim()
       newText = fields[1].trim()
     } 
-    if (type == 'ordered') {
+    if (type == 'ol') {
       newText = (index + 1) + '. ' + newText;
     }
     return {

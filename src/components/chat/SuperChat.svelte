@@ -3,18 +3,18 @@
   import { chatHistory, anaSideModel, anaAutoLoading, replying, superModePreviewMessage } from "../../stores";
   import Message from "./message/Message.svelte";
   import { tick } from "svelte";
-  import { BOT_TARGETS, BOT_TYPES, messageTarget, type IMessageTarget } from "../../common/messages";
+  import { BOT_EDITOR_TYPES, BOT_TARGETS, BOT_TYPES, messageTarget, type IEditorTypeItem, type IMessageTarget } from "../../common/messages";
   import BottomChat from "./BottomChat.svelte";
 
-  let value: string = "";
-  let textarea: HTMLElement;
-  let bottomChat: BottomChat;
+  let value: string = ""
+  let textarea: HTMLElement
+  let bottomChat: BottomChat
 
-  let superModeType: IMessageType = 'bot';
-  let superModeTarget: IMessageTarget = 'user';
+  let superModeType: IMessageType = 'bot'
+  let superModeTarget: IMessageTarget = 'user'
 
   function createMessage(text: string): IChatMessage | null {
-    text = text.trim();
+    text = text.trim()
     if (text === '') {
       return null;
     }
@@ -31,64 +31,59 @@
   async function handleKeydown(e: any) {
     let key = e.key;
     if (e.altKey) {
+      BOT_EDITOR_TYPES.forEach((editorTypeItem) => {
+        if (editorTypeItem.key === key) {
+          onClickEditorItem(editorTypeItem)
+        }
+      })
       BOT_TARGETS.forEach((targetItem) => {
         if (targetItem.key === key) {
-          superModeTarget = targetItem.target;
-          textarea.focus();
+          superModeTarget = targetItem.target
+          textarea.focus()
         }
       })
       BOT_TYPES.forEach((typeItem) => {
         if (typeItem.key === key) {
-          superModeType = typeItem.type;
-          textarea.focus();
+          superModeType = typeItem.type
+          textarea.focus()
         }
       })
     }
     if ((document.activeElement == textarea) && (key === "Enter") && e.ctrlKey) {
-      await onSuperModeSend();
+      await onSuperModeSend()
     }
   }
 
-  function onClickHereIsTheCode() {
-    superModeType = 'bot';
-    let message = createMessage("Copy the following code to the notebook:");
-    if (message !== null) {
-      $superModePreviewMessage = [...$superModePreviewMessage, message];
-      superModeType = 'cell';
+  function onClickEditorItem(editorItem: IEditorTypeItem) {
+    if (value.length > 0) {
+      value += '\n'
     }
-    textarea.focus();
+    value += editorItem.text
+    textarea.focus()
   }
-
-  function onClickContinue() {
-    superModeType = 'ordered';
-    value = '- Continue'
-    textarea.focus();
-  }
-
-  
 
   async function onSuperModeSend() {
     let timestamp = +new Date()
     $superModePreviewMessage.forEach((message: IChatMessage) => {
-      message.timestamp = timestamp;
-      message.reply = $replying;
-      chatHistory.addNew(message);
+      message.timestamp = timestamp
+      message.reply = $replying
+      chatHistory.addNew(message)
     })
-    $superModePreviewMessage = [];
+    $superModePreviewMessage = []
     if ($anaAutoLoading) {
-      $anaSideModel?.sendSupermode({ loading: false });
+      $anaSideModel?.sendSupermode({ loading: false })
     }
     await tick();
   }
 
   async function alternativeEnter(e: any) {
     e.preventDefault();
-    let message = createMessage(value);
+    let message = createMessage(value)
     if (message !== null) {
-      $superModePreviewMessage = [...$superModePreviewMessage, message];
+      $superModePreviewMessage = [...$superModePreviewMessage, message]
       bottomChat.clear()
     }
-    return true;
+    return true
   }
 
 </script>
@@ -98,14 +93,26 @@
   .supermodetypes {
     display: flex;
   }
-</style>
 
+  button {
+    font-size: 1em;
+  }
+</style>
 
 <BottomChat 
   bind:textarea
   bind:value
   {alternativeEnter}
   bind:this={bottomChat}>
+
+  <div slot="before">
+    {#each BOT_EDITOR_TYPES as editorTypeItem}
+      <button
+        title="Key: {editorTypeItem.key}"
+        on:click|preventDefault={(e) => onClickEditorItem(editorTypeItem)}
+      >{editorTypeItem.label}</button>
+    {/each}
+  </div>
 </BottomChat>
 
 <div class="supermodetypes">
@@ -115,8 +122,6 @@
       {targetItem.label}
     </label>
   {/each}
-  <button on:click|preventDefault={onClickHereIsTheCode}>Code</button>
-  <button on:click|preventDefault={onClickContinue}>Continue</button>
 </div>
 <div class="supermodetypes">
   {#each BOT_TYPES as typeItem}

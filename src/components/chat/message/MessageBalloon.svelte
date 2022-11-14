@@ -1,15 +1,26 @@
 <script type="ts">
-  import { MessageDisplay, type IChatMessage } from "../../../common/anachatInterfaces";
+  import { MessageDisplay, type IChatMessage, type IMessagePart } from "../../../common/anachatInterfaces";
   import { anaTimes } from "../../../stores";
-  export let message: IChatMessage;
-  export let width = 100;
-  export let loading = false;
-  export let preview: boolean = false;
+  import Options from "./parts/Options.svelte";
+  import Text from "./parts/Text.svelte";
+  import Code from "./parts/Code.svelte";
+  import Hypertext from "./parts/Hypertext.svelte";
+  import TextInput from "./parts/TextInput.svelte";
+  import FullOptions from "./parts/FullOptions.svelte";
+  import { splitUnifiedMessage } from "../../../common/messages";
+
+  export let message: IChatMessage
+  export let loading: boolean = false
+  export let preview: boolean = false
+  export let scrollBottom: () => void
+  export let width = 100
 
   let timestamp = message.timestamp;
   if (!Number.isInteger(timestamp)) {
     timestamp = timestamp * 1000;
   }
+
+  let items: IMessagePart[] = splitUnifiedMessage(message.text);
 </script>
 
 <style>
@@ -32,7 +43,7 @@
     border-radius: 0.5rem 0.5rem 0 0.5rem;
   }
 
-  .bot, .unified {
+  .bot {
     margin-right: 4em;
     background-color: #F2F2F2;
     border-radius: 0.5rem 0.5rem 0.5rem 0;
@@ -41,12 +52,6 @@
   .error {
     margin-right: 4em;
     background-color: lightpink;
-    border-radius: 0.5rem 0.5rem 0.5rem 0;
-  }
-
-  .options, .ordered {
-    margin-right: 4em;
-    background-color: #F2F2F2;
     border-radius: 0.5rem 0.5rem 0.5rem 0;
   }
 
@@ -89,12 +94,22 @@
     class:tobuild={message.kernelDisplay == MessageDisplay.SupermodeInput} 
     class="inner {message.type}" bind:clientWidth={width}
   >
-    <slot>
-      {#if message.type !== 'user'}
-        {@html message.text}
+    {#each items as messagePart}
+      {#if messagePart.type == 'ul' || messagePart.type == 'ol'}
+        <Options {messagePart} {message}/>
+      {:else if messagePart.type == 'ful' || messagePart.type == 'fol'}
+        <FullOptions {messagePart} {message}/>
+      {:else if messagePart.type == 'code'}
+        <Code {messagePart} {scrollBottom}/>
+      {:else if messagePart.type == 'direct-code'}
+        <Code {messagePart} {scrollBottom} direct={true}/>
+      {:else if messagePart.type == 'html'}
+        <Hypertext {messagePart}/>
+      {:else if messagePart.type == 'input'}
+        <TextInput {messagePart} {message}/>
       {:else}
-        {message.text}
+        <Text {messagePart}/>
       {/if}
-    </slot>
+    {/each}
   </div>
 </div>

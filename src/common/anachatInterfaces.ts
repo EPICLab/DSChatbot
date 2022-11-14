@@ -15,7 +15,7 @@ export interface IOptionItem {
   label: string;
 }
 
-export type IMessageType = 'user' | 'bot' | 'error' | 'ordered' | 'options' | 'cell' | 'usercode' | 'botcode' | 'unified';
+export type IMessageType = 'user' | 'bot' | 'error';
 
 export enum MessageDisplay {
   Default = 0,
