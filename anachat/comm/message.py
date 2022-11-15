@@ -93,13 +93,23 @@ class MessageContext:
     def reply_options(
         self,
         options: Sequence[IOptionItem],
+        type_: str="bot",
         ordered: bool = True,
-        checkpoint: StateDefinition | None = None
+        full: bool = False,
+        checkpoint: StateDefinition | None = None,
+        text: str | None = None
     ):
         """Reply list of options"""
         # pylint: disable=consider-using-f-string
-        type_ = 'ordered' if ordered else 'options'
+        mode = 'ol' if ordered else 'ul'
+        if full:
+            mode = 'f' + mode
+
         result = []
         for option in options:
             result.append("{key}::bot::{label}".format(**option))
-        self.reply('-' + '\n-'.join(result), type_, checkpoint=checkpoint)
+        reply_text = f'####{mode}#:\n-' + '\n-'.join(result)
+
+        if text is not None:
+            reply_text = text + '\n' + reply_text
+        self.reply(reply_text, type_, checkpoint=checkpoint)

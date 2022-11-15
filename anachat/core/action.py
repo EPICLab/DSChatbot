@@ -39,6 +39,4 @@ def show_options(
             if option['key'] == text or option['label'].lower() == text.lower():
                 state = option.get('state', None) or no_state
                 return state(context)
-    if text is not None:
-        context.reply(text, checkpoint=select_option)
-    context.reply_options(options, ordered=ordered, checkpoint=select_option)
+    context.reply_options(options, ordered=ordered, checkpoint=select_option, text=text)

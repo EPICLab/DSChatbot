@@ -49,7 +49,7 @@ def tokenize_column_state(
     instructions = instructions or ""
     dataframe, column = yield from select_dataframe_column(context, instructions)
 
-    context.reply(f'For tokenizing {column!r} from {dataframe!r}, '
+    reply_text = (f'For tokenizing {column!r} from {dataframe!r}, '
                   f'please copy the following code to a cell:')
     code = ""
     if 'nltk' not in context.comm.shell.user_ns:
@@ -58,7 +58,7 @@ def tokenize_column_state(
     new_column = f"tokenized_{column}"
     code += (f"{dataframe}[{new_column!r}] = {dataframe}.apply("
              f"lambda row: nltk.word_tokenize(row[{column!r}]), axis=1)")
-    context.reply(code, type_="cell")
+    context.reply(reply_text + f'####code#:\n{code}')
     if set_column:
         context.comm.memory["column"] = new_column
     return None

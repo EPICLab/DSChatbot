@@ -45,8 +45,7 @@ def select_dataframe(
             context.reply("I could not find any dataframe in your notebook. "
                           "Please write the expression of the dataframe")
         else:
-            context.reply("Please, select a dataframe")
-            context.reply_options(options)
+            context.reply_options(options, text="Please, select a dataframe")
         dataframe = yield
     return dataframe
 
@@ -84,8 +83,9 @@ def apply_str_list_operation(
     prefix: str, str_op: str, list_op: str, code: str=""
 ) -> None:
     """Applies operations for str dataframe column or list dataframe column"""
+    reply_text = ""
     if column in (df := context.comm.shell.user_ns.get(dataframe, {})) and len(df) > 0:
-        context.reply(f'For {description} of {column!r} from {dataframe!r}, '
+        reply_text = (f'For {description} of {column!r} from {dataframe!r}, '
                       f'please copy the following code to a cell:')
         if df[column].dtype == object and isinstance(df.iloc[0][column], str):
             code += f"{dataframe}['{prefix}_{column}'] = {str_op}"
@@ -95,8 +95,8 @@ def apply_str_list_operation(
         else:
             code = ""
     else:
-        context.reply(f'I could not find this the column {column!r} from the dataframe {dataframe!r}. '
+        reply_text = (f'I could not find this the column {column!r} from the dataframe {dataframe!r}. '
                       f'If you know this exists and it has a string type, please copy the following code to a cell:')
         code += f"{dataframe}['{prefix}_{column}'] = {str_op}"
 
-    context.reply(code, type_="cell")
+    context.reply(reply_text + f'####code#:\n{code}')

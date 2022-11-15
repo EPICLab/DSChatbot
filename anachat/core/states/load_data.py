@@ -20,7 +20,7 @@ def load_file_state(
     """Load file data"""
     def prepare_file(text):
         if os.path.exists(text):
-            context.reply("Copy the following code to a cell:")
+            reply_text = "Copy the following code to a cell:"
             code = ""
             ipython = context.comm.shell
             if 'pd' not in ipython.user_ns and 'pandas' not in ipython.user_ns:
@@ -31,7 +31,7 @@ def load_file_state(
             else:
                 pandas = "pandas"
             code += f"\ndf = {pandas}.read_csv({text!r})\ndf"
-            context.reply(code, type_="cell")
+            context.reply(reply_text + f'####code#:\n{code}')
             return True
         context.reply("File does not exist. Try again or type !subject")
         return False
