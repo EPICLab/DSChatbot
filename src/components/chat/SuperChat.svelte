@@ -1,12 +1,11 @@
 <script lang="ts">
   import type { IChatMessage, IMessageType } from "../../common/anachatInterfaces";
-  import { chatHistory, anaSideModel, anaAutoLoading, replying, superModePreviewMessage } from "../../stores";
+  import { chatHistory, anaSideModel, anaAutoLoading, replying, superModePreviewMessage, superModeValue } from "../../stores";
   import Message from "./message/Message.svelte";
   import { tick } from "svelte";
   import { BOT_EDITOR_TYPES, BOT_TARGETS, BOT_TYPES, messageTarget, type IEditorTypeItem, type IMessageTarget } from "../../common/messages";
   import BottomChat from "./BottomChat.svelte";
 
-  let value: string = ""
   let textarea: HTMLElement
   let bottomChat: BottomChat
 
@@ -55,10 +54,10 @@
   }
 
   function onClickEditorItem(editorItem: IEditorTypeItem) {
-    if (value.length > 0) {
-      value += '\n'
+    if ($superModeValue.length > 0) {
+      $superModeValue += '\n'
     }
-    value += editorItem.text
+    $superModeValue += editorItem.text
     textarea.focus()
   }
 
@@ -78,7 +77,7 @@
 
   async function alternativeEnter(e: any) {
     e.preventDefault();
-    let message = createMessage(value)
+    let message = createMessage($superModeValue)
     if (message !== null) {
       $superModePreviewMessage = [...$superModePreviewMessage, message]
       bottomChat.clear()
@@ -101,7 +100,7 @@
 
 <BottomChat 
   bind:textarea
-  bind:value
+  bind:value={$superModeValue}
   {alternativeEnter}
   bind:this={bottomChat}>
 
@@ -134,7 +133,7 @@
 
 
 <button on:click|preventDefault={onSuperModeSend}>Send Messages (ctrl + enter)</button>
-{#each $superModePreviewMessage as message, index}
+{#each $superModePreviewMessage as message, index (message.id)}
   <Message bind:message={message} {index} preview={true}/>
 {/each}
 

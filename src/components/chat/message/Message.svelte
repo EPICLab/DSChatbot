@@ -2,7 +2,7 @@
 
 <script type="ts">
   import { MessageDisplay, type IChatMessage, type IMessageType } from '../../../common/anachatInterfaces';
-  import { anaSuperMode, replying, superModePreviewMessage, chatHistory, anaSideModel, anaShowKernelMessages, anaShowBuildMessages } from '../../../stores';
+  import { anaSuperMode, replying, superModePreviewMessage, chatHistory, anaSideModel, anaShowKernelMessages, anaShowBuildMessages, superModeValue } from '../../../stores';
   import { ContextMenu } from '@lumino/widgets';
   import { CommandRegistry } from '@lumino/commands';
   import { BOT_TARGETS, BOT_TYPES, checkTarget, cloneMessage, messageTarget } from "../../../common/messages";
@@ -75,6 +75,16 @@
         command: 'add-reply',
         selector: '*',
       });
+      commands.addCommand('load-input', {
+        label: 'Load to input',
+        execute: () => {
+          $superModeValue = message.text;
+        }
+      });
+      contextMenu.addItem({
+        command: 'load-input',
+        selector: '*',
+      });
       commands.addCommand('build', {
         label: 'Send to kernel (build)',
         execute: () => {
@@ -134,12 +144,44 @@
           type: 'submenu',
           submenu: typeMenu
         });
+
+        if (index > 0) {
+          commands.addCommand('move-up', {
+            label: '⬆️ Move Up',
+            execute: () => {
+              const target = index - 1
+              $superModePreviewMessage.splice(target, 0, $superModePreviewMessage[index])
+              $superModePreviewMessage.splice(index + 1, 1)
+              $superModePreviewMessage = $superModePreviewMessage
+            }
+          });
+          contextMenu.addItem({
+            command: 'move-up',
+            selector: '*',
+          });
+        }
+
+        if (index < $superModePreviewMessage.length - 1) {
+          commands.addCommand('move-down', {
+            label: '⬇️ Move Down',
+            execute: () => {
+              const target = index + 1
+              $superModePreviewMessage.splice(target + 1, 0, $superModePreviewMessage[index])
+              $superModePreviewMessage.splice(index, 1)
+              $superModePreviewMessage = $superModePreviewMessage
+            }
+          });
+          contextMenu.addItem({
+            command: 'move-down',
+            selector: '*',
+          });
+        }
         
         commands.addCommand('remove', {
           label: '❌ Remove',
           execute: () => {
-            $superModePreviewMessage.splice(index, 1);
-            $superModePreviewMessage = $superModePreviewMessage;
+            $superModePreviewMessage.splice(index, 1)
+            $superModePreviewMessage = $superModePreviewMessage
           }
         });
         contextMenu.addItem({

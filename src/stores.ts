@@ -233,6 +233,7 @@ export const anaShowKernelMessages: Writable<boolean> = writable(true);
 export const anaShowBuildMessages: Writable<boolean> = writable(true);
 export const subjectItems: Writable<{responseId: Writable<number>, sitems: Writable<IAutoCompleteItem[]>}> = writable({responseId: writable(-1), sitems: writable([])})
 export const superModePreviewMessage: Writable<IChatMessage[]> = writable([]);
+export const superModeValue: Writable<string> = writable("")
 export const chatHistory = createChatHistory();
 export const kernelStatus = createStatus();
 export const panelWidget = createPanelWidget();
