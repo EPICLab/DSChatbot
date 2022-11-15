@@ -6,6 +6,7 @@ import type { AnaSideModel } from './dataAPI/AnaSideModel';
 import { anaChatIcon } from './iconimports';
 import { requestAPI } from './server';
 import { cloneMessage, messageTarget } from './common/messages';
+import type { ISanitizer } from '@jupyterlab/apputils';
 
 function createErrorHandler() {
   let current: string[] = [];
@@ -121,6 +122,7 @@ function createChatHistory() {
   const { subscribe, set, update } = writable(current);
 
   function push(newMessage: IChatMessage) {
+    newMessage.new = true;
     current.push(newMessage);
     set(current);
     if (get(anaSuperMode) != (newMessage.type != 'user')) {
@@ -172,29 +174,44 @@ function createPanelWidget() {
   let store = writable<AnaPanelView | null>(null);
   const { subscribe, set, update } = store;
 
-  function load_url(url: string, title="Info") {
+  function load_panel(content: string, title: string, type: 'url' | 'html' | 'text') {
     let current = get(store)
     if (!current || !current?.isVisible) {
       if (current) {
         current.dispose();
       }
-      current = new AnaPanelView(url, title);
+      current = new AnaPanelView(content, title, type);
       current.id = "AnaPanel-" + (id++);
       current.title.closable = true;
       get(jupyterapp)?.shell.add(current, 'main', { mode: 'split-right' })
     } else{
-      current.set_props(url, title);
+      current.set_props(content, title, type);
     }
     current.title.label = title;
     current.title.icon = anaChatIcon.bindprops({ stylesheet: 'mainAreaTab' });;
     set(current);
   }
 
+  function load_url(url: string, title="Info") {
+    load_panel(url, title, 'url')
+  }
+
+  function load_html(url: string, title: string) {
+    load_panel(url, title, 'html')
+  }
+
+  function load_text(url: string, title: string) {
+    load_panel(url, title, 'text')
+  }
+
   return {
     subscribe,
     set,
     update,
+    load_panel,
     load_url,
+    load_html,
+    load_text,
   };
 
 }
@@ -203,9 +220,10 @@ function createPanelWidget() {
 export const replying: Writable<string | null> = writable(null);
 export const anaRestrict: Writable<string[]> = writable([]);
 export const jupyterapp: Writable<JupyterFrontEnd | null> = writable(null);
+export const jupyterSanitizer: Writable<ISanitizer | null> = writable(null);
 export const anaSideModel: Writable<AnaSideModel | null> = writable(null);
 export const anaSideReady: Writable<boolean> = writable(false);
-export const anaSuperMode: Writable<boolean> = writable(false);
+export const anaSuperMode: Writable<boolean> = writable(true);
 export const anaLoading: Writable<boolean | number> = writable(false);
 export const anaAutoLoading: Writable<boolean> = writable(false);
 export const anaQueryEnabled: Writable<boolean> = writable(true);

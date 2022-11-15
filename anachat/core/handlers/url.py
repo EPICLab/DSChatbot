@@ -17,6 +17,6 @@ class URLHandler:
         # pylint: disable=no-self-use
         text = context.text
         if text.startswith("http://") or text.startswith("https://"):
-            context.comm.open_panel(text, "URL View")
+            context.reply(f"####web-panel#:URL View#:{text}")
             return True
         return None

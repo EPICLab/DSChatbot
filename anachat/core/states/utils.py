@@ -75,7 +75,7 @@ def create_panel_state(url, title):
     @statemanager()
     def panel_state(context: MessageContext) -> StateDefinition:
         """Opens a predefined panel and returns to default state"""
-        context.comm.open_panel(url, title)
+        context.reply(f"####web-panel#:{title}#:{url}")
         return None
     return panel_state
 

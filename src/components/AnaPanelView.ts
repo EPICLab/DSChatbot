@@ -6,14 +6,15 @@ export class AnaPanelView extends Widget {
   private _panel: AnaPanel;
   private _detached: boolean;
   
-  constructor(url: string, title: string) {
+  constructor(content: string, title: string, type: 'url' | 'html' | 'text') {
     super();
     this._detached = false;
     this._panel = new AnaPanel({
       target: this.node,
       props: {
-        url: url,
-        title: title
+        content,
+        title,
+        type
       }
     });
     this._panel.$on('detach', event => {
@@ -22,8 +23,8 @@ export class AnaPanelView extends Widget {
     })
   }
 
-  set_props(url: string, title: string) {
-    this._panel.$set({ url, title });
+  set_props(content: string, title: string, type: 'url' | 'html' | 'text') {
+    this._panel.$set({ content, title, type });
   }
 
   dispose(): void {

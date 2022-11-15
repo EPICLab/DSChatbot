@@ -4,6 +4,14 @@
     "state": "load_data?load_file_state"
   },
   {
+    "regex": "read documentation of ?(.*)", "params": [1],
+    "state": "read_doc?read_doc_state"
+  },
+  {
+    "regex": "\\?read (.*)", "params": [1],
+    "state": "read_doc?read_doc_state"
+  },
+  {
     "regex": "do a classification ?(of column (.*))", "params": [2],
     "state": "classification?classification_steps_state"
   },

@@ -8,7 +8,6 @@ import {
   chatHistory,
   errorHandler,
   kernelStatus,
-  panelWidget,
   subjectItems,
   anaQueryEnabled,
   anaMessageEnabled,
@@ -285,11 +284,6 @@ export class AnaSideModel {
           '_receiveAnaChatQuery',
           [msg.content.data.command, msg.content.data.message]
         );
-      } else if (operation === 'panel') {
-        panelWidget.load_url(
-          msg.content.data.url as string,
-          msg.content.data.title as string,
-        )
       } else if (operation === 'subjects') {
         const { responseId, sitems } = get(subjectItems);
         responseId.set(msg.content.data.responseId as number);

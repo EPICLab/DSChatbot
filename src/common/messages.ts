@@ -22,7 +22,12 @@ const TYPE_DEFS: { [key: string]: IMessagePartType } = {
   'dc': 'direct-code',
   'direct-code': 'direct-code',
   'i': 'input',
-  'input': 'input'
+  'input': 'input',
+  'w': 'web-panel',
+  'web': 'web-panel',
+  'web-panel': 'web-panel',
+  'html-panel': 'html-panel',
+  'text-panel': 'text-panel',
 }
 
 
@@ -151,7 +156,7 @@ export function splitUnifiedMessage(text: string): IMessagePart[] {
     if (trim.length == 0) {
       continue;
     }
-    let septype: string[] = trim.split('#:', 2)
+    let septype: string[] = trim.split(/#:(.*)/s, 2)
     if (septype.length == 1) {
       items.push({
         type: 'text',

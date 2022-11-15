@@ -4,11 +4,12 @@ import {
   type JupyterFrontEnd,
   type JupyterFrontEndPlugin
 } from '@jupyterlab/application';
+import { ISanitizer } from '@jupyterlab/apputils';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
 import { AnaChat } from './anachat';
 import type { IServerConfig } from './common/anachatInterfaces';
 import { requestAPI } from './server';
-import { anaRestrict, errorHandler, jupyterapp } from './stores';
+import { anaRestrict, errorHandler, jupyterapp, jupyterSanitizer } from './stores';
 
 
 function startPlugin(
@@ -16,12 +17,14 @@ function startPlugin(
   labShell: ILabShell,
   restorer: ILayoutRestorer,
   notebookTracker: INotebookTracker,
+  sanitizer: ISanitizer,
   config: IServerConfig
 ) {
   try {
     console.log("Restrict: %s", config.restrict)
     anaRestrict.set(config.restrict);
     jupyterapp.set(app);
+    jupyterSanitizer.set(sanitizer);
     // Create the widget
     const anaChat = new AnaChat();
 
@@ -58,22 +61,23 @@ function startPlugin(
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'anachat:plugin',
   autoStart: true,
-  requires: [ILabShell, ILayoutRestorer, INotebookTracker],
+  requires: [ILabShell, ILayoutRestorer, INotebookTracker, ISanitizer],
   activate: (
     app: JupyterFrontEnd,
     labShell: ILabShell,
     restorer: ILayoutRestorer,
-    notebookTracker: INotebookTracker
+    notebookTracker: INotebookTracker,
+    sanitizer: ISanitizer
   ) => {
     requestAPI<any>('config', {
       method: 'GET'
     }).then((config: IServerConfig) => {
-      startPlugin(app, labShell, restorer, notebookTracker, config);
+      startPlugin(app, labShell, restorer, notebookTracker, sanitizer, config);
     }).catch((reason: any) => {
       console.error(
         `The anachat server extension appears to be missing.\n${reason}\nStarting with default config`
       );
-      startPlugin(app, labShell, restorer, notebookTracker, { restrict: [] });
+      startPlugin(app, labShell, restorer, notebookTracker, sanitizer, { restrict: [] });
     });
   }
   

@@ -41,6 +41,8 @@ export interface IChatMessage extends ITargetDefinition {
   type: IMessageType;
   timestamp: number;
   reply: string | null;
+
+  new?: boolean;
 }
 
 export interface IAutoCompleteItem {
@@ -56,6 +58,7 @@ export interface IServerConfig {
 
 export type IMessagePartType =
   'text' | 'html' 
+  | 'web-panel' | 'text-panel' | 'html-panel'
   | 'ul' | 'ol' | 'ful' | 'fol'
   | 'code' | 'direct-code' | 'input';
 

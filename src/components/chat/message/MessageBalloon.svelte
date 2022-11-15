@@ -7,6 +7,7 @@
   import Hypertext from "./parts/Hypertext.svelte";
   import TextInput from "./parts/TextInput.svelte";
   import FullOptions from "./parts/FullOptions.svelte";
+  import Panel from "./parts/Panel.svelte";
   import { splitUnifiedMessage } from "../../../common/messages";
 
   export let message: IChatMessage
@@ -107,6 +108,12 @@
         <Hypertext {messagePart}/>
       {:else if messagePart.type == 'input'}
         <TextInput {messagePart} {message}/>
+      {:else if messagePart.type == 'web-panel'}
+        <Panel {messagePart} {message} {preview} type='url'/>
+      {:else if messagePart.type == 'text-panel'}
+        <Panel {messagePart} {message} {preview} type='text'/>
+      {:else if messagePart.type == 'html-panel'}
+        <Panel {messagePart} {message} {preview} type='html'/>
       {:else}
         <Text {messagePart}/>
       {/if}

@@ -161,7 +161,7 @@
         "bundled": false,
         "singleton": true
       },
-      "@jupyterlab/rendermine": {
+      "@jupyterlab/rendermime": {
         "bundled": false,
         "singleton": true
       },
