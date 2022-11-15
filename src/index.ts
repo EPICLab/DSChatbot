@@ -6,10 +6,11 @@ import {
 } from '@jupyterlab/application';
 import { ISanitizer } from '@jupyterlab/apputils';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { AnaChat } from './anachat';
 import type { IServerConfig } from './common/anachatInterfaces';
 import { requestAPI } from './server';
-import { anaRestrict, errorHandler, jupyterapp, jupyterSanitizer } from './stores';
+import { anaRestrict, errorHandler, jupyterapp, jupyterSanitizer, jupyterRenderMime } from './stores';
 
 
 function startPlugin(
@@ -18,6 +19,7 @@ function startPlugin(
   restorer: ILayoutRestorer,
   notebookTracker: INotebookTracker,
   sanitizer: ISanitizer,
+  rendermime: IRenderMimeRegistry,
   config: IServerConfig
 ) {
   try {
@@ -25,6 +27,7 @@ function startPlugin(
     anaRestrict.set(config.restrict);
     jupyterapp.set(app);
     jupyterSanitizer.set(sanitizer);
+    jupyterRenderMime.set(rendermime);
     // Create the widget
     const anaChat = new AnaChat();
 
@@ -61,23 +64,24 @@ function startPlugin(
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'anachat:plugin',
   autoStart: true,
-  requires: [ILabShell, ILayoutRestorer, INotebookTracker, ISanitizer],
+  requires: [ILabShell, ILayoutRestorer, INotebookTracker, ISanitizer, IRenderMimeRegistry],
   activate: (
     app: JupyterFrontEnd,
     labShell: ILabShell,
     restorer: ILayoutRestorer,
     notebookTracker: INotebookTracker,
-    sanitizer: ISanitizer
+    sanitizer: ISanitizer,
+    rendermime: IRenderMimeRegistry
   ) => {
     requestAPI<any>('config', {
       method: 'GET'
     }).then((config: IServerConfig) => {
-      startPlugin(app, labShell, restorer, notebookTracker, sanitizer, config);
+      startPlugin(app, labShell, restorer, notebookTracker, sanitizer, rendermime, config);
     }).catch((reason: any) => {
       console.error(
         `The anachat server extension appears to be missing.\n${reason}\nStarting with default config`
       );
-      startPlugin(app, labShell, restorer, notebookTracker, sanitizer, { restrict: [] });
+      startPlugin(app, labShell, restorer, notebookTracker, sanitizer, rendermime, { restrict: [] });
     });
   }
   

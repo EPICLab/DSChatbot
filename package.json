@@ -161,6 +161,10 @@
         "bundled": false,
         "singleton": true
       },
+      "@jupyterlab/outputarea": {
+        "bundled": false,
+        "singleton": true
+      },
       "@jupyterlab/rendermime": {
         "bundled": false,
         "singleton": true

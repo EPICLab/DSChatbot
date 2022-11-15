@@ -7,6 +7,7 @@ import { anaChatIcon } from './iconimports';
 import { requestAPI } from './server';
 import { cloneMessage, messageTarget } from './common/messages';
 import type { ISanitizer } from '@jupyterlab/apputils';
+import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 
 function createErrorHandler() {
   let current: string[] = [];
@@ -221,6 +222,7 @@ export const replying: Writable<string | null> = writable(null);
 export const anaRestrict: Writable<string[]> = writable([]);
 export const jupyterapp: Writable<JupyterFrontEnd | null> = writable(null);
 export const jupyterSanitizer: Writable<ISanitizer | null> = writable(null);
+export const jupyterRenderMime: Writable<IRenderMimeRegistry | null> = writable(null);
 export const anaSideModel: Writable<AnaSideModel | null> = writable(null);
 export const anaSideReady: Writable<boolean> = writable(false);
 export const anaSuperMode: Writable<boolean> = writable(false);

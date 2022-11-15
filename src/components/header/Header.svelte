@@ -2,6 +2,7 @@
   import { anaSideModel, anaSuperMode, anaMessageEnabled, anaLoading, anaAutoLoading, anaTimes, anaShowKernelMessages, anaShowBuildMessages } from "../../stores";
   import Renderer from "./status/Renderer.svelte";
   import { onKeyPress } from '../../common/utils';
+  import SuperModeCell from "./SuperModeCell.svelte";
 
   export let title: string;
   
@@ -32,11 +33,12 @@
     letter-spacing: 1px;
     margin: 0px;
     padding: 12px 0 4px 12px;
-    text-transform: uppercase;
   }
 
   .title {
     display: inline-block;
+    text-transform: uppercase;
+
   }
   .title:hover {
     cursor: pointer;
@@ -80,8 +82,6 @@
         Auto Loading
       </label>
 
-      <br>
-      Super:
       <label>
         <input type=checkbox bind:checked={$anaTimes}> 
         Time
@@ -94,6 +94,9 @@
         <input type=checkbox bind:checked={$anaShowBuildMessages}> 
         Build
       </label>
+
+      <br>
+      <SuperModeCell/>
     {/if}
   </header>
 </div>
