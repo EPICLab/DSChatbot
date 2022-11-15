@@ -2,7 +2,7 @@
 
 <script type="ts">
   import { MessageDisplay, type IChatMessage, type IMessageType } from '../../../common/anachatInterfaces';
-  import { anaSuperMode, replying, superModePreviewMessage, chatHistory, anaSideModel } from '../../../stores';
+  import { anaSuperMode, replying, superModePreviewMessage, chatHistory, anaSideModel, anaShowKernelMessages, anaShowBuildMessages } from '../../../stores';
   import { ContextMenu } from '@lumino/widgets';
   import { CommandRegistry } from '@lumino/commands';
   import { BOT_TARGETS, BOT_TYPES, checkTarget, cloneMessage, messageTarget } from "../../../common/messages";
@@ -19,7 +19,19 @@
   export let index: number;
   export let chat: HTMLElement | null = null;
   export let preview: boolean = false;
-  
+  let display: boolean = false;
+  $: {
+    display = message.display === MessageDisplay.Default || $anaSuperMode
+    if ((message.display === MessageDisplay.SupermodeInput || message.kernelDisplay === MessageDisplay.SupermodeInput) && !$anaShowBuildMessages) {
+      display = false;
+    } else if (message.display === MessageDisplay.Hidden && !$anaShowKernelMessages) {
+      display = false;
+    }
+    if (preview) {
+      display = true;
+    }
+  }
+
   let div: HTMLElement | null = null;
 
   function select(e: any) {
@@ -217,7 +229,7 @@
 
 <div bind:this={div} class="message-{message.id}" on:contextmenu={onRightClick}> 
   
-  {#if message.display === MessageDisplay.Default || $anaSuperMode}
+  {#if display}
     {#if !preview}
       <div class="icons {message.type}">
 

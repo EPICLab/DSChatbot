@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { anaSideModel, anaSuperMode, anaMessageEnabled, anaLoading, anaAutoLoading, anaTimes } from "../../stores";
+  import { anaSideModel, anaSuperMode, anaMessageEnabled, anaLoading, anaAutoLoading, anaTimes, anaShowKernelMessages, anaShowBuildMessages } from "../../stores";
   import Renderer from "./status/Renderer.svelte";
   import { onKeyPress } from '../../common/utils';
 
@@ -61,28 +61,39 @@
     <div class="title" class:supermode={$anaSuperMode} on:click={refresh} on:keypress={(e) => onKeyPress(refresh, e)} title="Click to refresh">{title}</div>
     <Renderer/>
     {#if $anaLoading === true}
-    <span>⌛️</span>
+      <span>⌛️</span>
     {/if}
     
     {#if $anaSuperMode}
-    <br>
-    
-    <label>
-      <input type=checkbox on:change={superModeToggleMessage} checked={$anaMessageEnabled}>
-      Message
-    </label>
-    <label>
-      <input type=checkbox on:change={superModeToggleLoading} checked={$anaLoading !== false}>
-      Loading
-    </label>
-    <label>
-      <input type=checkbox bind:checked={$anaTimes}>
-      Show time
-    </label>
-    <label>
-      <input type=checkbox on:change={superModeToggleAutoLoading} checked={$anaAutoLoading}>
-      Auto Loading
-    </label>
+      <br>
+      
+      <label>
+        <input type=checkbox on:change={superModeToggleMessage} checked={$anaMessageEnabled}>
+        Message
+      </label>
+      <label>
+        <input type=checkbox on:change={superModeToggleLoading} checked={$anaLoading !== false}>
+        Loading
+      </label>
+      <label>
+        <input type=checkbox on:change={superModeToggleAutoLoading} checked={$anaAutoLoading}>
+        Auto Loading
+      </label>
+
+      <br>
+      Super:
+      <label>
+        <input type=checkbox bind:checked={$anaTimes}> 
+        Time
+      </label>
+      <label>
+        <input type=checkbox bind:checked={$anaShowKernelMessages}> 
+        Kernel
+      </label>
+      <label>
+        <input type=checkbox bind:checked={$anaShowBuildMessages}> 
+        Build
+      </label>
     {/if}
   </header>
 </div>
