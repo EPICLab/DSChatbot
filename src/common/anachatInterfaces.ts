@@ -59,7 +59,7 @@ export interface IServerConfig {
 export type IMessagePartType =
   'text' | 'html' 
   | 'web-panel' | 'text-panel' | 'html-panel'
-  | 'ul' | 'ol' | 'ful' | 'fol'
+  | 'ul' | 'ol' | 'ful' | 'fol' | 'form'
   | 'code' | 'direct-code' | 'input';
 
 export interface IMessagePart {

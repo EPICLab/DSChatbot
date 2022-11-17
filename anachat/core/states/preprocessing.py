@@ -11,6 +11,51 @@ if TYPE_CHECKING:
     from ...comm.message import MessageContext
     from .state import StateDefinition, StateGenerator
 
+@statemanager()
+def preprocess(
+    context: MessageContext,
+    dataframe: str | None=None
+) -> StateGenerator:
+    """Selects dataframe for operations"""
+    if not dataframe:
+        context.reply("Please, write the dataframe name")
+        dataframe = yield
+    context.comm.memory["dataframe"] = dataframe
+    if dataframe not in context.comm.shell.user_ns:
+        context.reply(f"Dataframe {dataframe} not found")
+        return None
+    df = context.comm.shell.user_ns[dataframe]
+    text = "Great! Before we proceed, please set the types of the columns of your dataframe and click on 'Continue'\n####form#:\n"
+    result = []
+    for column in df.columns:
+        types = ['Categorical', 'Text', 'Numeric', 'Boolean', 'Datetime', 'Timedelta', 'Other']
+        if df[column].dtype == 'object':
+            types = ['Categorical', 'Text', 'Other']
+        elif df[column].dtype == 'int':
+            types = ['Categorical', 'Numeric', 'Other']
+        elif df[column].dtype == 'float':
+            types = ['Categorical', '*Numeric', 'Other']
+        elif df[column].dtype == 'bool':
+            types = ['Categorical', 'Boolean', 'Other']
+        elif df[column].dtype == 'datetime':
+            types = ['Datetime', 'Other']
+        elif df[column].dtype == 'timedelta':
+            types = ['Timedelta', 'Other']
+        elif df[column].dtype == 'category':
+            types = ['*Categorical', 'Other']
+        result.append(f"-selection#:{column}#:{'#:'.join(types)}")
+    result.append('-submit#:Continue')
+    result.append("####text#:")
+    result.append("Or choose an option below")
+    result.append("####ol#:")
+    result.append("- Help me decide it")
+    result.append("- Skip preprocessing")
+    text = text + "\n".join(result)
+    context.reply(text)
+
+    return None
+
+
 
 @statemanager()
 def select_dataframe_state(

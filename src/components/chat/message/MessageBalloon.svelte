@@ -8,6 +8,7 @@
   import TextInput from "./parts/TextInput.svelte";
   import FullOptions from "./parts/FullOptions.svelte";
   import Panel from "./parts/Panel.svelte";
+  import Form from "./parts/Form.svelte";
   import { splitUnifiedMessage } from "../../../common/messages";
 
   export let message: IChatMessage
@@ -114,6 +115,8 @@
         <Panel {messagePart} {message} {preview} type='text'/>
       {:else if messagePart.type == 'html-panel'}
         <Panel {messagePart} {message} {preview} type='html'/>
+      {:else if messagePart.type == 'form'}
+        <Form {messagePart} {message}/>
       {:else}
         <Text {messagePart}/>
       {/if}

@@ -8,8 +8,12 @@
     "state": "read_doc?read_doc_state"
   },
   {
-    "regex": "\\?read (.*)", "params": [1],
+    "regex": "\\!doc (.*)", "params": [1],
     "state": "read_doc?read_doc_state"
+  },
+  {
+    "regex": "\\!preprocess (.*)", "params": [1],
+    "state": "preprocessing?preprocess"
   },
   {
     "regex": "do a classification ?(of column (.*))", "params": [2],

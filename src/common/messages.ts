@@ -28,6 +28,8 @@ const TYPE_DEFS: { [key: string]: IMessagePartType } = {
   'web-panel': 'web-panel',
   'html-panel': 'html-panel',
   'text-panel': 'text-panel',
+  'f': 'form',
+  'form': 'form'
 }
 
 
@@ -171,4 +173,12 @@ export function splitUnifiedMessage(text: string): IMessagePart[] {
     }
   }
   return items;
+}
+
+export interface IFormElementItem {
+  id: number
+  type: string
+  label: string 
+  rest: string | null
+  value: string
 }
