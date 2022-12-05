@@ -5,7 +5,7 @@ import { AnaPanelView } from './components/AnaPanelView';
 import type { AnaSideModel } from './dataAPI/AnaSideModel';
 import { anaChatIcon } from './iconimports';
 import { requestAPI } from './server';
-import { cloneMessage, messageTarget } from './common/messages';
+import { checkTarget, cloneMessage, messageTarget } from './common/messages';
 import type { ISanitizer } from '@jupyterlab/apputils';
 import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 
@@ -126,7 +126,7 @@ function createChatHistory() {
     newMessage.new = true;
     current.push(newMessage);
     set(current);
-    if (get(anaSuperMode) != (newMessage.type != 'user')) {
+    if ((get(anaSuperMode) != (newMessage.type != 'user')) && !['kernel', 'build'].includes(checkTarget(newMessage))) {
       replying.set(newMessage['id']);
     }
     if (newMessage.display == MessageDisplay.SupermodeInput) {
@@ -147,7 +147,7 @@ function createChatHistory() {
   function load(data: IChatMessage[]) {
     current = data;
     const lastMessage = data[data.length - 1];
-    if (get(anaSuperMode) != (lastMessage.type != 'user')) {
+    if ((get(anaSuperMode) != (lastMessage.type != 'user')) && !['kernel', 'build'].includes(checkTarget(lastMessage))) {
       replying.set(lastMessage['id']);
     }
     set(current);
