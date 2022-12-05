@@ -29,7 +29,7 @@ class AnaComm:
 
         self.message_processing_enabled = True
         self.query_processing_enabled = True
-        self.loading = False
+        self.loading = []
         self.auto_loading = False
 
         self.history = [MessageContext.create_message(
@@ -83,7 +83,16 @@ class AnaComm:
                 if (value := data.get("query_processing", None)) is not None:
                     self.query_processing_enabled = value
                 if (value := data.get("loading", None)) is not None:
-                    self.loading = value
+                    if value is False:
+                        self.loading = []
+                    else:
+                        self.loading.append(value)
+                if (value := data.get("remove_loading", None)) is not None:
+                    if value is False:
+                        self.loading = []
+                    for index, message in enumerate(self.history):
+                        if message['id'] == value and index in self.loading:
+                            self.loading.remove(index)
                 if (value := data.get("auto_loading", None)) is not None:
                     self.auto_loading = value
                 self.core.refresh(self)

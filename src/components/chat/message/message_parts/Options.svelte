@@ -1,7 +1,7 @@
 <script type="ts">
   import type { IChatMessage, IMessagePart, IOptionItem } from "../../../../common/anachatInterfaces";
   import { extractOptions, messageTarget } from "../../../../common/messages";
-  import { chatHistory } from "../../../../stores";
+  import { chatHistory, anaAutoLoading, anaSideModel } from "../../../../stores";
 
   export let messagePart: IMessagePart;
   export let message: IChatMessage;
@@ -16,6 +16,9 @@
       reply: message.id,
       ...messageTarget('bot')
     })
+    if ($anaAutoLoading) {
+      $anaSideModel?.sendSupermode({ loading: $chatHistory.length });
+    }
     e.target.blur()
   }
   let items: IOptionItem[]

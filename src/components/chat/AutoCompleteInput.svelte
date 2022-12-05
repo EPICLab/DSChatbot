@@ -3,7 +3,7 @@
 
   import AutoCompleteItem from "./AutoCompleteItem.svelte";
   
-  import { chatHistory, anaSideModel, subjectItems, anaQueryEnabled } from "../../stores";
+  import { chatHistory, anaSideModel, subjectItems, anaQueryEnabled, anaAutoLoading } from "../../stores";
   import type { IAutoCompleteItem } from "../../common/anachatInterfaces";
   import { messageTarget } from "../../common/messages";
   import BottomChat from "./BottomChat.svelte";
@@ -88,6 +88,9 @@
       reply: null,
       ...messageTarget('bot')
     })
+    if ($anaAutoLoading) {
+      $anaSideModel?.sendSupermode({ loading: $chatHistory.length });
+    }
     clear();
   }
  

@@ -62,7 +62,7 @@
   <header>
     <div class="title" class:supermode={$anaSuperMode} on:click={refresh} on:keypress={(e) => onKeyPress(refresh, e)} title="Click to refresh">{title}</div>
     <Renderer/>
-    {#if $anaLoading === true}
+    {#if $anaLoading.includes(true)}
       <span>⌛️</span>
     {/if}
     
@@ -74,7 +74,7 @@
         Message
       </label>
       <label>
-        <input type=checkbox on:change={superModeToggleLoading} checked={$anaLoading !== false}>
+        <input type=checkbox on:change={superModeToggleLoading} checked={$anaLoading.length > 0}>
         Loading
       </label>
       <label>

@@ -1,14 +1,14 @@
 <script type="ts">
   import { MessageDisplay, type IChatMessage, type IMessagePart } from "../../../common/anachatInterfaces";
   import { anaTimes } from "../../../stores";
-  import Options from "./parts/Options.svelte";
-  import Text from "./parts/Text.svelte";
-  import Code from "./parts/Code.svelte";
-  import Hypertext from "./parts/Hypertext.svelte";
-  import TextInput from "./parts/TextInput.svelte";
-  import FullOptions from "./parts/FullOptions.svelte";
-  import Panel from "./parts/Panel.svelte";
-  import Form from "./parts/Form.svelte";
+  import Options from "./message_parts/Options.svelte";
+  import Text from "./message_parts/Text.svelte";
+  import Code from "./message_parts/Code.svelte";
+  import Hypertext from "./message_parts/Hypertext.svelte";
+  import TextInput from "./message_parts/TextInput.svelte";
+  import FullOptions from "./message_parts/FullOptions.svelte";
+  import Panel from "./message_parts/Panel.svelte";
+  import Form from "./message_parts/Form.svelte";
   import { splitUnifiedMessage } from "../../../common/messages";
 
   export let message: IChatMessage

@@ -194,7 +194,7 @@
         label: 'Toggle loading',
         execute: () => {
           if (loading) {
-            $anaSideModel?.sendSupermode({ loading: false });
+            $anaSideModel?.sendSupermode({ remove_loading: message.id });
             loading = false;
           } else {
             $anaSideModel?.sendSupermode({ loading: index });

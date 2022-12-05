@@ -70,7 +70,7 @@
     })
     $superModePreviewMessage = []
     if ($anaAutoLoading) {
-      $anaSideModel?.sendSupermode({ loading: false })
+      $anaSideModel?.sendSupermode({ remove_loading: $replying })
     }
     await tick();
   }
@@ -80,7 +80,9 @@
     let message = createMessage($superModeValue)
     if (message !== null) {
       $superModePreviewMessage = [...$superModePreviewMessage, message]
-      bottomChat.clear()
+      if (bottomChat != undefined) {
+        bottomChat.clear()
+      }
     }
     return true
   }
