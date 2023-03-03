@@ -120,11 +120,14 @@ function createStatus() {
 
 function createChatHistory() {
   let current: IChatMessage[] = [];
+  let messageMap: { [key: string]: { position: number, message: IChatMessage} } = {};
   const { subscribe, set, update } = writable(current);
 
   function push(newMessage: IChatMessage) {
     newMessage.new = true;
+    messageMap[newMessage['id']] = { position: current.length, message: newMessage };
     current.push(newMessage);
+    
     set(current);
     if ((get(anaSuperMode) != (newMessage.type != 'user')) && !['kernel', 'build'].includes(checkTarget(newMessage))) {
       replying.set(newMessage['id']);
@@ -146,10 +149,21 @@ function createChatHistory() {
 
   function load(data: IChatMessage[]) {
     current = data;
+    messageMap = {};
+    current.forEach((message, index) => {
+      messageMap[message['id']] = { position: index, message: message };
+    });
     const lastMessage = data[data.length - 1];
     if ((get(anaSuperMode) != (lastMessage.type != 'user')) && !['kernel', 'build'].includes(checkTarget(lastMessage))) {
       replying.set(lastMessage['id']);
     }
+    set(current);
+  }
+
+  function updateMessage(message: IChatMessage) {
+    let { position } = messageMap[message['id']];
+    current[position] = message;
+    messageMap[message['id']] = { position, message };
     set(current);
   }
 
@@ -165,7 +179,8 @@ function createChatHistory() {
     push,
     addNew,
     reset,
-    load
+    load,
+    updateMessage
   };
 }
 

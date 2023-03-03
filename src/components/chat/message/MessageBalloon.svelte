@@ -1,12 +1,16 @@
 <script type="ts">
   import { MessageDisplay, type IChatMessage} from "../../../common/anachatInterfaces";
-  import { anaDebugReply, anaTimes, chatHistory, replying, anaSuperMode } from "../../../stores";
+  import { anaDebugReply, anaTimes, chatHistory, replying, anaSuperMode, anaSideModel } from "../../../stores";
+
   import MessageParts from "./MessageParts.svelte";
 
   import Robot from "../../icons/robot.svelte";
   import Person from "../../icons/person.svelte";
   import Eye from "../../icons/eye.svelte";
   import Reply from "../../icons/reply.svelte";
+  import ThumbsUp from "../../icons/fa-thumbs-up-solid.svelte";
+  import ThumbsDown from "../../icons/fa-thumbs-down-solid.svelte";
+  import { messageTarget } from "../../../common/messages";
   
   export let message: IChatMessage
   export let loading: boolean = false
@@ -63,11 +67,65 @@
     }
   }
 
+  let typingTimer: ReturnType<typeof setTimeout>;
+  
+
+  function feedback(event: any) {
+    let feedback_msg = message.feedback.reason;
+    if (feedback_msg == "Other") {
+      feedback_msg = message.feedback.otherreason;
+    }
+    chatHistory.addNew({
+      id: crypto.randomUUID(),
+      text: `Feedback: ${feedback_msg}`,
+      type: 'user',
+      timestamp: +new Date(),
+      reply: message.id,
+      feedback: {
+        rate: 0,
+        reason: "",
+        otherreason: ""
+      },
+      ...messageTarget('bot')
+    })
+  }
+
+  function thumbsUpClick(event: any) {
+    message.feedback.rate = message.feedback.rate === 1? 0 : 1;
+    $anaSideModel?.sendMessageFeedback(
+      message.id, { rate: message.feedback.rate }
+    )
+  }
+
+  function thumbsDownClick(event: any) {
+    message.feedback.rate = message.feedback.rate === -1? 0 : -1;
+    $anaSideModel?.sendMessageFeedback(
+      message.id, { rate: message.feedback.rate }
+    )
+  }
+
+  function changeFeedback() {
+    $anaSideModel?.sendMessageFeedback(
+      message.id, { 
+        reason: message.feedback.reason,
+        otherreason: message.feedback.otherreason
+      }
+    )
+  }
+
+  function feedbackkeyup() {
+    clearTimeout(typingTimer);
+    typingTimer =  setTimeout(changeFeedback, 3000);
+  }
+
+  function feedbackkeydown() {
+    clearTimeout(typingTimer);
+  }
+
   $: if($anaDebugReply) {
     inner = $chatHistory.find(m => m.id == message.reply);
   }
   $: selected = $replying == message.id;
-
   
 
 </script>
@@ -130,6 +188,9 @@
               class:hideuserreply={!$anaSuperMode && message.type == 'user'}
               on:click={select}
             ><Reply/></button>
+
+            
+
           </div>
 
           {#if loading}
@@ -140,24 +201,66 @@
         </div>
         
         <div class="timestamp timestamp-{message.type}">
+          {#if !$anaSuperMode && message.type !== 'user'}
+            <div class="feedback-btns">
+              <button 
+                title="Good reply"
+                class="icon"
+                class:selected={message.feedback.rate == 1} 
+                on:click={thumbsUpClick}
+              ><ThumbsUp/></button>
+              <button 
+                title="Bad reply"
+                class="icon thumbsdown"
+                class:selected={message.feedback.rate == -1} 
+                on:click={thumbsDownClick}
+              ><ThumbsDown/></button>
+            </div>
+          {/if}
           {#if $anaTimes}
             <span>{ new Date(timestamp).toLocaleTimeString("en-US") }</span>
           {/if}
         </div>
         
       </div>
+      {#if message.feedback.rate == -1}
+        <div class="rate">
+          <label>Help me improve. Why did you rate the message this way?
+            <select bind:value={message.feedback.reason} on:change={changeFeedback}>
+              <option></option>
+              <option>The message is incorrect</option>
+              <option>The message is incomplete</option>
+              <option>I cannot understand the message</option>
+              <option>The message was not solicited</option>
+              <option>Other</option>
+            </select>
+          </label>
+          {#if message.feedback.reason === "Other"}
+            <label>Other: <input type=text bind:value={message.feedback.otherreason} on:keydown={feedbackkeydown} on:keyup={feedbackkeyup}></label>
+          {/if}
+          <button 
+            disabled={message.feedback.reason === "" || (message.feedback.reason === "Other" && message.feedback.otherreason === "")}
+            on:click={feedback} 
+            title="Submit feedback message to get a new reply with a new answer"
+          >Submit as message</button>
+
+        </div>
+      {/if}
     {/if}
   </div>
   
 </div>
 
 <style>
+  button {
+    cursor: pointer;
+  }
+
   .icon {
     background: none!important;
     border: none;
     padding: 0!important;
-    cursor: pointer;
-
+    
     display: flex;
        
     align-items:center;
@@ -179,6 +282,10 @@
 
   .icon.selected :global(svg) {
     fill: green;
+  }
+
+  .thumbsdown.selected :global(svg) {
+    fill: red;
   }
 
   .side {
@@ -344,6 +451,31 @@
 
   .disable-click {
     pointer-events: none;
+  }
+
+  .rate {
+    border-top: 1px solid black;
+  }
+
+  .rate label {
+    display: block;
+    margin: 0.5em;
+  }
+
+  .rate button {
+    display: block;
+    margin: 0.5em;
+  }
+
+  .rate select, .rate input {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .feedback-btns {
+    display: flex;
+    flex-direction: row;
   }
 
 </style>

@@ -38,6 +38,11 @@
       type: 'user',
       timestamp: +new Date(),
       reply: replyto || $replying,
+      feedback: {
+        rate: 0,
+        reason: "",
+        otherreason: ""
+      },
       ...messageTarget('bot')
     }
   }

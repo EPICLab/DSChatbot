@@ -56,6 +56,11 @@
       type: 'user',
       timestamp: +new Date(),
       reply: message.id,
+      feedback: {
+        rate: 0,
+        reason: "",
+        otherreason: ""
+      },
       ...messageTarget('bot')
     })
     e.target.blur()

@@ -29,6 +29,12 @@ export enum KernelProcess {
   Force
 }
 
+export interface IFeedback {
+  rate: number;
+  reason: string;
+  otherreason: string;
+}
+
 export interface ITargetDefinition {
   display: MessageDisplay;
   kernelProcess: KernelProcess;
@@ -41,6 +47,7 @@ export interface IChatMessage extends ITargetDefinition {
   type: IMessageType;
   timestamp: number;
   reply: string | null;
+  feedback: IFeedback;
 
   new?: boolean;
 }

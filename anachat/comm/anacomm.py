@@ -38,6 +38,9 @@ class AnaComm:
              "How can I help you?"),
             "bot"
         )]
+        self.message_map = {
+            self.history[-1]['id']: self.history[-1]
+        }
         self.checkpoints = {}
 
     @property
@@ -96,6 +99,16 @@ class AnaComm:
                 if (value := data.get("auto_loading", None)) is not None:
                     self.auto_loading = value
                 self.core.refresh(self)
+            elif operation == "messagefeedback":
+                message_id = data['message_id']
+                del data['message_id']
+                message = self.message_map[message_id]
+                for key, value in data.items():
+                    message['feedback'][key] = value
+                self.send({
+                    "operation": "updatemessage",
+                    "message": message,
+                })
         except Exception:  # pylint: disable=broad-except
             print(traceback.format_exc())
             self.send({
@@ -107,6 +120,7 @@ class AnaComm:
     def receive_message(self, message: IChatMessage):
         """Receives message from user"""
         self.history.append(message)
+        self.message_map[message['id']] = message
         self.send({
             "operation": "reply",
             "message": message
@@ -143,6 +157,7 @@ class AnaComm:
     def reply_message(self, message: IChatMessage):
         """Replies IChatMessage to user"""
         self.history.append(message)
+        self.message_map[message['id']] = message
         self.send({
             "operation": "reply",
             "message": message

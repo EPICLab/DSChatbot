@@ -23,6 +23,11 @@
       type: superModeType,
       timestamp: +new Date(),
       reply: $replying,
+      feedback: {
+        rate: 0,
+        reason: "",
+        otherreason: ""
+      },
       ...messageTarget(superModeTarget)
     }
   }

@@ -200,6 +200,15 @@ export class AnaSideModel {
     this.send(data);
   }
 
+  /**
+   * Send message feedback command to the kernel
+   */
+  public sendMessageFeedback(message_id: string, data: any): void {
+    data.operation = 'messagefeedback';
+    data.message_id = message_id;
+    this.send(data);
+  }
+
 
   /**
    * Send a subject query command to the kernel
@@ -278,6 +287,11 @@ export class AnaSideModel {
         const message: IChatMessage = msg.content.data
           .message as unknown as IChatMessage;
         chatHistory.push(message);
+      } else if (operation === 'updatemessage') {
+        kernelStatus.setattr('hasKernel', true);
+        const message: IChatMessage = msg.content.data
+          .message as unknown as IChatMessage;
+        chatHistory.updateMessage(message);
       } else if (operation === 'error') {
         errorHandler.report(
           'Failed to run ICOMM command',

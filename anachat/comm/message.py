@@ -20,8 +20,14 @@ if TYPE_CHECKING:
         key: str
         label: str
 
+    class IFeedback(TypedDict):
+        """Represents a message feedback"""
+        rate: int
+        reason: str
+        otherreason: str
+
     class IChatMessage(TypedDict):
-        """Represets a message"""
+        """Represents a message"""
         id: str
         text: str
         type: str
@@ -31,6 +37,8 @@ if TYPE_CHECKING:
 
         kernelProcess: KernelProcess
         kernelDisplay: MessageDisplay
+
+        feedback: IFeedback
 
 
 class MessageDisplay(IntEnum):
@@ -71,6 +79,11 @@ class MessageContext:
             "display": int(display),
             "kernelProcess": int(KernelProcess.PREVENT),
             "kernelDisplay": int(MessageDisplay.DEFAULT),
+            "feedback": {
+                "rate": 0,
+                "reason": "",
+                "otherreason": "",
+            }
         }
 
     @property

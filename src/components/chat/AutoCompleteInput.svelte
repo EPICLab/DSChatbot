@@ -86,6 +86,11 @@
       type: 'user',
       timestamp: +new Date(),
       reply: null,
+      feedback: {
+        rate: 0,
+        reason: "",
+        otherreason: ""
+      },
       ...messageTarget('bot')
     })
     if ($anaAutoLoading) {
