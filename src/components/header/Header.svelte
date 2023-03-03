@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { anaSideModel, anaSuperMode, anaMessageEnabled, anaLoading, anaAutoLoading, anaTimes, anaShowKernelMessages, anaShowBuildMessages } from "../../stores";
+  import { anaSideModel, anaSuperMode, anaMessageEnabled, anaLoading, anaAutoLoading, anaTimes, anaShowKernelMessages, anaShowBuildMessages, anaDebugReply } from "../../stores";
   import Renderer from "./status/Renderer.svelte";
   import { onKeyPress } from '../../common/utils';
   import SuperModeCell from "./SuperModeCell.svelte";
@@ -94,7 +94,10 @@
         <input type=checkbox bind:checked={$anaShowBuildMessages}> 
         Build
       </label>
-
+      <label>
+        <input type=checkbox bind:checked={$anaDebugReply}> 
+        Debug
+      </label>
       <br>
       <SuperModeCell/>
     {/if}

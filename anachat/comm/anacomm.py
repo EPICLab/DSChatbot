@@ -45,10 +45,10 @@ class AnaComm:
         """Returns current AnaCore"""
         return self.core_loader.core.CURRENT
 
-    def history_message(self, opetation):
+    def history_message(self, operation):
         """Returns message with history and general config"""
         return {
-            "operation": opetation,
+            "operation": operation,
             "history": self.history,
             "message_processing_enabled": self.message_processing_enabled,
             "query_processing_enabled": self.query_processing_enabled,

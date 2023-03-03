@@ -1,31 +1,259 @@
 <script type="ts">
-  import { MessageDisplay, type IChatMessage, type IMessagePart } from "../../../common/anachatInterfaces";
-  import { anaTimes } from "../../../stores";
-  import Options from "./message_parts/Options.svelte";
-  import Text from "./message_parts/Text.svelte";
-  import Code from "./message_parts/Code.svelte";
-  import Hypertext from "./message_parts/Hypertext.svelte";
-  import TextInput from "./message_parts/TextInput.svelte";
-  import FullOptions from "./message_parts/FullOptions.svelte";
-  import Panel from "./message_parts/Panel.svelte";
-  import Form from "./message_parts/Form.svelte";
-  import { splitUnifiedMessage } from "../../../common/messages";
+  import { MessageDisplay, type IChatMessage} from "../../../common/anachatInterfaces";
+  import { anaDebugReply, anaTimes, chatHistory, replying, anaSuperMode } from "../../../stores";
+  import MessageParts from "./MessageParts.svelte";
 
+  import Robot from "../../icons/robot.svelte";
+  import Person from "../../icons/person.svelte";
+  import Eye from "../../icons/eye.svelte";
+  import Reply from "../../icons/reply.svelte";
+  
   export let message: IChatMessage
   export let loading: boolean = false
   export let preview: boolean = false
   export let scrollBottom: () => void
-  export let width = 100
+  export let width = 100;
+  export let chat: HTMLElement | null = null;
 
   let timestamp = message.timestamp;
   if (!Number.isInteger(timestamp)) {
     timestamp = timestamp * 1000;
   }
 
-  let items: IMessagePart[] = splitUnifiedMessage(message.text);
+  let inner: IChatMessage | null | undefined = null;
+
+  function select(e: any) {
+    if ($replying == message.id) {
+      $replying = null;
+    } else {
+      $replying = message.id;
+    }
+  }
+
+  function blink(element: HTMLElement | null) {
+    if (element) {
+      element.onanimationend = () => {
+        element.classList.remove("blink-message")
+      }
+      element.classList.add("blink-message")
+    }
+  }
+
+  function scroll(event: any) {
+    if (
+      event instanceof KeyboardEvent &&
+      event.key !== "Enter" &&
+      event.key !== " "
+    ) {
+      return;
+    }
+
+    if (chat && message.reply) {
+      const element: HTMLElement = chat.getElementsByClassName(`message-${message.reply}`)[0] as HTMLElement;
+      blink(element);
+      chat.scrollTop = Math.max(0, element.offsetTop - 30);
+    }
+  }
+
+  function toggleInner(event: any) {
+    if (inner) {
+      inner = null;
+    } else {
+      inner = $chatHistory.find(m => m.id == message.reply);
+    }
+  }
+
+  $: if($anaDebugReply) {
+    inner = $chatHistory.find(m => m.id == message.reply);
+  }
+  $: selected = $replying == message.id;
+
+  
+
 </script>
 
+<div class="outer {message.type}">
+  <div 
+    class:hidden={message.display == MessageDisplay.Hidden} 
+    class:build={message.display == MessageDisplay.SupermodeInput} 
+    class:tobuild={message.kernelDisplay == MessageDisplay.SupermodeInput} 
+    class="inner" bind:clientWidth={width}
+  >
+    <div class="main">
+      
+      {#if inner}
+        <div 
+          class="reply reply-{inner.type}" 
+          title="Click to go to message"
+          role="button"
+          aria-pressed="false"
+          on:click={scroll}
+          on:keypress={scroll}
+        >
+          <div class="disable-click">
+            <MessageParts message={inner} preview={false} {scrollBottom}/>
+          </div>
+        </div>
+      {/if}
+      <MessageParts {message} {preview} {scrollBottom}/>
+    </div>
+
+    {#if !preview}
+      <div class="bottom">
+        <div class="side">
+          <div class="profile">
+            {#if message.type == "user"} 
+              <div class="profile-inner" title="You">
+                <Person/>
+              </div>
+            {:else}
+              <div class="profile-inner" title="Newton">
+                <Robot/>
+              </div>
+            {/if}
+          </div>
+
+          <div class="buttons">
+            {#if chat && message.reply}
+              <button 
+                title={inner === null? "View replied message" : "Hide replied message"} 
+                class="icon" 
+                class:selected={inner!==null}
+                on:click={toggleInner}
+              ><Eye/></button>
+            {/if}
+
+            <button 
+              title={selected? "Replying to" : "Reply to"}
+              class="icon"
+              class:selected={selected} 
+              class:hideuserreply={!$anaSuperMode && message.type == 'user'}
+              on:click={select}
+            ><Reply/></button>
+          </div>
+
+          {#if loading}
+            <div class="loading" title="Processing message">⌛️</div>
+          {/if}
+
+
+        </div>
+        
+        <div class="timestamp timestamp-{message.type}">
+          {#if $anaTimes}
+            <span>{ new Date(timestamp).toLocaleTimeString("en-US") }</span>
+          {/if}
+        </div>
+        
+      </div>
+    {/if}
+  </div>
+  
+</div>
+
 <style>
+  .icon {
+    background: none!important;
+    border: none;
+    padding: 0!important;
+    cursor: pointer;
+
+    display: flex;
+       
+    align-items:center;
+    justify-content:center;
+    min-width: 25px;
+  }
+
+  .icon:focus {
+    border-bottom: 1px dotted black;
+  }
+
+  .icon:hover {
+    cursor: pointer;
+  }
+  
+  .icon.hideuserreply {
+    display: none;
+  }
+
+  .icon.selected :global(svg) {
+    fill: green;
+  }
+
+  .side {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .side > div {
+    height: 25px;
+    min-width: 25px;
+    text-align: center;
+    display: flex;
+       
+    align-items:center;
+    justify-content:center;
+    
+  }
+
+  .profile{
+    height:25px;
+    width:25px;
+    position:relative;
+    overflow:hidden;
+    
+  }
+
+  .bot .profile, .error .profile {
+    border-right: 1px solid black;
+  }
+
+  .user .profile {
+    border-left: 1px solid black;
+  }
+  
+  .profile-inner {
+    background-color: white;
+    
+    border-radius:50%;
+    height:20px;
+    width:20px;
+    overflow:hidden;
+
+    position:absolute;
+    left:50%;
+    top:50%;
+    -webkit-transform:translateX(-50%) translateY(-50%);
+    transform:translateX(-50%) translateY(-50%);
+  }
+
+  .bottom {
+    height: 25px;
+    border-top: 1px solid black;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+  }
+
+  .user .bottom, .user .side {
+    flex-direction: row-reverse;
+  }
+
+  .timestamp {
+    font-size: 0.8em;
+    padding: 0.3em;
+    display: flex;
+  }
+
+  .timestamp span {
+    align-self: flex-end;
+  }
+
+  .main {
+    padding: 0.4em;
+  }
+
   .outer {
     padding: 0 10px;
     width: inherit;
@@ -35,23 +263,47 @@
     border-radius: 5px;
     border: 1px solid gray;
     margin-bottom: 0.8em;
-    padding: 0.4em;
+    
     white-space: pre-line;
   }
 
-  .user {
-    margin-left: 4em;
+  .user .inner, .reply-user {
     background-color: #D0FDFF;
-    border-radius: 0.5rem 0.5rem 0 0.5rem;
   }
 
-  .bot {
+  .user .profile-inner {
+    border: 15px solid #D0FDFF;
+  }
+
+  .bot .inner, .reply-bot {
+    background-color: #F2F2F2;
+  }
+
+  .bot .profile-inner{
+    border: 15px solid #F2F2F2;
+  }
+
+  .error .inner, .reply-error {
+    background-color: lightpink;
+  }
+
+  .error .profile-inner{
+    border: 15px solid lightpink;
+  }
+
+  .user .inner {
+    margin-left: 4em;
+    border-radius: 0.5rem 0.5rem 0 0.5rem;
+    flex-direction: row-reverse;
+  }
+
+  .bot .inner {
     margin-right: 4em;
     background-color: #F2F2F2;
     border-radius: 0.5rem 0.5rem 0.5rem 0;
   }
 
-  .error {
+  .error .inner {
     margin-right: 4em;
     background-color: lightpink;
     border-radius: 0.5rem 0.5rem 0.5rem 0;
@@ -79,47 +331,19 @@
     text-align: right;
   }
 
-</style>
+  .reply {
+    margin: 2px;
+    padding: 5px;
+    filter: brightness(90%);
+    border-radius: 0.5rem;
+  }
 
-<div class="outer">
-  {#if $anaTimes && !preview}
-    <div class="timestamp-{message.type}"> 
-      { new Date(timestamp).toLocaleTimeString("en-US") }
-      {#if loading}
-        <span>⌛️</span>
-      {/if}
-    </div>
-  {/if}
-  <div 
-    class:hidden={message.display == MessageDisplay.Hidden} 
-    class:build={message.display == MessageDisplay.SupermodeInput} 
-    class:tobuild={message.kernelDisplay == MessageDisplay.SupermodeInput} 
-    class="inner {message.type}" bind:clientWidth={width}
-  >
-    {#each items as messagePart}
-      {#if messagePart.type == 'ul' || messagePart.type == 'ol'}
-        <Options {messagePart} {message}/>
-      {:else if messagePart.type == 'ful' || messagePart.type == 'fol'}
-        <FullOptions {messagePart} {message}/>
-      {:else if messagePart.type == 'code'}
-        <Code {messagePart} {scrollBottom}/>
-      {:else if messagePart.type == 'direct-code'}
-        <Code {messagePart} {scrollBottom} direct={true}/>
-      {:else if messagePart.type == 'html'}
-        <Hypertext {messagePart}/>
-      {:else if messagePart.type == 'input'}
-        <TextInput {messagePart} {message}/>
-      {:else if messagePart.type == 'web-panel'}
-        <Panel {messagePart} {message} {preview} type='url'/>
-      {:else if messagePart.type == 'text-panel'}
-        <Panel {messagePart} {message} {preview} type='text'/>
-      {:else if messagePart.type == 'html-panel'}
-        <Panel {messagePart} {message} {preview} type='html'/>
-      {:else if messagePart.type == 'form'}
-        <Form {messagePart} {message}/>
-      {:else}
-        <Text {messagePart}/>
-      {/if}
-    {/each}
-  </div>
-</div>
+  .reply:hover {
+    cursor: pointer;
+  }
+
+  .disable-click {
+    pointer-events: none;
+  }
+
+</style>
