@@ -1,5 +1,5 @@
 <script type="ts">
-  import type { IChatMessage, IMessagePart } from "../../../common/anachatInterfaces";
+  import type { IChatInstance, IChatMessage, IMessagePart } from "../../../common/anachatInterfaces";
   import { splitUnifiedMessage } from "../../../common/messages";
   import Code from "./message_parts/Code.svelte";
   import Form from "./message_parts/Form.svelte";
@@ -10,6 +10,7 @@
   import TextInput from "./message_parts/TextInput.svelte";
   import Text from "./message_parts/Text.svelte";
 
+  export let chatInstance: IChatInstance;
   export let message: IChatMessage
   export let scrollBottom: () => void
   export let preview: boolean = false
@@ -19,9 +20,9 @@
 
 {#each items as messagePart}
   {#if messagePart.type == 'ul' || messagePart.type == 'ol'}
-    <Options {messagePart} {message}/>
+    <Options {chatInstance} {messagePart} {message}/>
   {:else if messagePart.type == 'ful' || messagePart.type == 'fol'}
-    <FullOptions {messagePart} {message}/>
+    <FullOptions {chatInstance} {messagePart} {message}/>
   {:else if messagePart.type == 'code'}
     <Code {messagePart} {scrollBottom}/>
   {:else if messagePart.type == 'direct-code'}
@@ -29,7 +30,7 @@
   {:else if messagePart.type == 'html'}
     <Hypertext {messagePart}/>
   {:else if messagePart.type == 'input'}
-    <TextInput {messagePart} {message}/>
+    <TextInput {chatInstance} {messagePart} {message}/>
   {:else if messagePart.type == 'web-panel'}
     <Panel {messagePart} {message} {preview} type='url'/>
   {:else if messagePart.type == 'text-panel'}
@@ -37,7 +38,7 @@
   {:else if messagePart.type == 'html-panel'}
     <Panel {messagePart} {message} {preview} type='html'/>
   {:else if messagePart.type == 'form'}
-    <Form {messagePart} {message}/>
+    <Form {chatInstance} {messagePart} {message}/>
   {:else}
     <Text {messagePart}/>
   {/if}

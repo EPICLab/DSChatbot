@@ -1,9 +1,10 @@
 <script lang="ts">
-  import type { IChatMessage, IOptionItem } from "../../common/anachatInterfaces";
-  import { chatHistory, anaAutoLoading, anaSideModel, replying } from "../../stores";
+  import type { IChatInstance, IChatMessage, IOptionItem } from "../../common/anachatInterfaces";
+  import { replying } from "../../stores";
   import { tick } from "svelte";
   import { messageTarget } from "../../common/messages";
 
+  export let chatInstance: IChatInstance;
   export let subclass = "";
   export let value: string = "";
   export let textarea: HTMLElement|null = null;
@@ -15,6 +16,8 @@
 
 	export let minRows: number = 1;
 	export let maxRows: number | null = null;
+
+  let { enableAutoLoading } = chatInstance.config;
 	
 	$: minHeight = `${1 + minRows * 1.2}em`;
 	$: maxHeight = maxRows ? `${1 + maxRows * 1.2}em` : `auto`;
@@ -43,6 +46,7 @@
         reason: "",
         otherreason: ""
       },
+      loading: $enableAutoLoading,
       ...messageTarget('bot')
     }
   }
@@ -52,10 +56,7 @@
       e.preventDefault();
       let newMessage = createMessage(value);
       if (newMessage !== null) {
-        chatHistory.addNew(newMessage);
-        if ($anaAutoLoading) {
-          $anaSideModel?.sendSupermode({ loading: $chatHistory.length });
-        }
+        chatInstance.addNew(newMessage);
         clear();
       }
     }

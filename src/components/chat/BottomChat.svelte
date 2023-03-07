@@ -1,7 +1,9 @@
 <script lang="ts">
   import { tick } from "svelte";
+  import type { IChatInstance } from "../../common/anachatInterfaces";
   import ChatInput from "./ChatInput.svelte";
 
+  export let chatInstance: IChatInstance;
   export let textarea: HTMLElement;
   export let value: string = "";
   export let placeholder: string = "Talk to Newton here...";
@@ -27,7 +29,8 @@
 
 <div class="text">
   <slot name="before"/>
-  <ChatInput 
+  <ChatInput
+    {chatInstance}
     {subclass}
     {placeholder}
     bind:textarea

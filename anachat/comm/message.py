@@ -61,6 +61,7 @@ class MessageContext:
 
     comm: AnaComm
     original_message: IChatMessage
+    instance: str
 
     @staticmethod
     def create_message(
@@ -101,7 +102,7 @@ class MessageContext:
         )
         if checkpoint is not None:
             self.comm.checkpoints[message['id']] = checkpoint
-        self.comm.reply_message(message)
+        self.comm.reply_message(self.instance, message)
 
     def reply_options(
         self,

@@ -1,3 +1,15 @@
+import type { Writable } from "svelte/store";
+
+export type Subset<K> = {
+  [attr in keyof K]?: K[attr] extends object
+      ? Subset<K[attr]>
+      : K[attr] extends object | null
+      ? Subset<K[attr]> | null
+      : K[attr] extends object | null | undefined
+      ? Subset<K[attr]> | null | undefined
+      : K[attr];
+};
+
 export interface IKernelMatcher {
   language: string | null;
   initScript: string | null;
@@ -48,6 +60,7 @@ export interface IChatMessage extends ITargetDefinition {
   timestamp: number;
   reply: string | null;
   feedback: IFeedback;
+  loading: boolean;
 
   new?: boolean;
 }
@@ -72,4 +85,39 @@ export type IMessagePartType =
 export interface IMessagePart {
   type: IMessagePartType;
   text: string;
+}
+
+export interface IConfigVar<T> extends Writable<T> {
+  load: (value: any) => void;
+  initialized: boolean;
+}
+
+export interface IChatInstanceConfig {
+  processInKernel: IConfigVar<boolean>;
+  enableAutoComplete: IConfigVar<boolean>;
+  enableAutoLoading: IConfigVar<boolean>;
+  loading: IConfigVar<boolean>;
+
+  showReplied: IConfigVar<boolean>;
+  showIndex: IConfigVar<boolean>;
+  showTime: IConfigVar<boolean>;
+  showBuildMessages: IConfigVar<boolean>;
+  showKernelMessages: IConfigVar<boolean>;
+}
+
+export interface IChatInstance extends Writable<IChatMessage[]> {
+  push: (newMessage: IChatMessage) => void;
+  addNew: (newMessage: IChatMessage) => void;
+  load: (data: IChatMessage[]) => void;
+  updateMessage: (message: IChatMessage) => void;
+  submitSyncMessage: (message: Pick<IChatMessage, 'id'> & Subset<IChatMessage>) => void;
+  removeLoading: (messageId: string) => void;
+  reset: () => void;
+  findById: (messageId: string | null) => IChatMessage | null;
+  sendAutoComplete: (requestId: number, query: string) => void;
+
+  configMap: { [id: string]: IConfigVar<any>};
+  config: IChatInstanceConfig;
+  autoCompleteResponseId: Writable<number>;
+  autoCompleteItems: Writable<IAutoCompleteItem[]>;
 }

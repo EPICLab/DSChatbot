@@ -1,13 +1,15 @@
 <script type="ts">
-  import type { IChatMessage, IMessagePart } from "../../../../common/anachatInterfaces";
+  import type { IChatInstance, IChatMessage, IMessagePart } from "../../../../common/anachatInterfaces";
   import { messageTarget, type IFormElementItem } from "../../../../common/messages";
-  import { chatHistory } from "../../../../stores";
   import FormCheck from "./form_elements/FormCheck.svelte";
   import FormSelection from "./form_elements/FormSelection.svelte";
   import FormText from "./form_elements/FormText.svelte";
 
+  export let chatInstance: IChatInstance;
   export let messagePart: IMessagePart;
   export let message: IChatMessage;
+
+  let { enableAutoLoading } = chatInstance.config;
   let items: IFormElementItem[]
   
   function extractFormElements(text: string): IFormElementItem[] {
@@ -50,7 +52,7 @@
       }
       newText += element.label + " = " + element.value + "\n"
     }
-    chatHistory.addNew({
+    chatInstance.addNew({
       id: crypto.randomUUID(),
       text: newText,
       type: 'user',
@@ -61,6 +63,7 @@
         reason: "",
         otherreason: ""
       },
+      loading: $enableAutoLoading,
       ...messageTarget('bot')
     })
     e.target.blur()

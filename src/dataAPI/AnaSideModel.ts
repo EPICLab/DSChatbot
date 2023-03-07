@@ -5,14 +5,9 @@ import { get } from 'svelte/store';
 import {
   anaSideModel,
   anaSideReady,
-  chatHistory,
+  chatInstances,
   errorHandler,
-  kernelStatus,
-  subjectItems,
-  anaQueryEnabled,
-  anaMessageEnabled,
-  anaLoading,
-  anaAutoLoading,
+  kernelStatus
 } from '../stores';
 import { NotebookActions, type NotebookPanel } from '@jupyterlab/notebook';
 import type {
@@ -22,8 +17,10 @@ import type {
 import {
   GenericMatcher,
   type IAutoCompleteItem,
+  type IChatInstance,
   type IChatMessage,
-  type IKernelMatcher
+  type IKernelMatcher,
+  type Subset
 } from '../common/anachatInterfaces';
 import type { KernelMessage } from '@jupyterlab/services';
 import type { IErrorMsg } from '@jupyterlab/services/lib/kernel/messages';
@@ -33,17 +30,17 @@ export class AnaSideModel {
   private _notebook: NotebookPanel;
   private _icomm: IComm | null;
   private _language: IKernelMatcher;
-  private _boundQueryCall: (
+  /*private _boundQueryCall: (
     sess: ISessionContext,
     args: KernelMessage.IMessage<KernelMessage.MessageType>
-  ) => void;
+  ) => void;*/
 
   constructor(notebook: NotebookPanel) {
     this._sessionContext = notebook.sessionContext;
     this._notebook = notebook;
     this._icomm = null;
     this._language = GenericMatcher;
-    this._boundQueryCall = this._queryCall.bind(this);
+    //this._boundQueryCall = this._queryCall.bind(this);
   }
 
   get session(): ISessionContext {
@@ -70,7 +67,9 @@ export class AnaSideModel {
   }
 
   public refresh() {
-    this.sendRefreshKernel();
+    for (const instance of Object.keys(chatInstances)) {
+      this.sendRefreshKernel(instance);
+    }
   }
 
   public insertAbove(text: string) {
@@ -129,14 +128,16 @@ export class AnaSideModel {
       this._icomm.onMsg = this._receiveAnaChatQuery.bind(this);
     });
     await this._initOnKernel(kernel);
-    this._sessionContext.iopubMessage.disconnect(this._boundQueryCall);
-    this._sessionContext.iopubMessage.connect(this._boundQueryCall);
+    //this._sessionContext.iopubMessage.disconnect(this._boundQueryCall);
+    //this._sessionContext.iopubMessage.connect(this._boundQueryCall);
   }
 
   public resetData() {
     anaSideReady.set(false);
     kernelStatus.reset();
-    chatHistory.reset();
+    for (const chatInstance of Object.values(chatInstances)) {
+      chatInstance.reset();
+    }
   }
 
   /**
@@ -160,16 +161,18 @@ export class AnaSideModel {
    */
   public sendInitKernel(): void {
     this.send({
-      operation: 'init'
+      operation: 'init',
+      instance: "<all>"
     });
   }
 
   /**
    * Send a init command to the kernel
    */
-  public sendMessageKernel(message: IChatMessage): void {
+  public sendMessageKernel(instance: string, message: IChatMessage): void {
     this.send({
       operation: 'message',
+      instance,
       message: message as unknown as JSONObject
     });
   }
@@ -177,45 +180,50 @@ export class AnaSideModel {
   /**
    * Send a cell execution command to the kernel
    */
-  public sendExecKernel(): void {
+  /*public sendExecKernel(): void {
     this.send({
-      operation: 'exec'
+      operation: 'exec',
+      instance: "<all>"
     });
-  }
+  }*/
 
   /**
    * Send a refresh command to the kernel
    */
-  public sendRefreshKernel(): void {
+  public sendRefreshKernel(instance: string): void {
     this.send({
-      operation: 'refresh'
+      operation: 'refresh',
+      instance
     });
   }
 
   /**
-   * Send a supermode command to the kernel
+   * Send a config command to the kernel
    */
-   public sendSupermode(data: any): void {
-    data.operation = 'supermode';
+  public sendConfig(instance: string, data: any): void {
+    data.operation = 'config';
+    data.instance = instance;
     this.send(data);
   }
 
   /**
-   * Send message feedback command to the kernel
+   * Send a message sync command to the kernel
    */
-  public sendMessageFeedback(message_id: string, data: any): void {
-    data.operation = 'messagefeedback';
-    data.message_id = message_id;
-    this.send(data);
+  public sendSyncMessage(instance: string, message: Pick<IChatMessage, 'id'> & Subset<IChatMessage>): void {
+    this.send({
+      operation: 'syncmessage',
+      instance,
+      message
+    })
   }
-
 
   /**
    * Send a subject query command to the kernel
    */
-   public sendSubjectQuery(requestId: number, query: string): void {
+   public sendSubjectQuery(instance: string, requestId: number, query: string): void {
     this.send({
       operation: 'query',
+      instance,
       type: 'subject',
       requestId: requestId,
       query: query,
@@ -270,28 +278,44 @@ export class AnaSideModel {
   /*
    * Handle query response
    */
+  private _loadInstanceConfig(chatInstance: IChatInstance, config: { [id: string]: any }) {
+    for (const [key, value] of Object.entries(config)) {
+      let configVar = chatInstance.configMap[key];
+      if (configVar !== undefined) {
+        configVar.initialized = true;
+        configVar.load(value);
+      }
+    }
+  }
+
   private _receiveAnaChatQuery(
     msg: KernelMessage.ICommMsgMsg
   ): void | PromiseLike<void> {
     try {
       const operation = msg.content.data.operation;
+      const instance = msg.content.data.instance as string;
+      const chatInstance = chatInstances[instance];
+      if (chatInstance === undefined) {
+        throw new Error("Invalid instance " + instance);
+      }
       if (operation === 'init' || operation === 'refresh') {
         kernelStatus.setattr('hasKernel', true);
-        chatHistory.load(msg.content.data.history as unknown as IChatMessage[]);
-        anaQueryEnabled.set(msg.content.data.query_processing_enabled as unknown as boolean);
-        anaMessageEnabled.set(msg.content.data.message_processing_enabled as unknown as boolean);
-        anaLoading.set(msg.content.data.loading as unknown as (boolean | number)[]);
-        anaAutoLoading.set(msg.content.data.auto_loading as unknown as boolean);
+        chatInstance.load(msg.content.data.history as unknown as IChatMessage[]);
+        this._loadInstanceConfig(chatInstance, msg.content.data.config as unknown as { [id: string]: any });
       } else if (operation === 'reply') {
         kernelStatus.setattr('hasKernel', true);
         const message: IChatMessage = msg.content.data
           .message as unknown as IChatMessage;
-        chatHistory.push(message);
+          chatInstance.push(message);
       } else if (operation === 'updatemessage') {
         kernelStatus.setattr('hasKernel', true);
         const message: IChatMessage = msg.content.data
           .message as unknown as IChatMessage;
-        chatHistory.updateMessage(message);
+          chatInstance.updateMessage(message);
+      } else if (operation === 'updateconfig') {
+        const config: { [id: string]: any } = msg.content.data
+          .config as unknown as { [id: string]: any };
+        this._loadInstanceConfig(chatInstance, config)
       } else if (operation === 'error') {
         errorHandler.report(
           'Failed to run ICOMM command',
@@ -299,9 +323,9 @@ export class AnaSideModel {
           [msg.content.data.command, msg.content.data.message]
         );
       } else if (operation === 'subjects') {
-        const { responseId, sitems } = get(subjectItems);
-        responseId.set(msg.content.data.responseId as number);
-        sitems.set(msg.content.data.items as unknown as IAutoCompleteItem[]);
+        const { autoCompleteResponseId, autoCompleteItems } = chatInstance;
+        autoCompleteResponseId.set(msg.content.data.responseId as number);
+        autoCompleteItems.set(msg.content.data.items as unknown as IAutoCompleteItem[]);
       }
     } catch (error) {
       throw errorHandler.report(error, '_receiveAnaChatQuery', [msg]);
@@ -311,7 +335,7 @@ export class AnaSideModel {
   /*
    * Invokes a inspection if the signal emitted from specified session is an 'execute_input' msg.
    */
-  private _queryCall(
+  /*private _queryCall(
     sess: ISessionContext,
     args: KernelMessage.IMessage
   ): void {
@@ -329,5 +353,5 @@ export class AnaSideModel {
     } catch (error) {
       throw errorHandler.report(error, '_queryCall', [args.content]);
     }
-  }
+  }*/
 }

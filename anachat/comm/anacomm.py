@@ -17,6 +17,15 @@ if TYPE_CHECKING:
     from .message import IChatMessage
 
 
+def apply_partial(original: dict, update: dict):
+    """Apply nested changes to original dict"""
+    for key, value in update.items():
+        if isinstance(value, dict):
+            apply_partial(original[key], value)
+        else:
+            original[key] = value
+
+
 class AnaComm:
     """Ana comm hadler"""
 
@@ -27,11 +36,6 @@ class AnaComm:
         self.comm = None
         self.core_loader = core_loader(self)
 
-        self.message_processing_enabled = True
-        self.query_processing_enabled = True
-        self.loading = []
-        self.auto_loading = False
-
         self.history = [MessageContext.create_message(
             ("Hello, I am Newton, an assistant that can help you with machine learning. "
              "You can ask me questions at any given time and go back to previous questions too. "
@@ -41,6 +45,18 @@ class AnaComm:
         self.message_map = {
             self.history[-1]['id']: self.history[-1]
         }
+        self.instance_config = {
+            "process_in_kernel": True,
+            "enable_auto_complete": True,
+            "enable_auto_loading": False,
+            "loading": False,
+
+            "show_replied": False,
+            "show_index": False,
+            "show_time": True,
+            "show_build_messages": True,
+            "show_kernel_messages": True,
+        }
         self.checkpoints = {}
 
     @property
@@ -48,15 +64,13 @@ class AnaComm:
         """Returns current AnaCore"""
         return self.core_loader.core.CURRENT
 
-    def history_message(self, operation):
+    def history_message(self, operation, instance="base"):
         """Returns message with history and general config"""
         return {
+            "instance": instance,
             "operation": operation,
             "history": self.history,
-            "message_processing_enabled": self.message_processing_enabled,
-            "query_processing_enabled": self.query_processing_enabled,
-            "loading": self.loading,
-            "auto_loading": self.auto_loading
+            "config": self.instance_config,
         }
 
     def register(self):
@@ -68,78 +82,73 @@ class AnaComm:
     def receive(self, msg):
         """Receives requests"""
         data = msg["content"]["data"]
-        operation = data.get("operation", "<undefined>")
         try:
+            operation = data["operation"]
+            instance = data["instance"]
             if operation == "message":
-                self.receive_message(data.get("message"))
+                self.receive_message(instance, data.get("message"))
             elif operation == "refresh":
-                self.core.refresh(self)
+                self.core.refresh(self, instance)
             elif operation == "query":
                 self.receive_query(
+                    instance,
                     data.get('type'),
                     data.get('requestId'),
                     data.get('query')
                 )
-            elif operation == "supermode":
-                if (value := data.get("message_processing", None)) is not None:
-                    self.message_processing_enabled = value
-                if (value := data.get("query_processing", None)) is not None:
-                    self.query_processing_enabled = value
-                if (value := data.get("loading", None)) is not None:
-                    if value is False:
-                        self.loading = []
-                    else:
-                        self.loading.append(value)
-                if (value := data.get("remove_loading", None)) is not None:
-                    if value is False:
-                        self.loading = []
-                    for index, message in enumerate(self.history):
-                        if message['id'] == value and index in self.loading:
-                            self.loading.remove(index)
-                if (value := data.get("auto_loading", None)) is not None:
-                    self.auto_loading = value
-                self.core.refresh(self)
-            elif operation == "messagefeedback":
-                message_id = data['message_id']
-                del data['message_id']
-                message = self.message_map[message_id]
-                for key, value in data.items():
-                    message['feedback'][key] = value
+            elif operation == "config":
+                key = data["key"]
+                value = data["value"]
+                if data["_mode"] == "update" or key not in self.instance_config:
+                    self.instance_config[key] = value
                 self.send({
+                    "instance": instance,
+                    "operation": "updateconfig",
+                    "config": {key: self.instance_config[key]},
+                })
+            elif operation == "syncmessage":
+                partial_message = data["message"]
+                message = self.message_map[partial_message["id"]]
+                apply_partial(message, partial_message)
+                self.send({
+                    "instance": instance,
                     "operation": "updatemessage",
                     "message": message,
                 })
         except Exception:  # pylint: disable=broad-except
             print(traceback.format_exc())
             self.send({
+                "instance": instance,
                 "operation": "error",
                 "command": operation,
                 "message": traceback.format_exc(),
             })
 
-    def receive_message(self, message: IChatMessage):
+    def receive_message(self, instance: str, message: IChatMessage):
         """Receives message from user"""
         self.history.append(message)
         self.message_map[message['id']] = message
         self.send({
+            "instance": instance,
             "operation": "reply",
             "message": message
         })
         process_message = (
             message.get('kernelProcess') == KernelProcess.PROCESS
-            and self.message_processing_enabled
+            and self.instance_config["process_in_kernel"]
             or message.get('kernelProcess') == KernelProcess.FORCE
         )
         if process_message:
-            context = MessageContext(self, message)
+            context = MessageContext(self, message, instance)
             self.core.process_message(context)
 
-    def receive_query(self, query_type, request_id, query):
+    def receive_query(self, instance, query_type, request_id, query):
         """Receives query from user"""
-        if self.query_processing_enabled:
-            self.core.process_query(self, query_type, request_id, query)
+        if self.instance_config["enable_auto_complete"]:
+            self.core.process_query(self, instance, query_type, request_id, query)
         else:
             self.send({
+                "instance": instance,
                 "operation": "subjects",
                 "responseId": request_id,
                 "items": [],
@@ -149,16 +158,17 @@ class AnaComm:
         """Receives send results"""
         self.comm.send(data)
 
-    def reply(self, text, type_="bot", reply=None):
+    def reply(self, text, type_="bot", reply=None, instance="base"):
         """Replies message to user"""
         message = MessageContext.create_message(text, type_, reply)
-        self.reply_message(message)
+        self.reply_message(instance, message)
 
-    def reply_message(self, message: IChatMessage):
+    def reply_message(self, instance: str, message: IChatMessage):
         """Replies IChatMessage to user"""
         self.history.append(message)
         self.message_map[message['id']] = message
         self.send({
+            "instance": instance,
             "operation": "reply",
             "message": message
         })

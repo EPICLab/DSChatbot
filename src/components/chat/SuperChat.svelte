@@ -1,10 +1,14 @@
 <script lang="ts">
-  import type { IChatMessage, IMessageType } from "../../common/anachatInterfaces";
-  import { chatHistory, anaSideModel, anaAutoLoading, replying, superModePreviewMessage, superModeValue } from "../../stores";
+  import type { IChatInstance, IChatMessage, IMessageType } from "../../common/anachatInterfaces";
+  import { replying, wizardPreviewMessage, wizardValue } from "../../stores";
   import Message from "./message/Message.svelte";
   import { tick } from "svelte";
   import { BOT_EDITOR_TYPES, BOT_TARGETS, BOT_TYPES, messageTarget, type IEditorTypeItem, type IMessageTarget } from "../../common/messages";
   import BottomChat from "./BottomChat.svelte";
+
+  export let chatInstance: IChatInstance;
+
+  let { enableAutoLoading } = chatInstance.config;
 
   let textarea: HTMLElement
   let bottomChat: BottomChat
@@ -28,6 +32,7 @@
         reason: "",
         otherreason: ""
       },
+      loading: false,
       ...messageTarget(superModeTarget)
     }
   }
@@ -59,32 +64,32 @@
   }
 
   function onClickEditorItem(editorItem: IEditorTypeItem) {
-    if ($superModeValue.length > 0) {
-      $superModeValue += '\n'
+    if ($wizardValue.length > 0) {
+      $wizardValue += '\n'
     }
-    $superModeValue += editorItem.text
+    $wizardValue += editorItem.text
     textarea.focus()
   }
 
   async function onSuperModeSend() {
     let timestamp = +new Date()
-    $superModePreviewMessage.forEach((message: IChatMessage) => {
+    $wizardPreviewMessage.forEach((message: IChatMessage) => {
       message.timestamp = timestamp
       message.reply = $replying
-      chatHistory.addNew(message)
+      chatInstance.addNew(message)
     })
-    $superModePreviewMessage = []
-    if ($anaAutoLoading) {
-      $anaSideModel?.sendSupermode({ remove_loading: $replying })
+    $wizardPreviewMessage = []
+    if ($enableAutoLoading && $replying !== null) {
+      chatInstance.removeLoading($replying);
     }
     await tick();
   }
 
   async function alternativeEnter(e: any) {
     e.preventDefault();
-    let message = createMessage($superModeValue)
+    let message = createMessage($wizardValue)
     if (message !== null) {
-      $superModePreviewMessage = [...$superModePreviewMessage, message]
+      $wizardPreviewMessage = [...$wizardPreviewMessage, message]
       if (bottomChat != undefined) {
         bottomChat.clear()
       }
@@ -107,9 +112,11 @@
 
 <BottomChat 
   bind:textarea
-  bind:value={$superModeValue}
+  bind:value={$wizardValue}
   {alternativeEnter}
-  bind:this={bottomChat}>
+  bind:this={bottomChat}
+  {chatInstance}
+>
 
   <div slot="before">
     {#each BOT_EDITOR_TYPES as editorTypeItem}
@@ -140,8 +147,8 @@
 
 
 <button on:click|preventDefault={onSuperModeSend}>Send Messages (ctrl + enter)</button>
-{#each $superModePreviewMessage as message, index (message.id)}
-  <Message bind:message={message} {index} preview={true}/>
+{#each $wizardPreviewMessage as message, index (message.id)}
+  <Message {chatInstance} bind:message={message} {index} preview={true}/>
 {/each}
 
 

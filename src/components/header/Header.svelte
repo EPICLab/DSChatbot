@@ -1,22 +1,17 @@
 <script lang="ts">
-  import { anaSideModel, anaSuperMode, anaMessageEnabled, anaLoading, anaAutoLoading, anaTimes, anaShowKernelMessages, anaShowBuildMessages, anaDebugReply } from "../../stores";
+  import { anaSideModel, wizardMode } from "../../stores";
   import Renderer from "./status/Renderer.svelte";
   import { onKeyPress } from '../../common/utils';
   import SuperModeCell from "./SuperModeCell.svelte";
+  import type { IChatInstance } from "../../common/anachatInterfaces";
 
+  export let chatInstance: IChatInstance;
   export let title: string;
+  export let debugReply: boolean = false;
   
-  function superModeToggleMessage(event: any) {
-    $anaSideModel?.sendSupermode({ message_processing: event.target.checked });
-  }
-
-  function superModeToggleLoading(event: any) {
-    $anaSideModel?.sendSupermode({ loading: event.target.checked });
-  }
-
-  function superModeToggleAutoLoading(event: any) {
-    $anaSideModel?.sendSupermode({ auto_loading: event.target.checked });
-  }
+  let { processInKernel, enableAutoComplete, showReplied, showIndex, showTime, showBuildMessages, showKernelMessages, enableAutoLoading, loading } = chatInstance.config;
+  $: $showReplied = debugReply;
+  $: $showIndex = debugReply;
 
   const refresh = (): void => {
     $anaSideModel?.refresh();
@@ -60,42 +55,46 @@
 
 <div>
   <header>
-    <div class="title" class:supermode={$anaSuperMode} on:click={refresh} on:keypress={(e) => onKeyPress(refresh, e)} title="Click to refresh">{title}</div>
+    <div class="title" class:supermode={$wizardMode} on:click={refresh} on:keypress={(e) => onKeyPress(refresh, e)} title="Click to refresh">{title}</div>
     <Renderer/>
-    {#if $anaLoading.includes(true)}
+    {#if $loading}
       <span>⌛️</span>
     {/if}
     
-    {#if $anaSuperMode}
+    {#if $wizardMode}
       <br>
       
       <label>
-        <input type=checkbox on:change={superModeToggleMessage} checked={$anaMessageEnabled}>
+        <input type=checkbox bind:checked={$processInKernel}>
         Message
       </label>
       <label>
-        <input type=checkbox on:change={superModeToggleLoading} checked={$anaLoading.length > 0}>
+        <input type=checkbox bind:checked={$enableAutoComplete}>
+        Autocomplete
+      </label>
+      <label>
+        <input type=checkbox bind:checked={$loading}>
         Loading
       </label>
       <label>
-        <input type=checkbox on:change={superModeToggleAutoLoading} checked={$anaAutoLoading}>
+        <input type=checkbox bind:checked={$enableAutoLoading}>
         Auto Loading
       </label>
 
       <label>
-        <input type=checkbox bind:checked={$anaTimes}> 
+        <input type=checkbox bind:checked={$showTime}> 
         Time
       </label>
       <label>
-        <input type=checkbox bind:checked={$anaShowKernelMessages}> 
+        <input type=checkbox bind:checked={$showKernelMessages}> 
         Kernel
       </label>
       <label>
-        <input type=checkbox bind:checked={$anaShowBuildMessages}> 
+        <input type=checkbox bind:checked={$showBuildMessages}> 
         Build
       </label>
       <label>
-        <input type=checkbox bind:checked={$anaDebugReply}> 
+        <input type=checkbox bind:checked={debugReply}> 
         Debug
       </label>
       <br>

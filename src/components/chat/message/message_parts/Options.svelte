@@ -1,14 +1,16 @@
 <script type="ts">
-  import type { IChatMessage, IMessagePart, IOptionItem } from "../../../../common/anachatInterfaces";
+  import type { IChatInstance, IChatMessage, IMessagePart, IOptionItem } from "../../../../common/anachatInterfaces";
   import { extractOptions, messageTarget } from "../../../../common/messages";
-  import { chatHistory, anaAutoLoading, anaSideModel } from "../../../../stores";
 
+  export let chatInstance: IChatInstance;
   export let messagePart: IMessagePart;
   export let message: IChatMessage;
+
+  let { enableAutoLoading } = chatInstance.config;
   let type: 'ul' | 'ol';
 
   const click = (element: IOptionItem) => (e: any): void => {
-    chatHistory.addNew({
+    chatInstance.addNew({
       id: crypto.randomUUID(),
       text: element.label,
       type: 'user',
@@ -19,11 +21,9 @@
         reason: "",
         otherreason: ""
       },
+      loading: $enableAutoLoading,
       ...messageTarget('bot')
     })
-    if ($anaAutoLoading) {
-      $anaSideModel?.sendSupermode({ loading: $chatHistory.length });
-    }
     e.target.blur()
   }
   let items: IOptionItem[]

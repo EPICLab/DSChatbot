@@ -1,9 +1,11 @@
 
 <script type="ts">
   import { beforeUpdate, afterUpdate } from 'svelte';
-  import { anaLoading, chatHistory } from '../../stores';
+  import type { IChatInstance } from '../../common/anachatInterfaces';
   import Message from './message/Message.svelte';
 
+  export let chatInstance: IChatInstance;
+  
   let div: HTMLElement;
   let autoscroll = true;
 
@@ -31,7 +33,7 @@
 </style>
 
 <div bind:this={div}>
-  {#each $chatHistory as message, index}
-    <Message {message} chat={div} {scrollBottom} loading={$anaLoading.includes(index)} {index}/>
+  {#each $chatInstance as message, index}
+    <Message {chatInstance} {message} chat={div} {scrollBottom} {index}/>
   {/each}
 </div>

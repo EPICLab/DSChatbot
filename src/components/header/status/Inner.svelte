@@ -1,15 +1,15 @@
 <script lang="ts">
   import Error from "./Error.svelte";
-  import { anaSuperMode } from "../../../stores";
+  import { wizardMode } from "../../../stores";
   export let title: string;
 
   function contextMenu(event: MouseEvent) {
     if (event.ctrlKey) {
-      if ($anaSuperMode) {
+      if ($wizardMode) {
         alert("Supermode disabled!");
-        $anaSuperMode = false;
+        $wizardMode = false;
       } else if (confirm("Do you want to enable Newton supermode?")) {
-        $anaSuperMode = true;
+        $wizardMode = true;
       }
     }
   }

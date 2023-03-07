@@ -42,7 +42,7 @@ class DefaultState:
                       checkpoint=state_checkpoint(self))
         return self
 
-    def process_query(self, comm: AnaComm, request_id: int, query: str):
+    def process_query(self, comm: AnaComm, instance: str, request_id: int, query: str):
         """Processes subject queries"""
         result = []
         for match, node in self.subject_handler.search(query):
@@ -54,6 +54,7 @@ class DefaultState:
             })
         result = result[:5]
         comm.send({
+            "instance": instance,
             "operation": "subjects",
             "responseId": request_id,
             "items": result,
@@ -67,10 +68,10 @@ class AnaCore:
         self.default_state = DefaultState()
         self.state = self.default_state
 
-    def refresh(self, comm: AnaComm):
+    def refresh(self, comm: AnaComm, instance: str):
         """Refresh chatbot"""
         # pylint: disable=no-self-use
-        comm.send(comm.history_message("refresh"))
+        comm.send(comm.history_message("refresh", instance=instance))
 
     def set_state(
         self,
@@ -164,10 +165,10 @@ class AnaCore:
             context.reply("Something is wrong: " + traceback.format_exc(), "error",
                           checkpoint=state_checkpoint(self.state))
 
-    def process_query(self, comm: AnaComm, query_type: str, request_id: int, query: str):
+    def process_query(self, comm: AnaComm, instance: str, query_type: str, request_id: int, query: str):
         """Processes user query"""
         if query_type == "subject":
-            self.default_state.process_query(comm, request_id, query)
+            self.default_state.process_query(comm, instance, request_id, query)
 
 
 class DummyState:
@@ -179,11 +180,12 @@ class DummyState:
         context.reply(context.text + ", ditto")
         return self
 
-    def process_query(self, comm: AnaComm, query_type: str, request_id: int, query: str):
+    def process_query(self, comm: AnaComm, instance: str, query_type: str, request_id: int, query: str):
         """Processes user query"""
         # pylint: disable=unused-argument
         # pylint: disable=no-self-use
         comm.send({
+            "instance": instance,
             "operation": "subjects",
             "responseId": request_id,
             "items": [],

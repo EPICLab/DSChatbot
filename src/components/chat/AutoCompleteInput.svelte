@@ -3,14 +3,16 @@
 
   import AutoCompleteItem from "./AutoCompleteItem.svelte";
   
-  import { chatHistory, anaSideModel, subjectItems, anaQueryEnabled, anaAutoLoading } from "../../stores";
-  import type { IAutoCompleteItem } from "../../common/anachatInterfaces";
+  import type { IAutoCompleteItem, IChatInstance } from "../../common/anachatInterfaces";
   import { messageTarget } from "../../common/messages";
   import BottomChat from "./BottomChat.svelte";
 
   export let value: string = "";
   export let text: string|undefined = undefined;
   export let minCharactersToSearch = 1;
+
+  export let chatInstance: IChatInstance;
+
   let textarea: HTMLElement;
   let items: IAutoCompleteItem[] = [];
   let loading = false 
@@ -22,6 +24,10 @@
   let list: HTMLElement;
   let inputDelayTimeout: NodeJS.Timeout;
   let listHeight: number = 0;
+
+  let useAutoComplete = true;
+
+  let { enableAutoComplete, enableAutoLoading } = chatInstance.config;
 
   const uniqueId = "sautocomplete-" + Math.floor(Math.random() * 1000)
   
@@ -35,7 +41,7 @@
     lastRequestId = lastRequestId + 1
     const currentRequestId = lastRequestId
     loading = true
-    $anaSideModel?.sendSubjectQuery(currentRequestId, textFiltered);
+    chatInstance.sendAutoComplete(currentRequestId, textFiltered);
   }
   function processInput() {
     search().then()
@@ -80,7 +86,7 @@
   }
   
   async function selectItem(event: any) {
-    chatHistory.addNew({
+    chatInstance.addNew({
       id: crypto.randomUUID(),
       text: '!subject ' + event.detail.item.key,
       type: 'user',
@@ -91,11 +97,9 @@
         reason: "",
         otherreason: ""
       },
+      loading: $enableAutoLoading,
       ...messageTarget('bot')
     })
-    if ($anaAutoLoading) {
-      $anaSideModel?.sendSupermode({ loading: $chatHistory.length });
-    }
     clear();
   }
  
@@ -174,15 +178,12 @@
     }
   }
 
-  function superModeToggleAutoComplete(event: any) {
-    $anaSideModel?.sendSupermode({ query_processing: event.target.checked });
-  }
-
-  $: showList = opened && ((items && items.length > 0) || (filteredTextLength > 0 && loading && $anaQueryEnabled));
-  $: ({ responseId, sitems } = $subjectItems);
+  $: showList = opened && ((items && items.length > 0) || (filteredTextLength > 0 && loading)) && useAutoComplete && $enableAutoComplete;
+  
+  let { autoCompleteResponseId, autoCompleteItems } = chatInstance;
   $: {
-    if ($responseId == lastRequestId) {
-      items = $sitems;
+    if ($autoCompleteResponseId == lastRequestId) {
+      items = $autoCompleteItems;
       loading = false;
       if (!closeIfMinCharsToSearchReached()) {
         open()
@@ -254,14 +255,17 @@
   bind:value
   on:focus={resetListToAllItemsAndOpen}
   on:click={resetListToAllItemsAndOpen}
+  {chatInstance}
   {alternativeKeyDown}
   {alternativeEnter}
   {alternativeInput}
   {clear}
 >
   <label slot="before">
-    <input type=checkbox on:change={superModeToggleAutoComplete} checked={$anaQueryEnabled}>
-    Autocomplete
+    {#if $enableAutoComplete}
+      <input type=checkbox bind:checked={useAutoComplete}>
+      Autocomplete
+    {/if}
   </label>
   <div
     class="autocomplete-list {showList ? '' : 'hidden'} is-fullwidth"

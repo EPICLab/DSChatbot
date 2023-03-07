@@ -1,6 +1,6 @@
 <script type="ts">
-  import { MessageDisplay, type IChatMessage} from "../../../common/anachatInterfaces";
-  import { anaDebugReply, anaTimes, chatHistory, replying, anaSuperMode, anaSideModel } from "../../../stores";
+  import { MessageDisplay, type IChatInstance, type IChatMessage} from "../../../common/anachatInterfaces";
+  import { replying, wizardMode } from "../../../stores";
 
   import MessageParts from "./MessageParts.svelte";
 
@@ -12,12 +12,14 @@
   import ThumbsDown from "../../icons/fa-thumbs-down-solid.svelte";
   import { messageTarget } from "../../../common/messages";
   
+  export let chatInstance: IChatInstance;
   export let message: IChatMessage
-  export let loading: boolean = false
   export let preview: boolean = false
   export let scrollBottom: () => void
   export let width = 100;
   export let chat: HTMLElement | null = null;
+
+  let { showReplied, showTime, enableAutoLoading } = chatInstance.config;
 
   let timestamp = message.timestamp;
   if (!Number.isInteger(timestamp)) {
@@ -59,12 +61,16 @@
     }
   }
 
-  function toggleInner(event: any) {
-    if (inner) {
-      inner = null;
+  function setReplyVisibility(visible: boolean) {
+    if (visible) {
+      inner = chatInstance.findById(message.reply);
     } else {
-      inner = $chatHistory.find(m => m.id == message.reply);
+      inner = null;
     }
+  }
+
+  function toggleInner(event: any) {
+    setReplyVisibility(!inner);
   }
 
   let typingTimer: ReturnType<typeof setTimeout>;
@@ -75,7 +81,7 @@
     if (feedback_msg == "Other") {
       feedback_msg = message.feedback.otherreason;
     }
-    chatHistory.addNew({
+    chatInstance.addNew({
       id: crypto.randomUUID(),
       text: `Feedback: ${feedback_msg}`,
       type: 'user',
@@ -86,31 +92,35 @@
         reason: "",
         otherreason: ""
       },
+      loading: $enableAutoLoading,
       ...messageTarget('bot')
     })
   }
 
   function thumbsUpClick(event: any) {
     message.feedback.rate = message.feedback.rate === 1? 0 : 1;
-    $anaSideModel?.sendMessageFeedback(
-      message.id, { rate: message.feedback.rate }
-    )
+    chatInstance.submitSyncMessage({
+      id: message.id,
+      feedback: { rate: message.feedback.rate }
+    })
   }
 
   function thumbsDownClick(event: any) {
     message.feedback.rate = message.feedback.rate === -1? 0 : -1;
-    $anaSideModel?.sendMessageFeedback(
-      message.id, { rate: message.feedback.rate }
-    )
+    chatInstance.submitSyncMessage({
+      id: message.id,
+      feedback: { rate: message.feedback.rate }
+    })
   }
 
   function changeFeedback() {
-    $anaSideModel?.sendMessageFeedback(
-      message.id, { 
+    chatInstance.submitSyncMessage({
+      id: message.id,
+      feedback: { 
         reason: message.feedback.reason,
         otherreason: message.feedback.otherreason
       }
-    )
+    })
   }
 
   function feedbackkeyup() {
@@ -122,9 +132,7 @@
     clearTimeout(typingTimer);
   }
 
-  $: if($anaDebugReply) {
-    inner = $chatHistory.find(m => m.id == message.reply);
-  }
+  $: setReplyVisibility($showReplied && !preview);
   $: selected = $replying == message.id;
   
 
@@ -149,11 +157,11 @@
           on:keypress={scroll}
         >
           <div class="disable-click">
-            <MessageParts message={inner} preview={false} {scrollBottom}/>
+            <MessageParts {chatInstance} message={inner} preview={false} {scrollBottom}/>
           </div>
         </div>
       {/if}
-      <MessageParts {message} {preview} {scrollBottom}/>
+      <MessageParts {chatInstance} {message} {preview} {scrollBottom}/>
     </div>
 
     {#if !preview}
@@ -185,7 +193,7 @@
               title={selected? "Replying to" : "Reply to"}
               class="icon"
               class:selected={selected} 
-              class:hideuserreply={!$anaSuperMode && message.type == 'user'}
+              class:hideuserreply={!$wizardMode && message.type == 'user'}
               on:click={select}
             ><Reply/></button>
 
@@ -193,7 +201,7 @@
 
           </div>
 
-          {#if loading}
+          {#if message.loading}
             <div class="loading" title="Processing message">⌛️</div>
           {/if}
 
@@ -201,7 +209,7 @@
         </div>
         
         <div class="timestamp timestamp-{message.type}">
-          {#if !$anaSuperMode && message.type !== 'user'}
+          {#if !$wizardMode && message.type !== 'user'}
             <div class="feedback-btns">
               <button 
                 title="Good reply"
@@ -217,7 +225,7 @@
               ><ThumbsDown/></button>
             </div>
           {/if}
-          {#if $anaTimes}
+          {#if $showTime}
             <span>{ new Date(timestamp).toLocaleTimeString("en-US") }</span>
           {/if}
         </div>

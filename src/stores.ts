@@ -1,6 +1,6 @@
 import type { JupyterFrontEnd } from '@jupyterlab/application';
 import { type Writable, writable, get } from 'svelte/store';
-import { type IChatMessage, type IAutoCompleteItem, MessageDisplay } from './common/anachatInterfaces';
+import { type IChatMessage, MessageDisplay, type IChatInstance, type IConfigVar, type Subset } from './common/anachatInterfaces';
 import { AnaPanelView } from './components/AnaPanelView';
 import type { AnaSideModel } from './dataAPI/AnaSideModel';
 import { anaChatIcon } from './iconimports';
@@ -118,8 +118,44 @@ function createStatus() {
   };
 }
 
-function createChatHistory() {
+
+function createChatInstance(chatName: string): IChatInstance {
   let current: IChatMessage[] = [];
+  let autoCompleteResponseId = writable(-1); 
+  let autoCompleteItems = writable([]);
+  let configMap: { [id: string]: IConfigVar<any>} = {};
+
+  function createConfigVar<T>(name: string, value: T) {
+    let { subscribe, set, update } = writable(value);
+    let configVar = { subscribe, set, update, load: (_v: T) => {}, initialized: false };
+    configVar.set = (new_value: T) => {
+      get(anaSideModel)?.sendConfig(chatName, { 
+        key: name, 
+        value: new_value, 
+        _mode: configVar.initialized? 'update': 'init'
+      })
+      return set(value);
+    }
+    configVar.load = (new_value: any) => {
+      set(new_value);
+    }
+    configMap[name] = configVar;
+    return configVar;
+  }
+
+  let config = {
+    processInKernel: createConfigVar("process_in_kernel", true),
+    enableAutoComplete: createConfigVar("enable_auto_complete", true),
+    enableAutoLoading: createConfigVar("enable_auto_loading", false),
+    loading: createConfigVar("loading", false),
+
+    showReplied: createConfigVar("show_replied", false),
+    showIndex: createConfigVar("show_index", false),
+    showTime: createConfigVar("show_time", true),
+    showBuildMessages: createConfigVar("show_build_messages", true),
+    showKernelMessages: createConfigVar("show_kernel_messages", true),
+  }
+
   let messageMap: { [key: string]: { position: number, message: IChatMessage} } = {};
   const { subscribe, set, update } = writable(current);
 
@@ -129,22 +165,17 @@ function createChatHistory() {
     current.push(newMessage);
     
     set(current);
-    if ((get(anaSuperMode) != (newMessage.type != 'user')) && !['kernel', 'build'].includes(checkTarget(newMessage))) {
+    if ((get(wizardMode) != (newMessage.type != 'user')) && !['kernel', 'build'].includes(checkTarget(newMessage))) {
       replying.set(newMessage['id']);
     }
     if (newMessage.display == MessageDisplay.SupermodeInput) {
       let buildMessage = cloneMessage(newMessage, messageTarget('user'))
-      superModePreviewMessage.set([...get(superModePreviewMessage), buildMessage]);
+      wizardPreviewMessage.set([...get(wizardPreviewMessage), buildMessage]);
     }
   }
 
   function addNew(newMessage: IChatMessage) {
-    //current.push(newMessage);
-    const model = get(anaSideModel);
-    //set(current);
-    if (model) {
-      model.sendMessageKernel(newMessage);
-    }
+    get(anaSideModel)?.sendMessageKernel(chatName, newMessage);
   }
 
   function load(data: IChatMessage[]) {
@@ -154,7 +185,7 @@ function createChatHistory() {
       messageMap[message['id']] = { position: index, message: message };
     });
     const lastMessage = data[data.length - 1];
-    if ((get(anaSuperMode) != (lastMessage.type != 'user')) && !['kernel', 'build'].includes(checkTarget(lastMessage))) {
+    if ((get(wizardMode) != (lastMessage.type != 'user')) && !['kernel', 'build'].includes(checkTarget(lastMessage))) {
       replying.set(lastMessage['id']);
     }
     set(current);
@@ -167,9 +198,38 @@ function createChatHistory() {
     set(current);
   }
 
+  function submitSyncMessage(message: Pick<IChatMessage, 'id'> & Subset<IChatMessage>) {
+    get(anaSideModel)?.sendSyncMessage(chatName, message);
+  }
+
+  function removeLoading(messageId: string) {
+    submitSyncMessage({
+      id: messageId,
+      loading: false
+    })
+  }
+
   function reset() {
     current = [];
+    messageMap = {};
+    autoCompleteResponseId.set(-1);
+    autoCompleteItems.set([]);
     set(current);
+  }
+
+  function findById(messageId: string | null) {
+    if (messageId === null) {
+      return null;
+    }
+    let message = messageMap[messageId];
+    if (message === undefined) {
+      return null;
+    }
+    return message.message;
+  }
+
+  function sendAutoComplete(requestId: number, query: string) {
+    get(anaSideModel)?.sendSubjectQuery(chatName, requestId, query);
   }
 
   return {
@@ -178,9 +238,18 @@ function createChatHistory() {
     update,
     push,
     addNew,
-    reset,
     load,
-    updateMessage
+    submitSyncMessage,
+    updateMessage,
+    removeLoading,
+    reset,
+    findById,
+    sendAutoComplete,
+
+    configMap,
+    config,
+    autoCompleteResponseId,
+    autoCompleteItems
   };
 }
 
@@ -240,20 +309,17 @@ export const jupyterSanitizer: Writable<ISanitizer | null> = writable(null);
 export const jupyterRenderMime: Writable<IRenderMimeRegistry | null> = writable(null);
 export const anaSideModel: Writable<AnaSideModel | null> = writable(null);
 export const anaSideReady: Writable<boolean> = writable(false);
-export const anaSuperMode: Writable<boolean> = writable(false);
-export const anaLoading: Writable<(boolean | number)[]> = writable([]);
-export const anaAutoLoading: Writable<boolean> = writable(false);
-export const anaQueryEnabled: Writable<boolean> = writable(true);
-export const anaMessageEnabled: Writable<boolean> = writable(true);
-export const anaTimes: Writable<boolean> = writable(true);
-export const anaShowKernelMessages: Writable<boolean> = writable(true);
-export const anaShowBuildMessages: Writable<boolean> = writable(true);
-export const anaDebugReply: Writable<boolean> = writable(false);
-export const subjectItems: Writable<{responseId: Writable<number>, sitems: Writable<IAutoCompleteItem[]>}> = writable({responseId: writable(-1), sitems: writable([])})
-export const superModePreviewMessage: Writable<IChatMessage[]> = writable([]);
-export const superModeValue: Writable<string> = writable("")
-export const chatHistory = createChatHistory();
+
+export const wizardMode: Writable<boolean> = writable(false);
+export const wizardValue: Writable<string> = writable("")
+export const wizardPreviewMessage: Writable<IChatMessage[]> = writable([]);
+
 export const kernelStatus = createStatus();
 export const panelWidget = createPanelWidget();
-
 export const errorHandler = createErrorHandler();
+
+
+export const chatInstances: { [id: string]: IChatInstance } = {
+  "base": createChatInstance("base")
+};
+

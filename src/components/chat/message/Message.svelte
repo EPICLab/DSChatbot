@@ -1,8 +1,8 @@
 
 
 <script type="ts">
-  import { MessageDisplay, type IChatMessage, type IMessageType } from '../../../common/anachatInterfaces';
-  import { anaSuperMode, replying, superModePreviewMessage, chatHistory, anaSideModel, anaShowKernelMessages, anaShowBuildMessages, superModeValue, anaDebugReply } from '../../../stores';
+  import { MessageDisplay, type IChatInstance, type IChatMessage, type IMessageType } from '../../../common/anachatInterfaces';
+  import { wizardMode, replying, wizardPreviewMessage, wizardValue } from '../../../stores';
   import { ContextMenu } from '@lumino/widgets';
   import { CommandRegistry } from '@lumino/commands';
   import { BOT_TARGETS, BOT_TYPES, checkTarget, cloneMessage, messageTarget } from "../../../common/messages";
@@ -10,18 +10,21 @@
   import { RankedMenu } from '@jupyterlab/ui-components';
   import MessageBalloon from './MessageBalloon.svelte';
 
+  export let chatInstance: IChatInstance;
   export let message: IChatMessage;
   export let scrollBottom: () => void = () => {};
-  export let loading = false;
   export let index: number;
   export let chat: HTMLElement | null = null;
   export let preview: boolean = false;
+
+  let {showIndex, showBuildMessages, showKernelMessages} = chatInstance.config;
+
   let display: boolean = false;
   $: {
-    display = message.display === MessageDisplay.Default || $anaSuperMode
-    if ((message.display === MessageDisplay.SupermodeInput || message.kernelDisplay === MessageDisplay.SupermodeInput) && !$anaShowBuildMessages) {
+    display = message.display === MessageDisplay.Default || $wizardMode
+    if ((message.display === MessageDisplay.SupermodeInput || message.kernelDisplay === MessageDisplay.SupermodeInput) && !$showBuildMessages) {
       display = false;
-    } else if (message.display === MessageDisplay.Hidden && !$anaShowKernelMessages) {
+    } else if (message.display === MessageDisplay.Hidden && !$showKernelMessages) {
       display = false;
     }
     if (preview) {
@@ -32,14 +35,14 @@
   let div: HTMLElement | null = null;
 
   function onRightClick(event: any) {
-    if ($anaSuperMode) {
+    if ($wizardMode) {
       const commands = new CommandRegistry();
       const contextMenu = new ContextMenu({ commands });
       commands.addCommand('add-reply', {
         label: 'Add to reply',
         execute: () => {
           let newMessage = cloneMessage(message, messageTarget('user'))
-          $superModePreviewMessage = [...$superModePreviewMessage, newMessage];
+          $wizardPreviewMessage = [...$wizardPreviewMessage, newMessage];
         }
       });
       contextMenu.addItem({
@@ -49,7 +52,7 @@
       commands.addCommand('load-input', {
         label: 'Load to input',
         execute: () => {
-          $superModeValue = message.text;
+          $wizardValue = message.text;
         }
       });
       contextMenu.addItem({
@@ -73,7 +76,7 @@
             reply: $replying,
             ...messageTarget('build')
           })
-          chatHistory.addNew(newMessage);
+          chatInstance.addNew(newMessage);
         }
       });
       contextMenu.addItem({
@@ -131,9 +134,9 @@
             label: '⬆️ Move Up',
             execute: () => {
               const target = index - 1
-              $superModePreviewMessage.splice(target, 0, $superModePreviewMessage[index])
-              $superModePreviewMessage.splice(index + 1, 1)
-              $superModePreviewMessage = $superModePreviewMessage
+              $wizardPreviewMessage.splice(target, 0, $wizardPreviewMessage[index])
+              $wizardPreviewMessage.splice(index + 1, 1)
+              $wizardPreviewMessage = $wizardPreviewMessage
             }
           });
           contextMenu.addItem({
@@ -142,14 +145,14 @@
           });
         }
 
-        if (index < $superModePreviewMessage.length - 1) {
+        if (index < $wizardPreviewMessage.length - 1) {
           commands.addCommand('move-down', {
             label: '⬇️ Move Down',
             execute: () => {
               const target = index + 1
-              $superModePreviewMessage.splice(target + 1, 0, $superModePreviewMessage[index])
-              $superModePreviewMessage.splice(index, 1)
-              $superModePreviewMessage = $superModePreviewMessage
+              $wizardPreviewMessage.splice(target + 1, 0, $wizardPreviewMessage[index])
+              $wizardPreviewMessage.splice(index, 1)
+              $wizardPreviewMessage = $wizardPreviewMessage
             }
           });
           contextMenu.addItem({
@@ -161,8 +164,8 @@
         commands.addCommand('remove', {
           label: '❌ Remove',
           execute: () => {
-            $superModePreviewMessage.splice(index, 1)
-            $superModePreviewMessage = $superModePreviewMessage
+            $wizardPreviewMessage.splice(index, 1)
+            $wizardPreviewMessage = $wizardPreviewMessage
           }
         });
         contextMenu.addItem({
@@ -174,12 +177,11 @@
         commands.addCommand('loading', {
         label: 'Toggle loading',
         execute: () => {
-          if (loading) {
-            $anaSideModel?.sendSupermode({ remove_loading: message.id });
-            loading = false;
-          } else {
-            $anaSideModel?.sendSupermode({ loading: index });
-          }
+          message.loading = !message.loading;
+          chatInstance.submitSyncMessage({
+            id: message.id,
+            loading: message.loading
+          });
         }
       });
       contextMenu.addItem({
@@ -213,9 +215,9 @@
 
 <div bind:this={div} class="message-{message.id}" on:contextmenu={onRightClick}> 
   {#if display}
-    {#if $anaDebugReply}
+    {#if $showIndex}
       {index}
     {/if}
-    <MessageBalloon {message} {loading} {preview} {scrollBottom} {chat}/>
+    <MessageBalloon {chatInstance} {message} {preview} {scrollBottom} {chat}/>
   {/if}
 </div>
