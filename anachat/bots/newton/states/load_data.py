@@ -8,7 +8,7 @@ from .utils import statemanager
 
 
 if TYPE_CHECKING:
-    from ...comm.message import MessageContext
+    from ....comm.message import MessageContext
     from .state import StateGenerator
 
 

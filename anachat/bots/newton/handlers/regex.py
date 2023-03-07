@@ -12,7 +12,7 @@ from .utils import HandlerWithPaths
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from ...comm.message import MessageContext
+    from ....comm.message import MessageContext
     from ..states.state import StateDefinition
 
 

@@ -26,7 +26,7 @@ class ChatInstance:
 
     def __init__(self, comm: KernelComm, chat_name: str, loader="base"):
         self.comm_ref = weakref.ref(comm)
-        self.core_loader = LOADERS[loader](comm)
+        self.bot_loader = LOADERS[loader](comm)
         self.memory = defaultdict(lambda: None)
 
         self.chat_name = chat_name
@@ -45,23 +45,19 @@ class ChatInstance:
             "show_build_messages": True,
             "show_kernel_messages": True,
         }
-
-        self.history.append(MessageContext.create_message(
-            ("Hello, I am Newton, an assistant that can help you with machine learning. "
-             "You can ask me questions at any given time and go back to previous questions too. "
-             "How can I help you?"),
-            "bot"
-        ))
-
-        for message in self.history:
-            self.message_map[message['id']] = message
-
         self.checkpoints = {}
+        self.start_bot({})
 
     @property
-    def core(self):
-        """Returns current AnaCore"""
-        return self.core_loader.current()
+    def bot(self):
+        """Returns current bot"""
+        return self.bot_loader.current()
+
+    def start_bot(self, data: dict):
+        """Starts bot and sets history map"""
+        self.bot.start(self, data)
+        for message in self.history:
+            self.message_map[message['id']] = message
 
     def sync_chat(self, operation):
         """Sends message with history and general config"""
@@ -69,6 +65,9 @@ class ChatInstance:
             "operation": operation,
             "history": self.history,
             "config": self.config,
+            "loaders": {
+                key: value.config() for key, value in LOADERS.items()
+            }
         })
 
     def receive(self, data: dict):
@@ -78,7 +77,7 @@ class ChatInstance:
             if operation == "message":
                 self.receive_message(data.get("message"))
             elif operation == "refresh":
-                self.core.refresh(self)
+                self.bot.refresh(self)
             elif operation == "autocomplete-query":
                 self.receive_autocomplete_query(
                     data.get('requestId'),
@@ -124,12 +123,12 @@ class ChatInstance:
         )
         if process_message:
             context = MessageContext(self.comm_ref(), self, message)
-            self.core.process_message(context)
+            self.bot.process_message(context)
 
     def receive_autocomplete_query(self, request_id, query):
         """Receives query from user"""
         if self.config["enable_autocomplete"]:
-            self.core.process_autocomplete(self, request_id, query)
+            self.bot.process_autocomplete(self, request_id, query)
         else:
             self.send({
                 "operation": "autocomplete-response",

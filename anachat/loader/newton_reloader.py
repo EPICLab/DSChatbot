@@ -12,12 +12,12 @@ import traceback
 
 import pyinotify
 
-from .core_loader import BaseLoader
+from .newton_loader import NewtonLoader
 
 if TYPE_CHECKING:
     from ..comm.kernelcomm import KernelComm
 
-class CoreReloader(BaseLoader):
+class NewtonReloader(NewtonLoader):
     """Loads the core chatbot module and reload it if necessary"""
 
     def __init__(self, comm: KernelComm):
@@ -85,9 +85,9 @@ class Reloader(pyinotify.ProcessEvent):
         try:
             toreload = self._reloader.check_recursive_change(comm=self._comm)
             if toreload:
-                self._comm.reply("Reloading Ana Core")
+                self._comm.reply("Reloading Newton bot")
                 self._reloader.reload_list(toreload)
-                from .. import core
-                self._reloader.core = core
+                from ..bots import newton
+                self._reloader.core = newton
         except Exception:
-            self._comm.reply(f"Failed to reload Ana: {traceback.format_exc()}", type_="error")
+            self._comm.reply(f"Failed to reload Newton: {traceback.format_exc()}", type_="error")

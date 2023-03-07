@@ -7,15 +7,21 @@ if TYPE_CHECKING:
     from ..comm.kernelcomm import KernelComm
 
 
-class BaseLoader:
-    """Loads the core chatbot module"""
+class NewtonLoader:
+    """Loads the newton chatbot module"""
 
     def __init__(self, comm: KernelComm):
         # pylint: disable=unused-argument
         # pylint: disable=import-outside-toplevel
-        from .. import core
-        self.core = core
+        from ..bots import newton
+        self.core = newton
 
     def current(self):
         """Returns current Bot"""
         return self.core.CURRENT
+
+    @classmethod
+    def config(cls):
+        """Returns available bot config"""
+        from ..bots.newton import NewtonBot
+        return NewtonBot.config()

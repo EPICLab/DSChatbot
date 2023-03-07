@@ -7,17 +7,22 @@ if TYPE_CHECKING:
     from ..comm.kernelcomm import KernelComm
 
 
-
-def class_loader(cls):
+def class_loader(the_cls):
     """Returns class loader"""
     class ClassLoader:
         """Loads the core chatbot module from a class"""
 
         def __init__(self, comm: KernelComm):
             # pylint: disable=unused-argument
-            self.current_core = cls()
+            self.bot = the_cls()
 
         def current(self):
             """Returns current Bot"""
-            return self.current_core
+            return self.bot
+
+        @classmethod
+        def config(cls):
+            """Returns available bot config"""
+            return the_cls.config()
+
     return ClassLoader

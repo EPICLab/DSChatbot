@@ -8,7 +8,7 @@ from functools import wraps
 
 if TYPE_CHECKING:
     from typing import Iterable, Any
-    from ...comm.message import MessageContext
+    from ....comm.message import MessageContext
     from ..states.state import StateCallable, StateDefinition, StateGeneratorFunc
 
 
@@ -57,7 +57,7 @@ class GoToState(Exception):
         self.state = state
         self.params = params or []
         super().__init__(
-            f"This exception should be handled by AnaCore to go to {state}"
+            f"This exception should be handled by NewtonBot to go to {state}"
         )
 
 def create_reply_state(text) -> StateCallable:

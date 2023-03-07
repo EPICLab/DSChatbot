@@ -2,13 +2,13 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from anachat.core.states.utils import statemanager
+from .states.utils import statemanager
 
 
 if TYPE_CHECKING:
-    from typing import List, Optional, Tuple
-    from ..comm.message import MessageContext, IOptionItem
-    from .states.state import StateCallable, StateDefinition
+    from typing import List, Optional
+    from ...comm.message import MessageContext, IOptionItem
+    from .states.state import StateCallable
 
     class StatefulOption(IOptionItem, total=False):
         """Defines an Option for a list of options"""

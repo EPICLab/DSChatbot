@@ -1,10 +1,10 @@
-"""Core Module that handles Ana operations"""
+"""Core Module that handles Newton operations"""
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import traceback
 
-
+from ...comm.message import MessageContext
 from .handlers.regex import RegexHandler
 from .handlers.subject import SubjectHandler
 from .handlers.url import URLHandler
@@ -14,15 +14,12 @@ from .states.utils import GoToState, state_checkpoint
 
 if TYPE_CHECKING:
     from typing import Iterable, Any
-    from ..comm.kernelcomm import KernelComm
-    from ..comm.chat_instance import ChatInstance
-    from ..comm.message import MessageContext
+    from ...comm.chat_instance import ChatInstance
     from .states.state import StateDefinition
 
 
-
 class DefaultState:
-    """Default Ana state"""
+    """Default Newton state"""
 
     def __init__(self):
         self.subject_handler = SubjectHandler()
@@ -61,12 +58,27 @@ class DefaultState:
         })
 
 
-class AnaCore:
-    """Implements ana chat"""
+class NewtonBot:
+    """Implements newton chat"""
 
     def __init__(self):
         self.default_state = DefaultState()
         self.state = self.default_state
+
+    @classmethod
+    def config(cls):
+        """Defines configuration inputs for bot"""
+        return {}
+    
+    def start(self, instance: ChatInstance, data: dict):
+        """Initializes bot"""
+        # pylint: disable=unused-argument
+        instance.history.append(MessageContext.create_message(
+            ("Hello, I am Newton, an assistant that can help you with machine learning. "
+             "You can ask me questions at any given time and go back to previous questions too. "
+             "How can I help you?"),
+            "bot"
+        ))
 
     def refresh(self, instance: ChatInstance):
         """Refresh chatbot"""
@@ -170,21 +182,4 @@ class AnaCore:
         self.default_state.process_autocomplete(instance, request_id, query)
 
 
-class DummyState:
-    """Dummy state that only repeats user messages"""
 
-    def process_message(self, context: MessageContext) -> StateDefinition:
-        """Processes user messages"""
-        # pylint: disable=unused-argument
-        context.reply(context.text + ", ditto")
-        return self
-
-    def process_autocomplete(self, instance: ChatInstance, request_id: int, query: str):
-        """Processes user autocomplete query"""
-        # pylint: disable=unused-argument
-        # pylint: disable=no-self-use
-        instance.send({
-            "operation": "autocomplete-response",
-            "responseId": request_id,
-            "items": [],
-        })

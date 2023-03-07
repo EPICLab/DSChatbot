@@ -8,7 +8,7 @@ from .helpers import select_dataframe_column, apply_str_list_operation
 
 if TYPE_CHECKING:
     from typing import Generator
-    from ...comm.message import MessageContext
+    from ....comm.message import MessageContext
     from .state import StateDefinition, StateGenerator
 
 @statemanager()

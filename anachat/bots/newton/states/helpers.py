@@ -8,8 +8,8 @@ import sys
 
 if TYPE_CHECKING:
     from typing import Generator, Match, Tuple, List, Any
-    from ...comm.kernelcomm import KernelComm
-    from ...comm.message import MessageContext, IOptionItem
+    from ....comm.kernelcomm import KernelComm
+    from ....comm.message import MessageContext, IOptionItem
 
 
 def isdataframe(value: Any) -> bool:

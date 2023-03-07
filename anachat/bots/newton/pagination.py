@@ -8,7 +8,7 @@ from .states.utils import statemanager
 
 if TYPE_CHECKING:
     from typing import List, Tuple
-    from ..comm.message import MessageContext
+    from ...comm.message import MessageContext
     from .action import StatefulOption
     from .states.state import StateCallable
 

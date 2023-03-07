@@ -4,6 +4,7 @@ import importlib
 MODULE = __name__
 MODULE = MODULE[:MODULE.rfind(".")]
 MODULE = MODULE[:MODULE.rfind(".")]
+MODULE = MODULE[:MODULE.rfind(".")]
 
 def project():
     """Returns project resources path"""
@@ -16,7 +17,7 @@ def data():
 def import_state_module(module_name, reload=True):
     """Returns state module"""
     try:
-        module = importlib.import_module(f'.core.states.{module_name}', MODULE)
+        module = importlib.import_module(f'.bots.newton.states.{module_name}', MODULE)
         if reload:
             module = importlib.reload(module)
         return module
