@@ -3,7 +3,7 @@
 
   import AutoCompleteItem from "./AutoCompleteItem.svelte";
   
-  import type { IAutoCompleteItem, IChatInstance } from "../../common/anachatInterfaces";
+  import type { IAutoCompleteItem, IChatInstance } from "../../common/chatbotInterfaces";
   import { messageTarget } from "../../common/messages";
   import BottomChat from "./BottomChat.svelte";
 

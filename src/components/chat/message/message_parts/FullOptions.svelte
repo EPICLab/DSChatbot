@@ -1,5 +1,5 @@
 <script type="ts">
-  import type { IChatInstance, IChatMessage, IMessagePart } from "../../../../common/anachatInterfaces";
+  import type { IChatInstance, IChatMessage, IMessagePart } from "../../../../common/chatbotInterfaces";
   import Options from "./Options.svelte";
   import Text from "./Text.svelte";
   import TextInput from "./TextInput.svelte";

@@ -1,7 +1,7 @@
 
 <script type="ts">
   import { beforeUpdate, afterUpdate } from 'svelte';
-  import type { IChatInstance } from '../../common/anachatInterfaces';
+  import type { IChatInstance } from '../../common/chatbotInterfaces';
   import Message from './message/Message.svelte';
 
   export let chatInstance: IChatInstance;

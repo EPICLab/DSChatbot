@@ -1,5 +1,5 @@
 <script type="ts">
-  import { MessageDisplay, type IChatInstance, type IChatMessage} from "../../../common/anachatInterfaces";
+  import { MessageDisplay, type IChatInstance, type IChatMessage} from "../../../common/chatbotInterfaces";
   import { replying, wizardMode } from "../../../stores";
 
   import MessageParts from "./MessageParts.svelte";

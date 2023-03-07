@@ -1,5 +1,5 @@
 <script type="ts">
-  import type { IChatInstance, IChatMessage, IMessagePart } from "../../../../common/anachatInterfaces";
+  import type { IChatInstance, IChatMessage, IMessagePart } from "../../../../common/chatbotInterfaces";
   import { messageTarget, type IFormElementItem } from "../../../../common/messages";
   import FormCheck from "./form_elements/FormCheck.svelte";
   import FormSelection from "./form_elements/FormSelection.svelte";

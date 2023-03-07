@@ -1,5 +1,5 @@
 <script type="ts">
-  import type { IChatInstance, IChatMessage, IMessagePart, IOptionItem } from "../../../../common/anachatInterfaces";
+  import type { IChatInstance, IChatMessage, IMessagePart, IOptionItem } from "../../../../common/chatbotInterfaces";
   import { extractOptions, messageTarget } from "../../../../common/messages";
 
   export let chatInstance: IChatInstance;

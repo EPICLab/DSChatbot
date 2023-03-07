@@ -7,10 +7,10 @@ import {
 import { ISanitizer } from '@jupyterlab/apputils';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import { AnaChat } from './anachat';
-import type { IServerConfig } from './common/anachatInterfaces';
+import { MainChat } from './mainchat';
+import type { IServerConfig } from './common/chatbotInterfaces';
 import { requestAPI } from './server';
-import { anaRestrict, errorHandler, jupyterapp, jupyterSanitizer, jupyterRenderMime } from './stores';
+import { restrictNotebooks, errorHandler, jupyterapp, jupyterSanitizer, jupyterRenderMime } from './stores';
 
 
 function startPlugin(
@@ -24,25 +24,25 @@ function startPlugin(
 ) {
   try {
     console.log("Restrict: %s", config.restrict)
-    anaRestrict.set(config.restrict);
+    restrictNotebooks.set(config.restrict);
     jupyterapp.set(app);
     jupyterSanitizer.set(sanitizer);
     jupyterRenderMime.set(rendermime);
     // Create the widget
-    const anaChat = new AnaChat();
+    const mainChat = new MainChat();
 
     // Add the widget to the right area
-    labShell.add(anaChat, 'right', { rank: 700 });
+    labShell.add(mainChat, 'right', { rank: 700 });
 
     // Add the widget to the application restorer
-    restorer.add(anaChat, 'jupyterlab-anachat');
+    restorer.add(mainChat, 'jupyterlab-newton');
 
     /**
      * Subscribes to the creation of new notebooks. If a new notebook is created, build a new handler for the notebook.
      * Adds a promise for a instanced handler to the 'handlers' collection.
      */
     notebookTracker.widgetAdded.connect((sender, nbPanel: NotebookPanel) => {
-      anaChat.addNewNotebook(nbPanel);
+      mainChat.addNewNotebook(nbPanel);
     });
 
     // Change the julynter when the active widget changes.
@@ -51,7 +51,7 @@ function startPlugin(
       if (!widget) {
         return;
       }
-      anaChat.changeActiveWidget(labShell, notebookTracker, widget as NotebookPanel);
+      mainChat.changeActiveWidget(labShell, notebookTracker, widget as NotebookPanel);
     });
   } catch (error) {
     throw errorHandler.report(error, 'main', undefined);
@@ -59,10 +59,10 @@ function startPlugin(
 }
 
 /**
- * Initialization data for the anachat extension.
+ * Initialization data for the newton extension.
  */
 const plugin: JupyterFrontEndPlugin<void> = {
-  id: 'anachat:plugin',
+  id: 'newton:plugin',
   autoStart: true,
   requires: [ILabShell, ILayoutRestorer, INotebookTracker, ISanitizer, IRenderMimeRegistry],
   activate: (
@@ -79,7 +79,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       startPlugin(app, labShell, restorer, notebookTracker, sanitizer, rendermime, config);
     }).catch((reason: any) => {
       console.error(
-        `The anachat server extension appears to be missing.\n${reason}\nStarting with default config`
+        `The newton server extension appears to be missing.\n${reason}\nStarting with default config`
       );
       startPlugin(app, labShell, restorer, notebookTracker, sanitizer, rendermime, { restrict: [] });
     });

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { anaSideModel, kernelStatus } from "../../../stores";
+  import { notebookCommModel, kernelStatus } from "../../../stores";
   import Disconnected from "../../icons/disconnected.svelte";
   import Kerneloff from "../../icons/kerneloff.svelte";
   import Kernelon from "../../icons/kernelon.svelte";
@@ -7,14 +7,14 @@
   import Inner from "./Inner.svelte";
 
   $: ({ connectedOnce, connectedNow, hasKernel } = $kernelStatus);
-  $: if ($anaSideModel) {
+  $: if ($notebookCommModel) {
     $connectedNow = true;
   }
 
 </script>
 
 
-{#if $anaSideModel}
+{#if $notebookCommModel}
   {#if !$connectedOnce}
     <Inner title="Newton did not connect to a notebook">
       <Neverconnected/>

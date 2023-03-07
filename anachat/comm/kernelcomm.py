@@ -13,7 +13,7 @@ class KernelComm:
 
     def __init__(self, shell=None, loader="base"):
         self.shell = shell
-        self.name = "anachat.comm"
+        self.name = "newton.comm"
         self.comm = None
 
         self.chat_instances = {

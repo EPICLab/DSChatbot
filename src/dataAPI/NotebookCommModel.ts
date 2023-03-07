@@ -3,9 +3,10 @@ import type { ISessionContext } from '@jupyterlab/apputils';
 import { get } from 'svelte/store';
 
 import {
-  anaSideModel,
-  anaSideReady,
+  notebookCommModel,
+  connectionReady,
   chatInstances,
+  chatLoaders,
   errorHandler,
   kernelStatus
 } from '../stores';
@@ -21,11 +22,11 @@ import {
   type IChatMessage,
   type IKernelMatcher,
   type Subset
-} from '../common/anachatInterfaces';
+} from '../common/chatbotInterfaces';
 import type { KernelMessage } from '@jupyterlab/services';
 import type { IErrorMsg } from '@jupyterlab/services/lib/kernel/messages';
 
-export class AnaSideModel {
+export class NotebookCommModel {
   private _sessionContext: ISessionContext;
   private _notebook: NotebookPanel;
   private _icomm: IComm | null;
@@ -56,14 +57,14 @@ export class AnaSideModel {
   }
 
   public async connectNotebook() {
-    console.log('Connecting notebook to AnaChat');
+    console.log('Connecting notebook to Newton');
     this.resetData();
 
     await this.session.ready;
     kernelStatus.setattr('connectedOnce', true);
     this.listenForRestart();
-    await this.initAna();
-    anaSideReady.set(true);
+    await this.initBot();
+    connectionReady.set(true);
   }
 
   public refresh() {
@@ -108,24 +109,24 @@ export class AnaSideModel {
       if (status.endsWith('restarting')) {
         kernelStatus.setattr('hasKernel', false);
         // DO something
-        console.log('[AnaChat] resetting data on kernel restart.');
+        console.log('[Newton] resetting data on kernel restart.');
         this.resetData();
-        this.initAna().then();
+        this.initBot().then();
       }
     });
   }
 
-  public async initAna() {
+  public async initBot() {
     const kernel = this.session.session?.kernel;
     if (!kernel) {
-      throw errorHandler.report(undefined, 'AnaSideModel:initAna', []);
+      throw errorHandler.report(undefined, 'NotebookCommModel:initBot', []);
     }
     await this._setKernelLanguage(kernel);
     kernelStatus.setattr('connectedOnce', true);
-    kernelStatus.setattr('connectedNow', !!get(anaSideModel));
-    kernel.registerCommTarget('anachat.comm', (comm, msg) => {
+    kernelStatus.setattr('connectedNow', !!get(notebookCommModel));
+    kernel.registerCommTarget('newton.comm', (comm, msg) => {
       this._icomm = comm;
-      this._icomm.onMsg = this._receiveAnaChatQuery.bind(this);
+      this._icomm.onMsg = this._receiveNewtonQuery.bind(this);
     });
     await this._initOnKernel(kernel);
     //this._sessionContext.iopubMessage.disconnect(this._boundQueryCall);
@@ -133,7 +134,7 @@ export class AnaSideModel {
   }
 
   public resetData() {
-    anaSideReady.set(false);
+    connectionReady.set(false);
     kernelStatus.reset();
     for (const chatInstance of Object.values(chatInstances)) {
       chatInstance.reset();
@@ -287,7 +288,7 @@ export class AnaSideModel {
     }
   }
 
-  private _receiveAnaChatQuery(
+  private _receiveNewtonQuery(
     msg: KernelMessage.ICommMsgMsg
   ): void | PromiseLike<void> {
     try {
@@ -300,6 +301,7 @@ export class AnaSideModel {
       if (operation === 'init' || operation === 'refresh') {
         kernelStatus.setattr('hasKernel', true);
         chatInstance.load(msg.content.data.history as unknown as IChatMessage[]);
+        chatLoaders.set(msg.content.data.loaders as unknown as { [id: string]: [string, string | null]});
         this._loadInstanceConfig(chatInstance, msg.content.data.config as unknown as { [id: string]: any });
       } else if (operation === 'reply') {
         kernelStatus.setattr('hasKernel', true);
@@ -318,7 +320,7 @@ export class AnaSideModel {
       } else if (operation === 'error') {
         errorHandler.report(
           'Failed to run ICOMM command',
-          '_receiveAnaChatQuery',
+          '_receiveNewtonQuery',
           [msg.content.data.command, msg.content.data.message]
         );
       } else if (operation === 'autocomplete-response') {
@@ -327,7 +329,7 @@ export class AnaSideModel {
         autoCompleteItems.set(msg.content.data.items as unknown as IAutoCompleteItem[]);
       }
     } catch (error) {
-      throw errorHandler.report(error, '_receiveAnaChatQuery', [msg]);
+      throw errorHandler.report(error, '_receiveNewtonQuery', [msg]);
     }
   }
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import type { IAutoCompleteItem } from "../../common/anachatInterfaces";
+  import type { IAutoCompleteItem } from "../../common/chatbotInterfaces";
   import { onKeyPress } from '../../common/utils';
   import { panelWidget } from '../../stores';
   import Eye from '../icons/eye.svelte';

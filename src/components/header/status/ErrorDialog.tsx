@@ -22,7 +22,7 @@ export function clickError(): void {
               https://github.com/JoaoFelipe/anachat/issues
             </a>
           </div>
-          <textarea className="anachat-error-text" value={text} />
+          <textarea className="newton-error-text" value={text} />
           <div>* Check the Browser console as well.</div>
         </div>
       ),

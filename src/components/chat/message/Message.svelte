@@ -1,7 +1,7 @@
 
 
 <script type="ts">
-  import { MessageDisplay, type IChatInstance, type IChatMessage, type IMessageType } from '../../../common/anachatInterfaces';
+  import { MessageDisplay, type IChatInstance, type IChatMessage, type IMessageType } from '../../../common/chatbotInterfaces';
   import { wizardMode, replying, wizardPreviewMessage, wizardValue } from '../../../stores';
   import { ContextMenu } from '@lumino/widgets';
   import { CommandRegistry } from '@lumino/commands';

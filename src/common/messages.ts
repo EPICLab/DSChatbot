@@ -1,4 +1,4 @@
-import { KernelProcess, MessageDisplay, type IChatMessage, type IMessagePart, type IMessagePartType, type IMessageType, type IOptionItem, type ITargetDefinition } from "./anachatInterfaces";
+import { KernelProcess, MessageDisplay, type IChatMessage, type IMessagePart, type IMessagePartType, type IMessageType, type IOptionItem, type ITargetDefinition } from "./chatbotInterfaces";
 
 const TYPE_DEFS: { [key: string]: IMessagePartType } = {
   't': 'text',

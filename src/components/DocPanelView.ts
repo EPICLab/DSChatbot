@@ -1,15 +1,15 @@
 import { Widget } from '@lumino/widgets';
 import { panelWidget } from '../stores';
-import AnaPanel from './AnaPanel.svelte';
+import DocPanel from './DocPanel.svelte';
 
-export class AnaPanelView extends Widget {
-  private _panel: AnaPanel;
+export class DocPanelView extends Widget {
+  private _panel: DocPanel;
   private _detached: boolean;
   
   constructor(content: string, title: string, type: 'url' | 'html' | 'text') {
     super();
     this._detached = false;
-    this._panel = new AnaPanel({
+    this._panel = new DocPanel({
       target: this.node,
       props: {
         content,

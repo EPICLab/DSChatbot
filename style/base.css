@@ -1,18 +1,18 @@
 :root {
-  --anachat-font-size1: var(--jp-ui-font-size1);
-  --anachat-title-font-size: var(--jp-ui-font-size0);
+  --newton-font-size1: var(--jp-ui-font-size1);
+  --newton-title-font-size: var(--jp-ui-font-size0);
 }
 
-.jp-AnaChat {
+.jp-NewtonChat {
   display: flex;
   flex-direction: column;
   background: var(--jp-layout-color1);
   color: var(--jp-ui-font-color1);
-  font-size: var(--anachat-title-font-size);
+  font-size: var(--newton-title-font-size);
   height: 100%;
 }
 
-.anachat-error-text {
+.newton-error-text {
   min-width: 400px;
   width: 99%;
   min-height: 200px;

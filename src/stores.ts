@@ -1,9 +1,9 @@
 import type { JupyterFrontEnd } from '@jupyterlab/application';
 import { type Writable, writable, get } from 'svelte/store';
-import { type IChatMessage, MessageDisplay, type IChatInstance, type IConfigVar, type Subset } from './common/anachatInterfaces';
-import { AnaPanelView } from './components/AnaPanelView';
-import type { AnaSideModel } from './dataAPI/AnaSideModel';
-import { anaChatIcon } from './iconimports';
+import { type IChatMessage, MessageDisplay, type IChatInstance, type IConfigVar, type Subset } from './common/chatbotInterfaces';
+import { DocPanelView } from './components/DocPanelView';
+import type { NotebookCommModel } from './dataAPI/NotebookCommModel';
+import { mainChatIcon } from './iconimports';
 import { requestAPI } from './server';
 import { checkTarget, cloneMessage, messageTarget } from './common/messages';
 import type { ISanitizer } from '@jupyterlab/apputils';
@@ -68,12 +68,12 @@ function createErrorHandler() {
       method: 'POST'
     }).catch((reason: any) => {
       console.error(
-        `The anachat server extension appears to be missing.\n${reason}`
+        `The newton server extension appears to be missing.\n${reason}`
       );
       return reason;
     });
 
-    console.error('[AnaChat] Error:', func, error, params);
+    console.error('[Newton] Error:', func, error, params);
     return error;
   }
 
@@ -129,7 +129,7 @@ function createChatInstance(chatName: string): IChatInstance {
     let { subscribe, set, update } = writable(value);
     let configVar = { subscribe, set, update, load: (_v: T) => {}, initialized: false };
     configVar.set = (new_value: T) => {
-      get(anaSideModel)?.sendConfig(chatName, { 
+      get(notebookCommModel)?.sendConfig(chatName, { 
         key: name, 
         value: new_value, 
         _mode: configVar.initialized? 'update': 'init'
@@ -175,7 +175,7 @@ function createChatInstance(chatName: string): IChatInstance {
   }
 
   function addNew(newMessage: IChatMessage) {
-    get(anaSideModel)?.sendMessageKernel(chatName, newMessage);
+    get(notebookCommModel)?.sendMessageKernel(chatName, newMessage);
   }
 
   function load(data: IChatMessage[]) {
@@ -199,7 +199,7 @@ function createChatInstance(chatName: string): IChatInstance {
   }
 
   function submitSyncMessage(message: Pick<IChatMessage, 'id'> & Subset<IChatMessage>) {
-    get(anaSideModel)?.sendSyncMessage(chatName, message);
+    get(notebookCommModel)?.sendSyncMessage(chatName, message);
   }
 
   function removeLoading(messageId: string) {
@@ -229,7 +229,7 @@ function createChatInstance(chatName: string): IChatInstance {
   }
 
   function sendAutoComplete(requestId: number, query: string) {
-    get(anaSideModel)?.sendAutoCompleteQuery(chatName, requestId, query);
+    get(notebookCommModel)?.sendAutoCompleteQuery(chatName, requestId, query);
   }
 
   return {
@@ -256,7 +256,7 @@ function createChatInstance(chatName: string): IChatInstance {
 
 function createPanelWidget() {
   let id = 1;
-  let store = writable<AnaPanelView | null>(null);
+  let store = writable<DocPanelView | null>(null);
   const { subscribe, set, update } = store;
 
   function load_panel(content: string, title: string, type: 'url' | 'html' | 'text') {
@@ -265,15 +265,15 @@ function createPanelWidget() {
       if (current) {
         current.dispose();
       }
-      current = new AnaPanelView(content, title, type);
-      current.id = "AnaPanel-" + (id++);
+      current = new DocPanelView(content, title, type);
+      current.id = "NewtonPanel-" + (id++);
       current.title.closable = true;
       get(jupyterapp)?.shell.add(current, 'main', { mode: 'split-right' })
     } else{
       current.set_props(content, title, type);
     }
     current.title.label = title;
-    current.title.icon = anaChatIcon.bindprops({ stylesheet: 'mainAreaTab' });;
+    current.title.icon = mainChatIcon.bindprops({ stylesheet: 'mainAreaTab' });;
     set(current);
   }
 
@@ -303,12 +303,12 @@ function createPanelWidget() {
 
 // ~~~~~~~~~~~ Stores ~~~~~~~~~~~~~~~~
 export const replying: Writable<string | null> = writable(null);
-export const anaRestrict: Writable<string[]> = writable([]);
+export const restrictNotebooks: Writable<string[]> = writable([]);
 export const jupyterapp: Writable<JupyterFrontEnd | null> = writable(null);
 export const jupyterSanitizer: Writable<ISanitizer | null> = writable(null);
 export const jupyterRenderMime: Writable<IRenderMimeRegistry | null> = writable(null);
-export const anaSideModel: Writable<AnaSideModel | null> = writable(null);
-export const anaSideReady: Writable<boolean> = writable(false);
+export const notebookCommModel: Writable<NotebookCommModel | null> = writable(null);
+export const connectionReady: Writable<boolean> = writable(false);
 
 export const wizardMode: Writable<boolean> = writable(false);
 export const wizardValue: Writable<string> = writable("")
@@ -323,3 +323,4 @@ export const chatInstances: { [id: string]: IChatInstance } = {
   "base": createChatInstance("base")
 };
 
+export const chatLoaders: Writable<{ [id: string]: [string, string | null]}> = writable({});

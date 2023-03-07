@@ -1,8 +1,8 @@
 import { LabIcon } from '@jupyterlab/ui-components';
 
-import anaChatSvgstr from '../style/img/anachat.svg';
+import mainChatSvgstr from '../style/img/anachat.svg';
 
-export const anaChatIcon = new LabIcon({
-  name: 'anachat:icon',
-  svgstr: anaChatSvgstr
+export const mainChatIcon = new LabIcon({
+  name: 'newton:icon',
+  svgstr: mainChatSvgstr
 });

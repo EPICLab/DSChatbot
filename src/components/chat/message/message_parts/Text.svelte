@@ -1,5 +1,5 @@
 <script type="ts">
-  import type { IMessagePart } from "../../../../common/anachatInterfaces";
+  import type { IMessagePart } from "../../../../common/chatbotInterfaces";
 
   export let messagePart: IMessagePart;
 </script>

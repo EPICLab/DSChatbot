@@ -1,7 +1,7 @@
 <script type="ts">
   import { onMount, tick } from 'svelte';
-  import type { IMessagePart } from "../../../../common/anachatInterfaces";
-  import { anaSideModel } from "../../../../stores";
+  import type { IMessagePart } from "../../../../common/chatbotInterfaces";
+  import { notebookCommModel } from "../../../../stores";
   import { ContentFactory, ModelFactory } from "../cellutils";
   import Above from "../../../icons/above.svelte";
   import Below from "../../../icons/below.svelte";
@@ -33,15 +33,15 @@
   });
 
   function onClickInsertAbove() {
-    $anaSideModel?.insertAbove(messagePart.text as string);
+    $notebookCommModel?.insertAbove(messagePart.text as string);
   }
 
   function onClickInsertBelow() {
-    $anaSideModel?.insertBelow(messagePart.text as string);
+    $notebookCommModel?.insertBelow(messagePart.text as string);
   }
 
   function onClickInsertBottom() {
-    $anaSideModel?.insertBottom(messagePart.text as string);
+    $notebookCommModel?.insertBottom(messagePart.text as string);
   }
 
   function onClickCopy() {

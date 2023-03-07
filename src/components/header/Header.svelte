@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { anaSideModel, wizardMode } from "../../stores";
+  import { notebookCommModel, wizardMode } from "../../stores";
   import Renderer from "./status/Renderer.svelte";
   import { onKeyPress } from '../../common/utils';
   import SuperModeCell from "./SuperModeCell.svelte";
-  import type { IChatInstance } from "../../common/anachatInterfaces";
+  import type { IChatInstance } from "../../common/chatbotInterfaces";
 
   export let chatInstance: IChatInstance;
   export let title: string;
@@ -14,7 +14,7 @@
   $: $showIndex = debugReply;
 
   const refresh = (): void => {
-    $anaSideModel?.refresh();
+    $notebookCommModel?.refresh();
   }
   
 </script>
@@ -23,7 +23,7 @@
   header {
     border-bottom: var(--jp-border-width) solid var(--jp-border-color2);
     flex: 0 0 auto;
-    font-size: var(--anachat-title-font-size);
+    font-size: var(--newton-title-font-size);
     font-weight: 600;
     letter-spacing: 1px;
     margin: 0px;

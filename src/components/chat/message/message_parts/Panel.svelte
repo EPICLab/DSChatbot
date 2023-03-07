@@ -1,5 +1,5 @@
 <script type="ts">
-  import type { IChatMessage, IMessagePart } from "../../../../common/anachatInterfaces";
+  import type { IChatMessage, IMessagePart } from "../../../../common/chatbotInterfaces";
   import { panelWidget } from "../../../../stores";
 
   export let message: IChatMessage

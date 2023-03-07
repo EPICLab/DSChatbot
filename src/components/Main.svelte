@@ -1,21 +1,21 @@
 <script lang="ts">
-  import { anaSideReady, anaSideModel, kernelStatus, anaRestrict, wizardMode } from '../stores';
+  import { connectionReady, notebookCommModel, kernelStatus, restrictNotebooks, wizardMode } from '../stores';
   import Chat from './chat/Chat.svelte';
   import AutoCompleteInput from './chat/AutoCompleteInput.svelte';
   import Header from './header/Header.svelte';
   import SuperChat from './chat/SuperChat.svelte';
-  import type { IChatInstance } from '../common/anachatInterfaces';
+  import type { IChatInstance } from '../common/chatbotInterfaces';
 
   export let chatInstance: IChatInstance;
 
   let name: string;
-  $: if ($anaSideReady && $anaSideModel) {
-    name = $anaSideModel.name;
+  $: if ($connectionReady && $notebookCommModel) {
+    name = $notebookCommModel.name;
   }
   $: ({ hasKernel } = $kernelStatus);
 </script>
 
-{#if $anaSideModel && ($anaRestrict.length === 0 || $anaRestrict.includes(name)) }
+{#if $notebookCommModel && ($restrictNotebooks.length === 0 || $restrictNotebooks.includes(name)) }
   <Header {chatInstance} title="Newton - {name}"/>
   <Chat {chatInstance}/>
   {#if $hasKernel}
@@ -27,7 +27,7 @@
   {/if}
 {:else}
   <Header {chatInstance} title="Newton"/>
-  {#if $anaRestrict.length !== 0}
-    Currently, the chatbot only works on files named {$anaRestrict.join(" or ")}.
+  {#if $restrictNotebooks.length !== 0}
+    Currently, the chatbot only works on files named {$restrictNotebooks.join(" or ")}.
   {/if}
 {/if}

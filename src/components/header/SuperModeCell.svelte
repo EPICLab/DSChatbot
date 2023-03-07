@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { ContentFactory, execute_cell, ModelFactory } from "../chat/message/cellutils";
-  import { jupyterRenderMime, anaSideModel } from "../../stores";
+  import { jupyterRenderMime, notebookCommModel } from "../../stores";
   import type { CodeCell } from "@jupyterlab/cells";
 
   let div: HTMLElement;
@@ -10,8 +10,8 @@
   let display: boolean = false;
 
   function _onEditorKeydown(editor: any, event: KeyboardEvent) {
-    if (event.shiftKey && event.keyCode === 13 && cell && $anaSideModel?.session) {
-      execute_cell(cell, $anaSideModel?.session)
+    if (event.shiftKey && event.keyCode === 13 && cell && $notebookCommModel?.session) {
+      execute_cell(cell, $notebookCommModel?.session)
       return true;
     }
   }
