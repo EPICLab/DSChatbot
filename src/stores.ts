@@ -145,7 +145,7 @@ function createChatInstance(chatName: string): IChatInstance {
 
   let config = {
     processInKernel: createConfigVar("process_in_kernel", true),
-    enableAutoComplete: createConfigVar("enable_auto_complete", true),
+    enableAutoComplete: createConfigVar("enable_autocomplete", true),
     enableAutoLoading: createConfigVar("enable_auto_loading", false),
     loading: createConfigVar("loading", false),
 
@@ -229,7 +229,7 @@ function createChatInstance(chatName: string): IChatInstance {
   }
 
   function sendAutoComplete(requestId: number, query: string) {
-    get(anaSideModel)?.sendSubjectQuery(chatName, requestId, query);
+    get(anaSideModel)?.sendAutoCompleteQuery(chatName, requestId, query);
   }
 
   return {

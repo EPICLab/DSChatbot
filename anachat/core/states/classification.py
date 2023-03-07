@@ -14,8 +14,8 @@ if TYPE_CHECKING:
 def classification_steps_state(context: MessageContext, class_state=None) -> StateDefinition:
     """Shows classification steps"""
     if class_state:
-        context.comm.memory["class_state"] = class_state
-    context.comm.memory["sub_state"] = "Classification"
+        context.instance.memory["class_state"] = class_state
+    context.instance.memory["sub_state"] = "Classification"
     show_options(context, [
         {'key': '1', 'label': 'Preprocessing',
          'state': create_state_loader('!subject Classification > Preprocessing')},

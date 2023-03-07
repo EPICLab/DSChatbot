@@ -14,7 +14,8 @@ from .states.utils import GoToState, state_checkpoint
 
 if TYPE_CHECKING:
     from typing import Iterable, Any
-    from ..comm.anacomm import AnaComm
+    from ..comm.kernelcomm import KernelComm
+    from ..comm.chat_instance import ChatInstance
     from ..comm.message import MessageContext
     from .states.state import StateDefinition
 
@@ -42,7 +43,7 @@ class DefaultState:
                       checkpoint=state_checkpoint(self))
         return self
 
-    def process_query(self, comm: AnaComm, instance: str, request_id: int, query: str):
+    def process_autocomplete(self, instance: ChatInstance, request_id: int, query: str):
         """Processes subject queries"""
         result = []
         for match, node in self.subject_handler.search(query):
@@ -53,9 +54,8 @@ class DefaultState:
                 'url': node.get('url', ''),
             })
         result = result[:5]
-        comm.send({
-            "instance": instance,
-            "operation": "subjects",
+        instance.send({
+            "operation": "autocomplete-response",
             "responseId": request_id,
             "items": result,
         })
@@ -68,10 +68,10 @@ class AnaCore:
         self.default_state = DefaultState()
         self.state = self.default_state
 
-    def refresh(self, comm: AnaComm, instance: str):
+    def refresh(self, instance: ChatInstance):
         """Refresh chatbot"""
         # pylint: disable=no-self-use
-        comm.send(comm.history_message("refresh", instance=instance))
+        instance.sync_chat("refresh")
 
     def set_state(
         self,
@@ -140,17 +140,17 @@ class AnaCore:
                 self.set_state(context, text)
                 return
             if text.startswith("!show"):
-                keys = text.split()[1:] or context.comm.memory.keys()
+                keys = text.split()[1:] or context.instance.memory.keys()
                 result = []
                 for key in keys:
-                    result.append(f"{key}: {context.comm.memory.get(key, '!not found')}")
+                    result.append(f"{key}: {context.instance.memory.get(key, '!not found')}")
                 context.reply("\n".join(result),
                               checkpoint=state_checkpoint(self.state))
                 return
 
             reply = context.original_message.get('reply', '')
-            history = context.comm.history
-            if check_state := context.comm.checkpoints.get(reply, None):
+            history = context.instance.history
+            if check_state := context.instance.checkpoints.get(reply, None):
                 self.set_state(context, check_state)
                 return
             elif reply and len(history) >= 2 and reply != history[-2]['id']:
@@ -165,10 +165,9 @@ class AnaCore:
             context.reply("Something is wrong: " + traceback.format_exc(), "error",
                           checkpoint=state_checkpoint(self.state))
 
-    def process_query(self, comm: AnaComm, instance: str, query_type: str, request_id: int, query: str):
-        """Processes user query"""
-        if query_type == "subject":
-            self.default_state.process_query(comm, instance, request_id, query)
+    def process_autocomplete(self, instance: ChatInstance, request_id: int, query: str):
+        """Processes user autocomplete query"""
+        self.default_state.process_autocomplete(instance, request_id, query)
 
 
 class DummyState:
@@ -180,13 +179,12 @@ class DummyState:
         context.reply(context.text + ", ditto")
         return self
 
-    def process_query(self, comm: AnaComm, instance: str, query_type: str, request_id: int, query: str):
-        """Processes user query"""
+    def process_autocomplete(self, instance: ChatInstance, request_id: int, query: str):
+        """Processes user autocomplete query"""
         # pylint: disable=unused-argument
         # pylint: disable=no-self-use
-        comm.send({
-            "instance": instance,
-            "operation": "subjects",
+        instance.send({
+            "operation": "autocomplete-response",
             "responseId": request_id,
             "items": [],
         })

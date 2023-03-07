@@ -20,7 +20,7 @@ def preprocess(
     if not dataframe:
         context.reply("Please, write the dataframe name")
         dataframe = yield
-    context.comm.memory["dataframe"] = dataframe
+    context.instance.memory["dataframe"] = dataframe
     if dataframe not in context.comm.shell.user_ns:
         context.reply(f"Dataframe {dataframe} not found")
         return None
@@ -66,7 +66,7 @@ def select_dataframe_state(
     if not dataframe:
         context.reply("Please, write the dataframe name")
         dataframe = yield
-    context.comm.memory["dataframe"] = dataframe
+    context.instance.memory["dataframe"] = dataframe
     context.reply(f'Selected dataframe {dataframe!r}')
     return None
 
@@ -79,7 +79,7 @@ def select_column_state(
     if not column:
         context.reply("Please, write the column name")
         column = yield
-    context.comm.memory["column"] = column
+    context.instance.memory["column"] = column
     context.reply(f'Selected column {column!r}')
     return None
 
@@ -90,7 +90,7 @@ def tokenize_column_state(
     instructions: str | None=None
 ) -> StateGenerator:
     """Tokenizes column"""
-    set_column = context.comm.memory.get("column", None) is not None
+    set_column = context.instance.memory.get("column", None) is not None
     instructions = instructions or ""
     dataframe, column = yield from select_dataframe_column(context, instructions)
 
@@ -105,7 +105,7 @@ def tokenize_column_state(
              f"lambda row: nltk.word_tokenize(row[{column!r}]), axis=1)")
     context.reply(reply_text + f'####code#:\n{code}')
     if set_column:
-        context.comm.memory["column"] = new_column
+        context.instance.memory["column"] = new_column
     return None
 
 
@@ -115,7 +115,7 @@ def transform_case_generic(
     instructions: str | None=None
 ) -> Generator[None, str, None]:
     """Transforms case"""
-    set_column = context.comm.memory.get("column", None) is not None
+    set_column = context.instance.memory.get("column", None) is not None
     instructions = instructions or ""
     dataframe, column = yield from select_dataframe_column(context, instructions)
 
@@ -125,7 +125,7 @@ def transform_case_generic(
         f"[item.{case}() for item in row]"
     )
     if set_column:
-        context.comm.memory["column"] = f"{case}_{column}"
+        context.instance.memory["column"] = f"{case}_{column}"
 
 
 @statemanager()
@@ -156,7 +156,7 @@ def filter_length_generic(
     instructions: str | None=None
 ) -> Generator[None, str, None]:
     """Filters column by length"""
-    set_column = context.comm.memory.get("column", None) is not None
+    set_column = context.instance.memory.get("column", None) is not None
     number = number or ""
     instructions = instructions or ""
     dataframe, column = yield from select_dataframe_column(context, instructions)
@@ -171,7 +171,7 @@ def filter_length_generic(
         f"[item for item in row if len(item) {operator} {number}]"
     )
     if set_column:
-        context.comm.memory["column"] = f"{operator_name}_{column}"
+        context.instance.memory["column"] = f"{operator_name}_{column}"
     return None
 
 
@@ -227,7 +227,7 @@ def range_length_state(
     instruction: str | None=None
 ) -> StateGenerator:
     """Filters column by lenght in a range (a <= x <= b)"""
-    set_column = context.comm.memory.get("column", None) is not None
+    set_column = context.instance.memory.get("column", None) is not None
     minimum = minimum or ""
     maximum = maximum or ""
     instructions = instruction or ""
@@ -249,7 +249,7 @@ def range_length_state(
         f"[item for item in row if {minimum} <= len(item) <= {maximum}]"
     )
     if set_column:
-        context.comm.memory["column"] = f"between_{column}"
+        context.instance.memory["column"] = f"between_{column}"
     return None
 
 
@@ -259,7 +259,7 @@ def remove_stopwords_state(
     instructions: str | None=None
 ) -> StateGenerator:
     """Removes stopwords from tokenized input"""
-    set_column = context.comm.memory.get("column", None) is not None
+    set_column = context.instance.memory.get("column", None) is not None
     instructions = instructions or ""
     dataframe, column = yield from select_dataframe_column(context, instructions)
 
@@ -275,5 +275,5 @@ def remove_stopwords_state(
         code=code,
     )
     if set_column:
-        context.comm.memory["column"] = f"nostop_{column}"
+        context.instance.memory["column"] = f"nostop_{column}"
     return None

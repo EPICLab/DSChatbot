@@ -8,7 +8,7 @@ import sys
 
 if TYPE_CHECKING:
     from typing import Generator, Match, Tuple, List, Any
-    from ...comm.anacomm import AnaComm
+    from ...comm.kernelcomm import KernelComm
     from ...comm.message import MessageContext, IOptionItem
 
 
@@ -21,7 +21,7 @@ def isdataframe(value: Any) -> bool:
     return str(type(value)) == "<class 'pandas.core.frame.DataFrame'>"
 
 
-def get_dataframes(comm: AnaComm) -> Generator[str, None, None]:
+def get_dataframes(comm: KernelComm) -> Generator[str, None, None]:
     """Returns the available dataframes from the namespace"""
     for var, value in comm.shell.user_ns.items():
         if isdataframe(value):
@@ -35,8 +35,8 @@ def select_dataframe(
     """Extracts dataframe name from pattern matching"""
     if matches and matches.group('df'):
         dataframe = matches.group('df')
-    elif context.comm.memory['dataframe']:
-        dataframe = context.comm.memory['dataframe']
+    elif context.instance.memory['dataframe']:
+        dataframe = context.instance.memory['dataframe']
     else:
         options: List[IOptionItem] = [
             {'key': str(i + 1), 'label': df} for i, df in enumerate(get_dataframes(context.comm))
@@ -56,8 +56,8 @@ def select_column(context: MessageContext, matches: Match[str] | None) -> Genera
         column = matches.group('column')
         if column.startswith("column "):
             column = column[7:]
-    elif context.comm.memory['column']:
-        column = context.comm.memory['column']
+    elif context.instance.memory['column']:
+        column = context.instance.memory['column']
     else:
         context.reply("Please, write the column name")
         column = yield

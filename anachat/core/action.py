@@ -7,7 +7,6 @@ from anachat.core.states.utils import statemanager
 
 if TYPE_CHECKING:
     from typing import List, Optional, Tuple
-    from ..comm.anacomm import AnaComm
     from ..comm.message import MessageContext, IOptionItem
     from .states.state import StateCallable, StateDefinition
 

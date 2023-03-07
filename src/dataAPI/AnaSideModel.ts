@@ -211,7 +211,7 @@ export class AnaSideModel {
    */
   public sendSyncMessage(instance: string, message: Pick<IChatMessage, 'id'> & Subset<IChatMessage>): void {
     this.send({
-      operation: 'syncmessage',
+      operation: 'sync-message',
       instance,
       message
     })
@@ -220,11 +220,10 @@ export class AnaSideModel {
   /**
    * Send a subject query command to the kernel
    */
-   public sendSubjectQuery(instance: string, requestId: number, query: string): void {
+   public sendAutoCompleteQuery(instance: string, requestId: number, query: string): void {
     this.send({
-      operation: 'query',
+      operation: 'autocomplete-query',
       instance,
-      type: 'subject',
       requestId: requestId,
       query: query,
     });
@@ -307,12 +306,12 @@ export class AnaSideModel {
         const message: IChatMessage = msg.content.data
           .message as unknown as IChatMessage;
           chatInstance.push(message);
-      } else if (operation === 'updatemessage') {
+      } else if (operation === 'update-message') {
         kernelStatus.setattr('hasKernel', true);
         const message: IChatMessage = msg.content.data
           .message as unknown as IChatMessage;
           chatInstance.updateMessage(message);
-      } else if (operation === 'updateconfig') {
+      } else if (operation === 'update-config') {
         const config: { [id: string]: any } = msg.content.data
           .config as unknown as { [id: string]: any };
         this._loadInstanceConfig(chatInstance, config)
@@ -322,7 +321,7 @@ export class AnaSideModel {
           '_receiveAnaChatQuery',
           [msg.content.data.command, msg.content.data.message]
         );
-      } else if (operation === 'subjects') {
+      } else if (operation === 'autocomplete-response') {
         const { autoCompleteResponseId, autoCompleteItems } = chatInstance;
         autoCompleteResponseId.set(msg.content.data.responseId as number);
         autoCompleteItems.set(msg.content.data.items as unknown as IAutoCompleteItem[]);

@@ -13,7 +13,8 @@ if TYPE_CHECKING:
     from ..core.states.state import StateDefinition
     from typing import Sequence, TypedDict
 
-    from .anacomm import AnaComm
+    from .kernelcomm import KernelComm
+    from .chat_instance import ChatInstance
 
     class IOptionItem(TypedDict, total=False):
         """Defines an Option for a list of options"""
@@ -59,9 +60,9 @@ class KernelProcess(IntEnum):
 class MessageContext:
     """Represents a message context"""
 
-    comm: AnaComm
+    comm: KernelComm
+    instance: ChatInstance
     original_message: IChatMessage
-    instance: str
 
     @staticmethod
     def create_message(
@@ -84,7 +85,8 @@ class MessageContext:
                 "rate": 0,
                 "reason": "",
                 "otherreason": "",
-            }
+            },
+            "loading": False,
         }
 
     @property
@@ -101,8 +103,8 @@ class MessageContext:
             self.original_message['kernelDisplay']
         )
         if checkpoint is not None:
-            self.comm.checkpoints[message['id']] = checkpoint
-        self.comm.reply_message(self.instance, message)
+            self.instance.checkpoints[message['id']] = checkpoint
+        self.instance.reply_message(message)
 
     def reply_options(
         self,
