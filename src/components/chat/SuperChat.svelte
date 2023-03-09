@@ -1,10 +1,11 @@
 <script lang="ts">
-  import type { IChatInstance, IChatMessage, IMessageType } from "../../common/chatbotInterfaces";
+  import type { IChatMessage, IMessageType } from "../../common/chatbotInterfaces";
   import { replying, wizardPreviewMessage, wizardValue } from "../../stores";
   import Message from "./message/Message.svelte";
   import { tick } from "svelte";
   import { BOT_EDITOR_TYPES, BOT_TARGETS, BOT_TYPES, messageTarget, type IEditorTypeItem, type IMessageTarget } from "../../common/messages";
   import BottomChat from "./BottomChat.svelte";
+  import type { IChatInstance } from "../../chatinstance";
 
   export let chatInstance: IChatInstance;
 

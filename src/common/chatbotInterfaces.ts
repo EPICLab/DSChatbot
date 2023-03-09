@@ -92,37 +92,4 @@ export interface IConfigVar<T> extends Writable<T> {
   initialized: boolean;
 }
 
-export interface IChatInstanceConfig {
-  processInKernel: IConfigVar<boolean>;
-  enableAutoComplete: IConfigVar<boolean>;
-  enableAutoLoading: IConfigVar<boolean>;
-  loading: IConfigVar<boolean>;
-
-  showReplied: IConfigVar<boolean>;
-  showIndex: IConfigVar<boolean>;
-  showTime: IConfigVar<boolean>;
-  showBuildMessages: IConfigVar<boolean>;
-  showKernelMessages: IConfigVar<boolean>;
-}
-
-export interface IChatInstance extends Writable<IChatMessage[]> {
-  push: (newMessage: IChatMessage) => void;
-  addNew: (newMessage: IChatMessage) => void;
-  load: (data: IChatMessage[]) => void;
-  updateMessage: (message: IChatMessage) => void;
-  submitSyncMessage: (message: Pick<IChatMessage, 'id'> & Subset<IChatMessage>) => void;
-  removeLoading: (messageId: string) => void;
-  reset: () => void;
-  findById: (messageId: string | null) => IChatMessage | null;
-  sendAutoComplete: (requestId: number, query: string) => void;
-  refresh: () => void;
-
-  
-  mode: string;
-  configMap: { [id: string]: IConfigVar<any>};
-  config: IChatInstanceConfig;
-  autoCompleteResponseId: Writable<number>;
-  autoCompleteItems: Writable<IAutoCompleteItem[]>;
-}
-
 export type ILoaderForm = { [formkey: string]: [string, string | null] } 

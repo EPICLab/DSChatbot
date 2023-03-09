@@ -4,8 +4,8 @@
   import AutoCompleteInput from './chat/AutoCompleteInput.svelte';
   import Header from './header/Header.svelte';
   import SuperChat from './chat/SuperChat.svelte';
-  import type { IChatInstance } from '../common/chatbotInterfaces';
   import { get } from 'svelte/store';
+  import type { IChatInstance } from '../chatinstance';
 
   let chatInstance: IChatInstance;
   let name: string;

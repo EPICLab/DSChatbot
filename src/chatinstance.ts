@@ -1,5 +1,5 @@
-import { get, writable } from "svelte/store";
-import { MessageDisplay, type IChatMessage, type IConfigVar, type Subset } from "./common/chatbotInterfaces";
+import { get, writable, type Writable } from "svelte/store";
+import { MessageDisplay, type IAutoCompleteItem, type IChatMessage, type IConfigVar, type Subset } from "./common/chatbotInterfaces";
 import { checkTarget, cloneMessage, messageTarget } from "./common/messages";
 import type { NotebookCommModel } from "./dataAPI/NotebookCommModel";
 import { replying, wizardMode, wizardPreviewMessage } from "./stores";
@@ -7,7 +7,7 @@ import { replying, wizardMode, wizardPreviewMessage } from "./stores";
 export function createChatInstance(model: NotebookCommModel, chatName: string, mode: string) {
     let current: IChatMessage[] = [];
     let autoCompleteResponseId = writable(-1); 
-    let autoCompleteItems = writable([]);
+    let autoCompleteItems: Writable<IAutoCompleteItem[]> = writable<IAutoCompleteItem[]>([]);
     let configMap: { [id: string]: IConfigVar<any>} = {};
   
     function createConfigVar<T>(name: string, value: T) {

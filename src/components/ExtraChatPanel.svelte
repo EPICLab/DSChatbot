@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { createChatInstance } from "../chatinstance";
-  import type { IChatInstance, ILoaderForm } from "../common/chatbotInterfaces";
+  import { createChatInstance, type IChatInstance } from "../chatinstance";
+  import type { ILoaderForm } from "../common/chatbotInterfaces";
   import type { NotebookCommModel } from "../dataAPI/NotebookCommModel";
   import AutoCompleteInput from "./chat/AutoCompleteInput.svelte";
   import Chat from "./chat/Chat.svelte";
@@ -35,8 +35,10 @@
     mode = "existing:" + key;
     instanceName = key;
     chatInstance = $chatInstances[key]
-    chatInstance.refresh();
-    $chatInstance = $chatInstance;
+    if (chatInstance) {
+      chatInstance.refresh();
+      $chatInstance = $chatInstance;
+    }
     newForm = null;
   }
 

@@ -16,7 +16,6 @@ import type {
 import {
   GenericMatcher,
   type IAutoCompleteItem,
-  type IChatInstance,
   type IChatMessage,
   type IKernelMatcher,
   type ILoaderForm,
@@ -24,7 +23,7 @@ import {
 } from '../common/chatbotInterfaces';
 import type { KernelMessage } from '@jupyterlab/services';
 import type { IErrorMsg } from '@jupyterlab/services/lib/kernel/messages';
-import { createChatInstance } from '../chatinstance';
+import { createChatInstance, type IChatInstance } from '../chatinstance';
 
 export class NotebookCommModel {
   private _sessionContext: ISessionContext;

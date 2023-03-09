@@ -1,6 +1,6 @@
 <script lang="ts">
   import { tick } from "svelte";
-  import type { IChatInstance } from "../../common/chatbotInterfaces";
+  import type { IChatInstance } from "../../chatinstance";
   import ChatInput from "./ChatInput.svelte";
 
   export let chatInstance: IChatInstance;

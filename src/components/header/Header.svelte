@@ -3,9 +3,9 @@
   import Renderer from "./status/Renderer.svelte";
   import { onKeyPress } from '../../common/utils';
   import SuperModeCell from "./SuperModeCell.svelte";
-  import type { IChatInstance } from "../../common/chatbotInterfaces";
   import { ExtraChatPanelView } from "../ExtraChatPanelView";
   import { mainChatIcon } from '../../iconimports';
+  import type { IChatInstance } from "../../chatinstance";
 
   export let chatInstance: IChatInstance;
   export let title: string;
