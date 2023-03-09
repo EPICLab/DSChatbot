@@ -1,12 +1,13 @@
 import type { JupyterFrontEnd } from '@jupyterlab/application';
 import { type Writable, writable, get } from 'svelte/store';
 import type { IChatMessage } from './common/chatbotInterfaces';
-import { DocPanelView } from './components/DocPanelView';
+import DocPanel from './components/DocPanel.svelte';
 import type { NotebookCommModel } from './dataAPI/NotebookCommModel';
 import { mainChatIcon } from './iconimports';
 import { requestAPI } from './server';
 import type { ISanitizer } from '@jupyterlab/apputils';
 import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { openPanel, SveltePanelView } from './components/SveltePanelView';
 
 function createErrorHandler() {
   let current: string[] = [];
@@ -118,8 +119,7 @@ function createStatus() {
 }
 
 function createPanelWidget() {
-  let id = 1;
-  let store = writable<DocPanelView | null>(null);
+  let store = writable<SveltePanelView | null>(null);
   const { subscribe, set, update } = store;
 
   function load_panel(content: string, title: string, type: 'url' | 'html' | 'text') {
@@ -128,12 +128,9 @@ function createPanelWidget() {
       if (current) {
         current.dispose();
       }
-      current = new DocPanelView(content, title, type);
-      current.id = "NewtonPanel-" + (id++);
-      current.title.closable = true;
-      get(jupyterapp)?.shell.add(current, 'main', { mode: 'split-right' })
+      current = openPanel(DocPanel, title, {content, title, type});
     } else{
-      current.set_props(content, title, type);
+      current.set_props({ content, title, type });
     }
     current.title.label = title;
     current.title.icon = mainChatIcon.bindprops({ stylesheet: 'mainAreaTab' });;

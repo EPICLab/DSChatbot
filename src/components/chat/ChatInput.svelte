@@ -1,8 +1,9 @@
 <script lang="ts">
-  import type { IChatInstance, IChatMessage, IOptionItem } from "../../common/chatbotInterfaces";
+  import type { IChatMessage, IOptionItem } from "../../common/chatbotInterfaces";
   import { replying } from "../../stores";
   import { tick } from "svelte";
   import { messageTarget } from "../../common/messages";
+  import type { IChatInstance } from "../../chatinstance";
 
   export let chatInstance: IChatInstance;
   export let subclass = "";

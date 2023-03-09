@@ -3,9 +3,10 @@
 
   import AutoCompleteItem from "./AutoCompleteItem.svelte";
   
-  import type { IAutoCompleteItem, IChatInstance } from "../../common/chatbotInterfaces";
+  import type { IAutoCompleteItem } from "../../common/chatbotInterfaces";
   import { messageTarget } from "../../common/messages";
   import BottomChat from "./BottomChat.svelte";
+  import type { IChatInstance } from "../../chatinstance";
 
   export let value: string = "";
   export let text: string|undefined = undefined;

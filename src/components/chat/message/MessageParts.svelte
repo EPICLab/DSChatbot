@@ -1,5 +1,5 @@
 <script type="ts">
-  import type { IChatInstance, IChatMessage, IMessagePart } from "../../../common/chatbotInterfaces";
+  import type { IChatMessage, IMessagePart } from "../../../common/chatbotInterfaces";
   import { splitUnifiedMessage } from "../../../common/messages";
   import Code from "./message_parts/Code.svelte";
   import Form from "./message_parts/Form.svelte";
@@ -9,6 +9,7 @@
   import Panel from "./message_parts/Panel.svelte";
   import TextInput from "./message_parts/TextInput.svelte";
   import Text from "./message_parts/Text.svelte";
+  import type { IChatInstance } from "../../../chatinstance";
 
   export let chatInstance: IChatInstance;
   export let message: IChatMessage

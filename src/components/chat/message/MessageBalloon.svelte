@@ -1,5 +1,5 @@
 <script type="ts">
-  import { MessageDisplay, type IChatInstance, type IChatMessage} from "../../../common/chatbotInterfaces";
+  import { MessageDisplay, type IChatMessage} from "../../../common/chatbotInterfaces";
   import { replying, wizardMode } from "../../../stores";
 
   import MessageParts from "./MessageParts.svelte";
@@ -11,6 +11,7 @@
   import ThumbsUp from "../../icons/fa-thumbs-up-solid.svelte";
   import ThumbsDown from "../../icons/fa-thumbs-down-solid.svelte";
   import { messageTarget } from "../../../common/messages";
+  import type { IChatInstance } from "../../../chatinstance";
   
   export let chatInstance: IChatInstance;
   export let message: IChatMessage

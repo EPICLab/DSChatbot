@@ -1,17 +1,18 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { ContentFactory, execute_cell, ModelFactory } from "../chat/message/cellutils";
-  import { jupyterRenderMime, notebookCommModel } from "../../stores";
+  import { jupyterRenderMime } from "../../stores";
   import type { CodeCell } from "@jupyterlab/cells";
+  import type { NotebookCommModel } from "../../dataAPI/NotebookCommModel";
+
+  export let model: NotebookCommModel;
 
   let div: HTMLElement;
   let cell: CodeCell | null = null;
 
-  let display: boolean = false;
-
   function _onEditorKeydown(editor: any, event: KeyboardEvent) {
-    if (event.shiftKey && event.keyCode === 13 && cell && $notebookCommModel?.session) {
-      execute_cell(cell, $notebookCommModel?.session)
+    if (event.shiftKey && event.keyCode === 13 && cell && model.session) {
+      execute_cell(cell, model.session)
       return true;
     }
   }
@@ -39,13 +40,6 @@
 </script>
 
 <style>
-  .super-cell {
-    display: none;
-  }
-
-  .super-cell.visible {
-    display: block;
-  }
 
   .super-cell :global(.jp-InputArea-prompt) {
     display: none;
@@ -70,9 +64,4 @@
 
 </style>
 
-
-<label>
-  <input type=checkbox bind:checked={display}> 
-  Super Cell
-</label>
-<div class:visible={display} class="super-cell" bind:this={div}/>
+<div class="super-cell" bind:this={div}/>

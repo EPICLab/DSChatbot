@@ -1,7 +1,7 @@
 
 
 <script type="ts">
-  import { MessageDisplay, type IChatInstance, type IChatMessage, type IMessageType } from '../../../common/chatbotInterfaces';
+  import { MessageDisplay, type IChatMessage, type IMessageType } from '../../../common/chatbotInterfaces';
   import { wizardMode, replying, wizardPreviewMessage, wizardValue } from '../../../stores';
   import { ContextMenu } from '@lumino/widgets';
   import { CommandRegistry } from '@lumino/commands';
@@ -9,6 +9,7 @@
 
   import { RankedMenu } from '@jupyterlab/ui-components';
   import MessageBalloon from './MessageBalloon.svelte';
+  import type { IChatInstance } from '../../../chatinstance';
 
   export let chatInstance: IChatInstance;
   export let message: IChatMessage;
