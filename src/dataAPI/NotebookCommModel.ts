@@ -1,15 +1,12 @@
 import type { JSONObject } from '@lumino/coreutils';
 import type { ISessionContext } from '@jupyterlab/apputils';
-import { get } from 'svelte/store';
+import { get, writable, type Writable } from 'svelte/store';
 
 import {
   notebookCommModel,
   connectionReady,
-  chatInstances,
-  chatLoaders,
   errorHandler,
   kernelStatus,
-  createChatInstance
 } from '../stores';
 import { NotebookActions, type NotebookPanel } from '@jupyterlab/notebook';
 import type {
@@ -27,12 +24,15 @@ import {
 } from '../common/chatbotInterfaces';
 import type { KernelMessage } from '@jupyterlab/services';
 import type { IErrorMsg } from '@jupyterlab/services/lib/kernel/messages';
+import { createChatInstance } from '../chatinstance';
 
 export class NotebookCommModel {
   private _sessionContext: ISessionContext;
-  private _notebook: NotebookPanel;
+  public _notebook: NotebookPanel;
   private _icomm: IComm | null;
   private _language: IKernelMatcher;
+  public chatInstances: Writable<{ [id: string]: IChatInstance }>;
+  public chatLoaders: Writable<{ [id: string]: ILoaderForm }>;
   /*private _boundQueryCall: (
     sess: ISessionContext,
     args: KernelMessage.IMessage<KernelMessage.MessageType>
@@ -43,6 +43,10 @@ export class NotebookCommModel {
     this._notebook = notebook;
     this._icomm = null;
     this._language = GenericMatcher;
+    this.chatInstances = writable({
+      "base": createChatInstance(this, "base", "newton") // Passing this here may cause a memory leak, but I haven't checked
+    });
+    this.chatLoaders = writable({});
     //this._boundQueryCall = this._queryCall.bind(this);
   }
 
@@ -70,8 +74,9 @@ export class NotebookCommModel {
   }
 
   public refresh() {
+    console.log("refresh", this.name)
     this.sendRefreshLoaders();
-    for (const instance of Object.keys(get(chatInstances))) {
+    for (const instance of Object.keys(get(this.chatInstances))) {
       this.sendRefreshInstance(instance);
     }
   }
@@ -139,7 +144,7 @@ export class NotebookCommModel {
   public resetData() {
     connectionReady.set(false);
     kernelStatus.reset();
-    for (const chatInstance of Object.values(get(chatInstances))) {
+    for (const chatInstance of Object.values(get(this.chatInstances))) {
       chatInstance.reset();
     }
   }
@@ -327,7 +332,7 @@ export class NotebookCommModel {
 
   private _loadInstances(instances: { [id: string]: string }) {
     let changed = false;
-    let chatInstancesObj = get(chatInstances);
+    let chatInstancesObj = get(this.chatInstances);
     for (const instance of Object.keys(chatInstancesObj)) {
       if (!(instance in instances)) {
         delete chatInstancesObj[instance];
@@ -336,13 +341,13 @@ export class NotebookCommModel {
     }
     for (const [instance, mode] of Object.entries(instances)) {
       if (!(instance in chatInstancesObj)) {
-        chatInstancesObj[instance] = createChatInstance(instance, mode);
+        chatInstancesObj[instance] = createChatInstance(this, instance, mode);
         chatInstancesObj[instance].refresh();
         changed = true;
       }
     }
     if (changed) {
-      chatInstances.set(chatInstancesObj);
+      this.chatInstances.set(chatInstancesObj);
     }
   }
 
@@ -356,14 +361,14 @@ export class NotebookCommModel {
 
       if (instance === "<meta>") {
         if (operation === 'sync-meta') {
-          chatLoaders.set(msg.content.data.loaders as unknown as { [id: string]: ILoaderForm });
+          this.chatLoaders.set(msg.content.data.loaders as unknown as { [id: string]: ILoaderForm });
           const instances = msg.content.data.instances as unknown as { [id: string]: string };
           this._loadInstances(instances);
         }
         return;
       }
 
-      const chatInstance = get(chatInstances)[instance];
+      const chatInstance = get(this.chatInstances)[instance];
 
       if (chatInstance === undefined) {
         throw new Error("Invalid instance " + instance);

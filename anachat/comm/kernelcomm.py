@@ -26,7 +26,8 @@ class KernelComm:
         self.comm = Comm(self.name)
         self.comm.on_msg(self.receive)
         self.sync_meta()
-        self.chat_instances["base"].sync_chat("init")
+        for instance in self.chat_instances.values():
+            instance.sync_chat("init")
 
     def sync_meta(self):
         """Sends list of loaders and instances to client"""

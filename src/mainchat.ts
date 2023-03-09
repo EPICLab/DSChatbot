@@ -53,6 +53,9 @@ export class MainChat extends Panel {
         widget.revealed.then(async () => {
           if (tracker.currentWidget == widget) {
             this._sessionContext = widget.sessionContext;
+            // ToDo: check if this is the appropriate place to call this function (connectNotebook)
+            // This function resets all data in the notebook and reloads it from the server
+            // It adds an overhead of reloading everything and makes the screen blink
             await model.connectNotebook();
             notebookCommModel.set(model);
             if (get(restrictNotebooks).includes(model.name)) {

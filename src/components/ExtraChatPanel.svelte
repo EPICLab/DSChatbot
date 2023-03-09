@@ -1,13 +1,16 @@
 <script lang="ts">
+  import { createChatInstance } from "../chatinstance";
   import type { IChatInstance, ILoaderForm } from "../common/chatbotInterfaces";
-  import { chatLoaders, chatInstances, createChatInstance, notebookCommModel } from "../stores";
+  import type { NotebookCommModel } from "../dataAPI/NotebookCommModel";
   import AutoCompleteInput from "./chat/AutoCompleteInput.svelte";
   import Chat from "./chat/Chat.svelte";
 
-  // ToDo: add refresh
-  // ToDo: add gpt
   // ToDo: add wizardmod
 
+  export let model: NotebookCommModel;
+
+  const chatInstances = model.chatInstances;
+  const chatLoaders = model.chatLoaders;
   let chatInstance: IChatInstance | null = null;
   let instanceName: string | null;
   let mode: string = "";
@@ -25,7 +28,7 @@
   }
 
   function refreshLoaders() {
-    $notebookCommModel?.refresh();
+    model.refresh();
   }
 
   function selectExisting(key: string) {
@@ -56,22 +59,18 @@
   function createInstance() {
     let newKey = crypto.randomUUID();
     let newMode = mode.substring("new:".length);
-    $chatInstances[newKey] = createChatInstance(newKey, newMode);
-    if ($notebookCommModel) {
-      let data: { [id: string]: string | null } = {};
-      for (const [key, { value }] of Object.entries(formValues)) {
-        data[key] = value;
-      }
-      $notebookCommModel.sendCreateInstance(newKey, newMode, data);
-      selectExisting(newKey);
-    } else {
-      alert("Error: notebookCommModel is null")
+    $chatInstances[newKey] = createChatInstance(model, newKey, newMode);
+    let data: { [id: string]: string | null } = {};
+    for (const [key, { value }] of Object.entries(formValues)) {
+      data[key] = value;
     }
+    model.sendCreateInstance(newKey, newMode, data);
+    selectExisting(newKey);
   }
 
   function removeInstance() {
     if (instanceName !== null) {
-      $notebookCommModel?.sendRemoveInstance(instanceName)
+      model.sendRemoveInstance(instanceName)
     }
   }
 
@@ -94,6 +93,8 @@
 
 
 </script>
+
+{ model.name }
 
 <div class="panel">
 

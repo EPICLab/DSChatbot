@@ -1,5 +1,6 @@
 import { Widget } from '@lumino/widgets';
-import { panelWidget } from '../stores';
+import { get } from 'svelte/store';
+import { notebookCommModel, panelWidget } from '../stores';
 import ExtraChatPanel from './ExtraChatPanel.svelte';
 
 export class ExtraChatPanelView extends Widget {
@@ -9,10 +10,16 @@ export class ExtraChatPanelView extends Widget {
   constructor() {
     super();
     this._detached = false;
+    const model = get(notebookCommModel);
+
+    if (!model) {
+      throw Error("notebookCommModel is null");
+    }
     this._panel = new ExtraChatPanel({
       target: this.node,
-      props: {}
+      props: { model }
     });
+    
     this._panel.$on('detach', event => {
       panelWidget.set(null);
       this._detached = true;

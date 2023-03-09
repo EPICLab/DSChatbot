@@ -1,6 +1,4 @@
-import { get } from 'svelte/store';
 import { Widget } from '@lumino/widgets';
-import { chatInstances } from '../stores';
 import Main from './Main.svelte';
 
 export class MainView extends Widget {
@@ -9,9 +7,8 @@ export class MainView extends Widget {
     this.addClass('jp-NewtonChat');
     new Main({
       target: this.node,
-      props: {
-        chatInstance: get(chatInstances)["base"]
-      }
-    });
+      props: {}
+    });  
+
   }
 }
