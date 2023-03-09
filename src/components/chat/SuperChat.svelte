@@ -10,6 +10,8 @@
 
   let { enableAutoLoading } = chatInstance.config;
 
+  let uniqueNameWithingComponent = crypto.randomUUID();
+
   let textarea: HTMLElement
   let bottomChat: BottomChat
 
@@ -131,7 +133,7 @@
 <div class="supermodetypes">
   {#each BOT_TARGETS as targetItem}
     <label title="Key: {targetItem.key}">
-      <input type=radio bind:group={superModeTarget} name="messageTarget" value={targetItem.target}>
+      <input type=radio bind:group={superModeTarget} name="messageTarget-{uniqueNameWithingComponent}" value={targetItem.target}>
       {targetItem.label}
     </label>
   {/each}
@@ -139,7 +141,7 @@
 <div class="supermodetypes">
   {#each BOT_TYPES as typeItem}
     <label title="Key: {typeItem.key}">
-      <input type=radio bind:group={superModeType} name="messageType" value={typeItem.type}>
+      <input type=radio bind:group={superModeType} name="messageType-{uniqueNameWithingComponent}" value={typeItem.type}>
       {typeItem.label}
     </label>
   {/each}
@@ -150,6 +152,5 @@
 {#each $wizardPreviewMessage as message, index (message.id)}
   <Message {chatInstance} bind:message={message} {index} preview={true}/>
 {/each}
-
 
 <svelte:window on:keydown={handleKeydown}/>

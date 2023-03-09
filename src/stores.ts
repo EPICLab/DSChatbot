@@ -1,6 +1,6 @@
 import type { JupyterFrontEnd } from '@jupyterlab/application';
 import { type Writable, writable, get } from 'svelte/store';
-import { type IChatMessage, MessageDisplay, type IChatInstance, type IConfigVar, type Subset } from './common/chatbotInterfaces';
+import { type IChatMessage, MessageDisplay, type IChatInstance, type IConfigVar, type Subset, type ILoaderForm } from './common/chatbotInterfaces';
 import { DocPanelView } from './components/DocPanelView';
 import type { NotebookCommModel } from './dataAPI/NotebookCommModel';
 import { mainChatIcon } from './iconimports';
@@ -118,8 +118,7 @@ function createStatus() {
   };
 }
 
-
-function createChatInstance(chatName: string): IChatInstance {
+export function createChatInstance(chatName: string, mode: string): IChatInstance {
   let current: IChatMessage[] = [];
   let autoCompleteResponseId = writable(-1); 
   let autoCompleteItems = writable([]);
@@ -232,7 +231,13 @@ function createChatInstance(chatName: string): IChatInstance {
     get(notebookCommModel)?.sendAutoCompleteQuery(chatName, requestId, query);
   }
 
+  function refresh() {
+    console.log("refresh", chatName)
+    get(notebookCommModel)?.sendRefreshInstance(chatName);
+  }
+
   return {
+    mode,
     subscribe,
     set,
     update,
@@ -245,6 +250,7 @@ function createChatInstance(chatName: string): IChatInstance {
     reset,
     findById,
     sendAutoComplete,
+    refresh,
 
     configMap,
     config,
@@ -310,7 +316,7 @@ export const jupyterRenderMime: Writable<IRenderMimeRegistry | null> = writable(
 export const notebookCommModel: Writable<NotebookCommModel | null> = writable(null);
 export const connectionReady: Writable<boolean> = writable(false);
 
-export const wizardMode: Writable<boolean> = writable(false);
+export const wizardMode: Writable<boolean> = writable(true);
 export const wizardValue: Writable<string> = writable("")
 export const wizardPreviewMessage: Writable<IChatMessage[]> = writable([]);
 
@@ -319,8 +325,10 @@ export const panelWidget = createPanelWidget();
 export const errorHandler = createErrorHandler();
 
 
-export const chatInstances: { [id: string]: IChatInstance } = {
-  "base": createChatInstance("base")
-};
+export const chatInstances: Writable<{ [id: string]: IChatInstance }> = writable({
+  "base": createChatInstance("base", "newton")
+});
 
-export const chatLoaders: Writable<{ [id: string]: [string, string | null]}> = writable({});
+
+
+export const chatLoaders: Writable<{ [id: string]: ILoaderForm }> = writable({});

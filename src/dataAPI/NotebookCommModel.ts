@@ -8,7 +8,8 @@ import {
   chatInstances,
   chatLoaders,
   errorHandler,
-  kernelStatus
+  kernelStatus,
+  createChatInstance
 } from '../stores';
 import { NotebookActions, type NotebookPanel } from '@jupyterlab/notebook';
 import type {
@@ -21,6 +22,7 @@ import {
   type IChatInstance,
   type IChatMessage,
   type IKernelMatcher,
+  type ILoaderForm,
   type Subset
 } from '../common/chatbotInterfaces';
 import type { KernelMessage } from '@jupyterlab/services';
@@ -68,8 +70,9 @@ export class NotebookCommModel {
   }
 
   public refresh() {
-    for (const instance of Object.keys(chatInstances)) {
-      this.sendRefreshKernel(instance);
+    this.sendRefreshLoaders();
+    for (const instance of Object.keys(get(chatInstances))) {
+      this.sendRefreshInstance(instance);
     }
   }
 
@@ -136,7 +139,7 @@ export class NotebookCommModel {
   public resetData() {
     connectionReady.set(false);
     kernelStatus.reset();
-    for (const chatInstance of Object.values(chatInstances)) {
+    for (const chatInstance of Object.values(get(chatInstances))) {
       chatInstance.reset();
     }
   }
@@ -189,9 +192,43 @@ export class NotebookCommModel {
   }*/
 
   /**
+   * Send a create instance command to the kernel
+   */
+  public sendCreateInstance(name: string, mode: string, data: { [id: string]: string | null }): void {
+    this.send({
+      operation: 'new-instance',
+      instance: '<meta>',
+      name,
+      mode,
+      data
+    });
+  }
+
+  /**
+   * Send a remove instance command to the kernel
+   */
+  public sendRemoveInstance(name: string): void {
+    this.send({
+      operation: 'remove-instance',
+      instance: '<meta>',
+      name
+    });
+  }
+
+  /**
    * Send a refresh command to the kernel
    */
-  public sendRefreshKernel(instance: string): void {
+  public sendRefreshLoaders(): void {
+    this.send({
+      operation: 'refresh',
+      instance: '<meta>'
+    });
+  }
+
+  /**
+   * Send a refresh command to the kernel
+   */
+  public sendRefreshInstance(instance: string): void {
     this.send({
       operation: 'refresh',
       instance
@@ -288,20 +325,53 @@ export class NotebookCommModel {
     }
   }
 
+  private _loadInstances(instances: { [id: string]: string }) {
+    let changed = false;
+    let chatInstancesObj = get(chatInstances);
+    for (const instance of Object.keys(chatInstancesObj)) {
+      if (!(instance in instances)) {
+        delete chatInstancesObj[instance];
+        changed = true;
+      }
+    }
+    for (const [instance, mode] of Object.entries(instances)) {
+      if (!(instance in chatInstancesObj)) {
+        chatInstancesObj[instance] = createChatInstance(instance, mode);
+        chatInstancesObj[instance].refresh();
+        changed = true;
+      }
+    }
+    if (changed) {
+      chatInstances.set(chatInstancesObj);
+    }
+  }
+
   private _receiveNewtonQuery(
     msg: KernelMessage.ICommMsgMsg
   ): void | PromiseLike<void> {
     try {
+      console.log("MSG", msg.content.data);
       const operation = msg.content.data.operation;
       const instance = msg.content.data.instance as string;
-      const chatInstance = chatInstances[instance];
+
+      if (instance === "<meta>") {
+        if (operation === 'sync-meta') {
+          chatLoaders.set(msg.content.data.loaders as unknown as { [id: string]: ILoaderForm });
+          const instances = msg.content.data.instances as unknown as { [id: string]: string };
+          this._loadInstances(instances);
+        }
+        return;
+      }
+
+      const chatInstance = get(chatInstances)[instance];
+
       if (chatInstance === undefined) {
         throw new Error("Invalid instance " + instance);
       }
       if (operation === 'init' || operation === 'refresh') {
         kernelStatus.setattr('hasKernel', true);
-        chatInstance.load(msg.content.data.history as unknown as IChatMessage[]);
-        chatLoaders.set(msg.content.data.loaders as unknown as { [id: string]: [string, string | null]});
+        console.log("Load", instance, msg.content.data)
+        chatInstance.load(msg.content.data.history as unknown as IChatMessage[]);        
         this._loadInstanceConfig(chatInstance, msg.content.data.config as unknown as { [id: string]: any });
       } else if (operation === 'reply') {
         kernelStatus.setattr('hasKernel', true);

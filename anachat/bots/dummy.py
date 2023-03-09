@@ -23,9 +23,10 @@ class DummyBot:
         """Initializes bot"""
         self.format_str = data.get("format_str", self.format_str)
         instance.history.append(MessageContext.create_message(
-            ("Hello, I am a dummy bot that repeats messages"),
+            (f"Hello, I am a dummy bot that repeats messages using the template {self.format_str}"),
             "bot"
         ))
+        instance.config["enable_autocomplete"] = False
 
     def refresh(self, instance: ChatInstance):
         """Refresh chatbot"""
@@ -35,7 +36,7 @@ class DummyBot:
     def process_message(self, context: MessageContext) -> None:
         """Processes user messages"""
         # pylint: disable=unused-argument
-        context.reply(context.text + ", ditto")
+        context.reply(self.format_str.format(context.text))
         return self
 
     def process_autocomplete(self, instance: ChatInstance, request_id: int, query: str):

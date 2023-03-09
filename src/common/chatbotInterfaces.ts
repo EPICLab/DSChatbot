@@ -115,9 +115,14 @@ export interface IChatInstance extends Writable<IChatMessage[]> {
   reset: () => void;
   findById: (messageId: string | null) => IChatMessage | null;
   sendAutoComplete: (requestId: number, query: string) => void;
+  refresh: () => void;
 
+  
+  mode: string;
   configMap: { [id: string]: IConfigVar<any>};
   config: IChatInstanceConfig;
   autoCompleteResponseId: Writable<number>;
   autoCompleteItems: Writable<IAutoCompleteItem[]>;
 }
+
+export type ILoaderForm = { [formkey: string]: [string, string | null] } 

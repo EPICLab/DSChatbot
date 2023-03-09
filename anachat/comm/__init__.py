@@ -8,5 +8,5 @@ def init():
     # pylint: disable=undefined-variable, global-statement
     global COMM
     if COMM is None:
-        COMM = KernelComm(get_ipython(), "base")
+        COMM = KernelComm(get_ipython(), "newton")
     COMM.register()

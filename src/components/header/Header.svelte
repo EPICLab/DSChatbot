@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { notebookCommModel, wizardMode } from "../../stores";
+  import { jupyterapp, notebookCommModel, wizardMode } from "../../stores";
   import Renderer from "./status/Renderer.svelte";
   import { onKeyPress } from '../../common/utils';
   import SuperModeCell from "./SuperModeCell.svelte";
   import type { IChatInstance } from "../../common/chatbotInterfaces";
+  import { ExtraChatPanelView } from "../ExtraChatPanelView";
+  import { mainChatIcon } from '../../iconimports';
 
   export let chatInstance: IChatInstance;
   export let title: string;
@@ -12,6 +14,16 @@
   let { processInKernel, enableAutoComplete, showReplied, showIndex, showTime, showBuildMessages, showKernelMessages, enableAutoLoading, loading } = chatInstance.config;
   $: $showReplied = debugReply;
   $: $showIndex = debugReply;
+
+  function openExtraChat() {
+    let panel = new ExtraChatPanelView();
+    panel.id = "NewtonChatPanel-" + crypto.randomUUID();
+    
+    panel.title.closable = true;
+    panel.title.label = "Extra Chat"
+    panel.title.icon = mainChatIcon.bindprops({ stylesheet: 'mainAreaTab' });;
+    $jupyterapp?.shell.add(panel, 'main', { mode: 'split-right' })
+  }
 
   const refresh = (): void => {
     $notebookCommModel?.refresh();
@@ -63,7 +75,7 @@
     
     {#if $wizardMode}
       <br>
-      
+      <button on:click={openExtraChat}>Extra Chat</button>
       <label>
         <input type=checkbox bind:checked={$processInKernel}>
         Message

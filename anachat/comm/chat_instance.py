@@ -24,9 +24,10 @@ def apply_partial(original: dict, update: dict):
 class ChatInstance:
     """Chat Instance handler"""
 
-    def __init__(self, comm: KernelComm, chat_name: str, loader="base"):
+    def __init__(self, comm: KernelComm, chat_name: str, mode="newton", data: dict=None):
+        self.mode = mode
         self.comm_ref = weakref.ref(comm)
-        self.bot_loader = LOADERS[loader](comm)
+        self.bot_loader = LOADERS[mode](comm)
         self.memory = defaultdict(lambda: None)
 
         self.chat_name = chat_name
@@ -38,6 +39,7 @@ class ChatInstance:
             "enable_autocomplete": True,
             "enable_auto_loading": False,
             "loading": False,
+            "process_base_chat_message": True,
 
             "show_replied": False,
             "show_index": False,
@@ -46,7 +48,7 @@ class ChatInstance:
             "show_kernel_messages": True,
         }
         self.checkpoints = {}
-        self.start_bot({})
+        self.start_bot(data or {})
 
     @property
     def bot(self):
@@ -65,9 +67,6 @@ class ChatInstance:
             "operation": operation,
             "history": self.history,
             "config": self.config,
-            "loaders": {
-                key: value.config() for key, value in LOADERS.items()
-            }
         })
 
     def receive(self, data: dict):
@@ -121,9 +120,23 @@ class ChatInstance:
             and self.config["process_in_kernel"]
             or message.get('kernelProcess') == KernelProcess.FORCE
         )
+
         if process_message:
             context = MessageContext(self.comm_ref(), self, message)
             self.bot.process_message(context)
+
+        replicate_other_instances = (
+            self.chat_name == "base"
+            and (
+                process_message
+                or message.get('kernelProcess') == KernelProcess.PROCESS
+            )
+        )
+        if replicate_other_instances:
+            for chat_name, instance in self.comm_ref().chat_instances.items():
+                if chat_name != "base" and instance.config["process_base_chat_message"]:
+                    instance.receive_message(message)
+
 
     def receive_autocomplete_query(self, request_id, query):
         """Receives query from user"""

@@ -33,7 +33,7 @@
 </style>
 
 <div bind:this={div}>
-  {#each $chatInstance as message, index}
+  {#each $chatInstance as message, index (message.id)}
     <Message {chatInstance} {message} chat={div} {scrollBottom} {index}/>
   {/each}
 </div>
