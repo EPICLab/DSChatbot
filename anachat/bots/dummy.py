@@ -17,7 +17,7 @@ class DummyBot:
     @classmethod
     def config(cls):
         """Defines configuration inputs for bot"""
-        return {"format_str": ('str', "{}, ditto")}
+        return {"format_str": ('text', {"value": "{}, ditto"})}
 
     def start(self, instance: ChatInstance, data: dict):
         """Initializes bot"""

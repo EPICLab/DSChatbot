@@ -92,4 +92,4 @@ export interface IConfigVar<T> extends Writable<T> {
   initialized: boolean;
 }
 
-export type ILoaderForm = { [formkey: string]: [string, string | null] } 
+export type ILoaderForm = { [formkey: string]: [string, any] } 
