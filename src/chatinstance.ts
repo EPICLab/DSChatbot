@@ -33,12 +33,14 @@ export function createChatInstance(model: NotebookCommModel, chatName: string, m
       enableAutoComplete: createConfigVar("enable_autocomplete", true),
       enableAutoLoading: createConfigVar("enable_auto_loading", false),
       loading: createConfigVar("loading", false),
+      processBaseChatMessage: createConfigVar("process_base_chat_message", true),
   
       showReplied: createConfigVar("show_replied", false),
       showIndex: createConfigVar("show_index", false),
       showTime: createConfigVar("show_time", true),
       showBuildMessages: createConfigVar("show_build_messages", true),
       showKernelMessages: createConfigVar("show_kernel_messages", true),
+      showMetadata: createConfigVar("show_metadata", false),
     }
   
     let messageMap: { [key: string]: { position: number, message: IChatMessage} } = {};
@@ -123,6 +125,7 @@ export function createChatInstance(model: NotebookCommModel, chatName: string, m
     }
   
     return {
+      chatName,
       mode,
       subscribe,
       set,

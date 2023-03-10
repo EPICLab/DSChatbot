@@ -2,10 +2,10 @@
 
 <script type="ts">
   import { MessageDisplay, type IChatMessage, type IMessageType } from '../../../common/chatbotInterfaces';
-  import { wizardMode, replying, wizardPreviewMessage, wizardValue } from '../../../stores';
+  import { wizardMode, replying, wizardPreviewMessage } from '../../../stores';
   import { ContextMenu } from '@lumino/widgets';
   import { CommandRegistry } from '@lumino/commands';
-  import { BOT_TARGETS, BOT_TYPES, checkTarget, cloneMessage, messageTarget } from "../../../common/messages";
+  import { BOT_TARGETS, BOT_TYPES, checkTarget, cloneMessage, messageTarget, sendMessageToBuild, sendMessageToWizardInput } from "../../../common/messages";
 
   import { RankedMenu } from '@jupyterlab/ui-components';
   import MessageParts from "./MessageParts.svelte";
@@ -31,9 +31,8 @@
       const contextMenu = new ContextMenu({ commands });
       commands.addCommand('add-reply', {
         label: 'Add to reply',
-        execute: () => {
-          let newMessage = cloneMessage(message, messageTarget('user'))
-          $wizardPreviewMessage = [...$wizardPreviewMessage, newMessage];
+        execute: async () => {
+          await sendMessageToBuild(chatInstance, message);
         }
       });
       contextMenu.addItem({
@@ -42,8 +41,8 @@
       });
       commands.addCommand('load-input', {
         label: 'Load to input',
-        execute: () => {
-          $wizardValue = message.text;
+        execute: async () => {
+          await sendMessageToWizardInput(chatInstance, message);
         }
       });
       contextMenu.addItem({

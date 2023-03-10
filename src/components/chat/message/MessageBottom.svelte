@@ -1,8 +1,8 @@
 <script type="ts">
   import type { IChatInstance } from "../../../chatinstance";
   import type { IChatMessage } from "../../../common/chatbotInterfaces";
-  import { cloneMessage, messageTarget } from "../../../common/messages";
-  import { wizardMode, wizardPreviewMessage, wizardValue } from "../../../stores";
+  import { sendMessageToBuild, sendMessageToWizardInput } from "../../../common/messages";
+  import { wizardMode } from "../../../stores";
   import IconButton from "../../IconButton.svelte";
   import FeedbackButtons from "./FeedbackButtons.svelte";
   import FeedbackForm from "./FeedbackForm.svelte";
@@ -20,13 +20,12 @@
     timestamp = timestamp * 1000;
   }
 
-  function sendToBuild() {
-    let newMessage = cloneMessage(message, messageTarget('user'))
-    $wizardPreviewMessage = [...$wizardPreviewMessage, newMessage];
+  async function sendToBuild() {
+    await sendMessageToBuild(chatInstance, message);
   }
 
-  function sentToInput() {
-    $wizardValue = message.text;
+  async function sentToInput() {
+    await sendMessageToWizardInput(chatInstance, message);
   }
 
 </script>
@@ -39,7 +38,7 @@
     {/if}
     <ReplyButtons {message} viewReplied={viewReplied} on:toggleViewReplied />
     {#if $wizardMode}
-      <IconButton title="To build" on:click={sendToBuild}>🛠️</IconButton>
+      <IconButton title="To reply" on:click={sendToBuild}>↩️</IconButton>
       <IconButton title="To input" on:click={sentToInput}>📝</IconButton>
     {/if}
     {#if message.loading}

@@ -46,6 +46,7 @@ class ChatInstance:
             "show_time": True,
             "show_build_messages": True,
             "show_kernel_messages": True,
+            "show_metadata": False,
         }
         self.checkpoints = {}
         self.start_bot(data or {})

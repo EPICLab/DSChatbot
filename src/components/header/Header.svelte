@@ -12,7 +12,7 @@
   export let title: string;
   export let showConfigs: boolean = true;
   
-  let { processInKernel, enableAutoComplete, showReplied, showIndex, showTime, showBuildMessages, showKernelMessages, enableAutoLoading, loading } = chatInstance.config;
+  let { processInKernel, enableAutoComplete, showReplied, showIndex, showTime, showBuildMessages, showKernelMessages, enableAutoLoading, loading, showMetadata, processBaseChatMessage } = chatInstance.config;
 
   function openExtraChat() {
     const model = $notebookCommModel;
@@ -79,6 +79,10 @@
           <input type=checkbox bind:checked={$showTime}> 
           Time
         </label>
+        <label>
+          <input type=checkbox bind:checked={$processBaseChatMessage}>
+          Replicate base
+        </label>
       </div>
       <div>
         <label>
@@ -100,6 +104,10 @@
         <label>
           <input type=checkbox bind:checked={$showIndex}> 
           Index
+        </label>
+        <label>
+          <input type=checkbox bind:checked={$showMetadata}> 
+          Metadata
         </label>
       </div>
       <div>

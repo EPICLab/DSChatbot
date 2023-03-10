@@ -1,3 +1,6 @@
+import { get } from "svelte/store";
+import type { IChatInstance } from "../chatinstance";
+import { wizardPreviewMessage, wizardValue } from "../stores";
 import { KernelProcess, MessageDisplay, type IChatMessage, type IMessagePart, type IMessagePartType, type IMessageType, type IOptionItem, type ITargetDefinition } from "./chatbotInterfaces";
 
 const TYPE_DEFS: { [key: string]: IMessagePartType } = {
@@ -29,7 +32,10 @@ const TYPE_DEFS: { [key: string]: IMessagePartType } = {
   'html-panel': 'html-panel',
   'text-panel': 'text-panel',
   'f': 'form',
-  'form': 'form'
+  'form': 'form',
+  'm': 'metadata',
+  'meta': 'metadata',
+  'metadata': 'metadata'
 }
 
 
@@ -153,6 +159,7 @@ export function extractOptions(text: string, type: 'ul' | 'ol'): IOptionItem[] {
 
 export function splitUnifiedMessage(text: string): IMessagePart[] {
   let items: IMessagePart[] = [];
+
   for (let partText of text.split('####')) {
     let trim = partText.trim()
     if (trim.length == 0) {
@@ -162,17 +169,63 @@ export function splitUnifiedMessage(text: string): IMessagePart[] {
     if (septype.length == 1) {
       items.push({
         type: 'text',
-        text: septype[0].trim()
+        text: septype[0].trim(),
+        source: partText
       })
     } else {
       let type = TYPE_DEFS[septype[0].trim().toLowerCase()] || 'text';
       items.push({
         type: type,
-        text: septype[1].trim()
+        text: septype[1].trim(),
+        source: partText
       })
     }
   }
   return items;
+}
+
+async function digestText(text: string) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const hash = await crypto.subtle.digest('SHA-1', data);
+  return btoa(String.fromCharCode(...new Uint8Array(hash)));
+}
+
+async function createMetadata(chatInstance: IChatInstance, message: IChatMessage) {
+  let items: IMessagePart[] = splitUnifiedMessage(message.text);
+  items = items.filter(function (part) {
+    if (part.type == "metadata") {
+      try {
+        const data = JSON.parse(part.text);
+        return data.type != 'reuse';
+      } catch(e) {
+      }
+    }
+    return true;
+  });
+  let text = items.map((item) => item.source).join("####");
+  if (items[0].type != 'text') {
+    text = "####" + text;
+  }
+
+  const metadata = {
+    'type': 'reuse',
+    'instance': chatInstance.chatName,
+    'id': message.id,
+    'hash': await digestText(text.trim()),
+  };
+  return text + `\n####metadata#:\n${JSON.stringify(metadata)}`
+  
+}
+
+export async function sendMessageToBuild(chatInstance: IChatInstance, message: IChatMessage) {
+  let newMessage = cloneMessage(message, messageTarget('user'))
+  newMessage.text = await createMetadata(chatInstance, message);
+  wizardPreviewMessage.set([...get(wizardPreviewMessage), newMessage]);
+}
+
+export async function sendMessageToWizardInput(chatInstance: IChatInstance, message: IChatMessage) {
+  wizardValue.set(await createMetadata(chatInstance, message))
 }
 
 export interface IFormElementItem {
