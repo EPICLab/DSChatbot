@@ -8,13 +8,13 @@ The `jlpm` command is JupyterLab's pinned version of
 
 ```bash
 # Clone the repo to your local environment
-# Change directory to the anachat directory
+# Change directory to the newtonchat directory
 # Install package in development mode
 pip install -e .
 # Link your development version of the extension with JupyterLab
 jupyter labextension develop . --overwrite
 # Server extension must be manually installed in develop mode
-jupyter server extension enable anachat
+jupyter server extension enable newtonchat
 # Rebuild extension Typescript source after making changes
 jlpm run build
 ```
@@ -40,13 +40,13 @@ jupyter lab build --minimize=False
 
 ```bash
 # Server extension must be manually disabled in develop mode
-jupyter server extension disable anachat
-pip uninstall anachat
+jupyter server extension disable newtonchat
+pip uninstall newtonchat
 ```
 
 In development mode, you will also need to remove the symlink created by `jupyter labextension develop`
 command. To find its location, you can run `jupyter labextension list` to figure out where the `labextensions`
-folder is located. Then you can remove the symlink named `anachat` within that folder.
+folder is located. Then you can remove the symlink named `newtonchat` within that folder.
 
 ### Packaging the extension
 

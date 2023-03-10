@@ -1,7 +1,7 @@
 {
-  "name": "newtonchat",
+  "name": "anachat",
   "version": "0.1.0",
-  "description": "Chatbot for supporting programming in Jupyter Lab",
+  "description": "Chatbot for supporting data science analyses in Jupyter Lab",
   "keywords": [
     "jupyter",
     "jupyterlab",
@@ -36,8 +36,8 @@
     "clean": "jlpm clean:lib clean:labextension",
     "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
     "clean:lintcache": "rimraf .eslintcache .stylelintcache",
-    "clean:labextension": "rimraf newtonchat/labextension",
-    "clean:rest": "rimraf newtonchat.egg-info node_modules dist",
+    "clean:labextension": "rimraf anachat/labextension",
+    "clean:rest": "rimraf anachat.egg-info node_modules dist",
     "clean:all": "jlpm clean:lib && jlpm clean:labextension && jlpm clean:lintcache && jlpm clean:rest",
     "eslint": "jlpm eslint:check --fix",
     "eslint:check": "eslint . --cache --ext .ts,.tsx",
@@ -127,12 +127,12 @@
           "pip"
         ],
         "base": {
-          "name": "newtonchat"
+          "name": "anachat"
         }
       }
     },
     "extension": true,
-    "outputDir": "newtonchat/labextension",
+    "outputDir": "anachat/labextension",
     "sharedPackages": {
       "@jupyter-widgets/base": {
         "bundled": false,
@@ -198,6 +198,11 @@
         "bundled": false,
         "singleton": true
       }
+    },
+    "_build": {
+      "load": "static/remoteEntry.18c44d7178452c9b88a9.js",
+      "extension": "./extension",
+      "style": "./style"
     }
   },
   "jupyter-releaser": {

@@ -2,14 +2,14 @@ include LICENSE
 include *.md
 include pyproject.toml
 recursive-include jupyter-config *.json
-recursive-include anachat/data *
+recursive-include newtonchat/data *
 
 include package.json
 include install.json
 include ts*.json
 include yarn.lock
 
-graft anachat/labextension
+graft newtonchat/labextension
 
 # Javascript files
 graft src

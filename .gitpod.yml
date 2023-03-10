@@ -10,11 +10,11 @@ tasks:
   - name: Install
     init: >
       conda init &&
-      conda activate ana &&
+      conda activate newton &&
       pip install -e . &&
       jupyter labextension develop . --overwrite &&
-      jupyter server extension enable anachat &&
+      jupyter server extension enable newtonchat &&
       jlpm run build
     command: |
       conda init
-      conda activate ana
+      conda activate newton

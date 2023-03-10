@@ -13,8 +13,8 @@ class RouteHandler(APIHandler):
     def get(self):
         restrict = []
         for arg in sys.argv:
-            if arg.startswith('--Anachat.restrict='):
-                restrict = arg[len('--Anachat.restrict='):].strip('"').strip("'").split(',')
+            if arg.startswith('--Newtonchat.restrict='):
+                restrict = arg[len('--Newtonchat.restrict='):].strip('"').strip("'").split(',')
         self.finish(json.dumps({
             'restrict': restrict
         }))
@@ -24,6 +24,6 @@ def setup_handlers(web_app):
     host_pattern = ".*$"
 
     base_url = web_app.settings["base_url"]
-    route_pattern = url_path_join(base_url, "anachat", "config")
+    route_pattern = url_path_join(base_url, "newton", "config")
     handlers = [(route_pattern, RouteHandler)]
     web_app.add_handlers(host_pattern, handlers)

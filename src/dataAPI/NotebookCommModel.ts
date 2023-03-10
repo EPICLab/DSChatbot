@@ -280,8 +280,8 @@ export class NotebookCommModel {
     ) {
       this._language = {
         language: 'python',
-        initScript: 'import anachat.comm; anachat.comm.init()',
-        evalue: "No module named 'anachat.comm'"
+        initScript: 'import newtonchat.comm; newtonchat.comm.init()',
+        evalue: "No module named 'newtonchat.comm'"
       };
     }
   }

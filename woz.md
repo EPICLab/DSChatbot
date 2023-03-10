@@ -12,7 +12,7 @@ Then, run jupyter lab in collaborative mode
 jupyter lab --collaborative
 ```
 
-Use the Share button to have the notebook in two browsers. Activate Ana supermode in one of them by ctrl + right-clicking the circle on the top-right corner of the chat.
+Use the Share button to have the notebook in two browsers. Activate Newton wizardmode in one of them by ctrl + right-clicking the circle on the top-right corner of the chat.
 
 
 ## Gitpod

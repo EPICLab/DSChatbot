@@ -1,4 +1,4 @@
-# anachat
+# NewtonChat
 
 [![Github Actions Status](https://github.com/EPICLab/DSChatbot/workflows/Build/badge.svg)](https://github.com/EPICLab/DSChatbot/actions/workflows/build.yml)[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/EPICLab/DSChatbot/main?urlpath=lab)
 
@@ -6,8 +6,8 @@ Configurable Chatbot for support of different tasks in Jupyter Lab.
 
 This branch ([main](https://github.com/EPICLab/DSChatbot/tree/main)) supports data science analysis in Jupyter Lab. If you are interested in the chatbot configured for teaching computational thinking and programming, please check the [education](https://github.com/EPICLab/DSChatbot/tree/education) branch.
 
-This extension is composed of a Python package named `anachat`
-for the server extension and a NPM package named `anachat`
+This extension is composed of a Python package named `newtonchat`
+for the server extension and a NPM package named `newtonchat`
 for the frontend extension.
 
 ## Limitations
@@ -32,7 +32,7 @@ pip install -e .
 # Link your development version of the extension with JupyterLab
 jupyter labextension develop . --overwrite
 # Server extension must be manually installed in develop mode
-jupyter server extension enable anachat
+jupyter server extension enable newtonchat
 # Rebuild extension Typescript source after making changes
 jlpm run build
 ```
@@ -45,7 +45,7 @@ jupyter lab
 In the future, we will add the option to install the chatbot from PyPI without requiring NodeJS with the following command:
 
 ```bash
-pip install anachat
+pip install newtonchat
 ```
 
 ## Uninstall
@@ -53,7 +53,7 @@ pip install anachat
 To remove the extension, execute:
 
 ```bash
-pip uninstall anachat
+pip uninstall newtonchat
 ```
 
 ## Troubleshoot
@@ -74,12 +74,14 @@ jupyter labextension list
 
 ## Development
 
-The root of the Python package is the directory `anachat`. It has 3 main directories:
+The root of the Python package is the directory `newtonchat`. It has 3 main directories:
 
-- [data](anachat/data/) has json files that define [regexes](anachat/data/regexes.json) for hard-coded messages and [subjects](anachat/data/subjects.json) for auto-complete actions. Both files refer to states defined in [code/states](anachat/core/states) 
+- [data](newtonchat/data/) has json files that define [regexes](newtonchat/data/regexes.json) for hard-coded messages and [subjects](newtonchat/data/subjects.json) for auto-complete actions. Both files refer to states defined in [code/states](newtonchat/core/states) 
 
-- [core](anachat/core/) is the module the handles the chatbot processing. It defines multiple handlers on the [handlers](anachat/core/handlers) submodule and multiple states on the [code/states](anachat/core/states) submodule. The main orchestrator file ins [ana.py](anachat/core/ana.py)
+- [bots](newtonchat/bots/) is the module the handles the chatbot processing. It defines multiple bot instances. The main one is Newton, which defines multiple handlers on the [handlers](newtonchat/core/handlers) submodule and multiple states on the [code/states](newtonchat/core/states) submodule. The main orchestrator file is [newton.py](newtonchat/bots/newton/newton.py)
 
-- [comm](anachat/comm/) is the module that handles the communication between the frontend extension and the core orchestrator. It uses Jupyter Comm and redirects the messages to proper orchestrator methods.
+- [loader](newtonchat/loader/) is the module that defines loaders for the existing bots.
+
+- [comm](newtonchat/comm/) is the module that handles the communication between the frontend extension and the core orchestrator. It uses Jupyter Comm and redirects the messages to proper orchestrator methods.
 
 The root of the frontend extension is the directory `src`. It is divided into three parts. The displayed components use Svelte components stored at the [components](src/components/) directory. The communication with the Python server extension uses the [dataAPI](src/dataAPI/) directory. Finally, the remaining files of the extension manage the execution of the Jupyter extension and provide a bridge among these elements.

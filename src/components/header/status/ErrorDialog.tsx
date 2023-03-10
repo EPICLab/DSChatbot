@@ -17,9 +17,9 @@ export function clickError(): void {
             <a
               target="_blank"
               rel="noreferrer"
-              href="https://github.com/JoaoFelipe/anachat/issues"
+              href="https://github.com/EPICLab/DSChatbot/issues"
             >
-              https://github.com/JoaoFelipe/anachat/issues
+              https://github.com/EPICLab/DSChatbot/issues
             </a>
           </div>
           <textarea className="newton-error-text" value={text} />

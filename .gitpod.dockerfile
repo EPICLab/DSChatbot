@@ -13,7 +13,7 @@ RUN rm Anaconda3-2022.05-Linux-x86_64.sh
 ENV PATH=$PATH:$HOME/anaconda3
 ENV PATH=$PATH:$HOME/anaconda3/bin
 RUN conda install conda
-RUN ["/bin/bash", "-c", ". /home/gitpod/anaconda3/etc/profile.d/conda.sh && conda create -n ana -c conda-forge nodejs python=3.9 jupyterlab matplotlib seaborn lightgbm catboost -y"]
+RUN ["/bin/bash", "-c", ". /home/gitpod/anaconda3/etc/profile.d/conda.sh && conda create -n newton -c conda-forge nodejs python=3.9 jupyterlab matplotlib seaborn lightgbm catboost -y"]
 RUN conda init
 ENV jupynb="jupyter notebook --NotebookApp.allow_origin=\'$(gp url 8888)\' --ip='*' --NotebookApp.token='' --NotebookApp.password=''"
 ENV jupylab="jupyter lab --NotebookApp.allow_origin=\'$(gp url 8888)\' --ip='*' --NotebookApp.token='' --NotebookApp.password='' --collaborative"
