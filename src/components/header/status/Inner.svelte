@@ -17,16 +17,11 @@
 </script>
 
 <style>
-  .outer {
-    float: right;
-  }
   .icon {
-    float: left;
-    height: 12px;
-    width: 12px;
+    height: 16px;
+    width: 16px;
     margin-right: 8px;
     align-items: center;
-    display: flex;
   }
 </style>
 

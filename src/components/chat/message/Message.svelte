@@ -8,7 +8,9 @@
   import { BOT_TARGETS, BOT_TYPES, checkTarget, cloneMessage, messageTarget } from "../../../common/messages";
 
   import { RankedMenu } from '@jupyterlab/ui-components';
-  import MessageBalloon from './MessageBalloon.svelte';
+  import MessageParts from "./MessageParts.svelte";
+  import MessageBottom from "./MessageBottom.svelte";
+  import Reply from "./Reply.svelte";
   import type { IChatInstance } from '../../../chatinstance';
 
   export let chatInstance: IChatInstance;
@@ -18,22 +20,10 @@
   export let chat: HTMLElement | null = null;
   export let preview: boolean = false;
 
-  let {showIndex, showBuildMessages, showKernelMessages} = chatInstance.config;
+  let {showBuildMessages, showKernelMessages, showReplied } = chatInstance.config;
 
   let display: boolean = false;
-  $: {
-    display = message.display === MessageDisplay.Default || $wizardMode
-    if ((message.display === MessageDisplay.SupermodeInput || message.kernelDisplay === MessageDisplay.SupermodeInput) && !$showBuildMessages) {
-      display = false;
-    } else if (message.display === MessageDisplay.Hidden && !$showKernelMessages) {
-      display = false;
-    }
-    if (preview) {
-      display = true;
-    }
-  }
-
-  let div: HTMLElement | null = null;
+  let reply: IChatMessage | null | undefined = null;
 
   function onRightClick(event: any) {
     if ($wizardMode) {
@@ -196,12 +186,53 @@
       event.stopPropagation();
     }
   }
+
+  function setReplyVisibility(visible: boolean) {
+    reply = visible ? chatInstance.findById(message.reply) : null;
+  }
+
+  $: {
+    display = message.display === MessageDisplay.Default || $wizardMode
+    if ((message.display === MessageDisplay.SupermodeInput || message.kernelDisplay === MessageDisplay.SupermodeInput) && !$showBuildMessages) {
+      display = false;
+    } else if (message.display === MessageDisplay.Hidden && !$showKernelMessages) {
+      display = false;
+    }
+    if (preview) {
+      display = true;
+    }
+  }
+  $: if ($wizardMode && !preview) setReplyVisibility($showReplied);
  
 </script>
 
-<style>
 
- @keyframes blinking {
+<div class="message-{message.id}" on:contextmenu={onRightClick}> 
+  {#if display}
+    <div class="outer {message.type}">
+      <div 
+        class:hidden={message.display == MessageDisplay.Hidden} 
+        class:build={message.display == MessageDisplay.SupermodeInput} 
+        class:tobuild={message.kernelDisplay == MessageDisplay.SupermodeInput} 
+        class="inner"
+      >
+        <div class="main">
+          {#if reply}
+            <Reply {chatInstance} {reply} {chat} {scrollBottom}/>
+          {/if}
+          <MessageParts {chatInstance} {message} {preview} {scrollBottom}/>
+        </div>
+        {#if !preview}
+          <MessageBottom {chatInstance} {message} {index} viewReplied={!!reply} on:toggleViewReplied={(event) => setReplyVisibility(event.detail.viewReplied)}/>
+        {/if}
+      </div>
+    </div>
+  {/if}
+</div>
+
+
+<style>
+  @keyframes blinking {
     0% {
       background-color: lightgreen;
     }
@@ -211,14 +242,69 @@
   }
 
   :global(.blink-message) { animation: blinking 2s 1; }
+
+  .outer {
+    padding: 0 10px;
+    width: inherit;
+  }
+
+  .inner {
+    border-radius: 5px;
+    border: 1px solid gray;
+    margin-bottom: 0.8em;
+    
+    white-space: pre-line;
+  }
+
+  .user .inner {
+    background-color: #D0FDFF;
+  }
+
+  .bot .inner {
+    background-color: #F2F2F2;
+  }
+
+  .error .inner {
+    background-color: lightpink;
+  }
+
+  .user .inner {
+    margin-left: 4em;
+    border-radius: 0.5rem 0.5rem 0 0.5rem;
+    flex-direction: row-reverse;
+  }
+
+  .bot .inner {
+    margin-right: 4em;
+    background-color: #F2F2F2;
+    border-radius: 0.5rem 0.5rem 0.5rem 0;
+  }
+
+  .error .inner {
+    margin-right: 4em;
+    background-color: lightpink;
+    border-radius: 0.5rem 0.5rem 0.5rem 0;
+  }
+
+  .main {
+    padding: 0.4em;
+  }
+
+  .hidden {
+    border-style: dotted;
+    border-width: 2px;
+    border-color: red;
+  }
+
+  .build {
+    border-style: dotted;
+    border-width: 2px;
+    border-color: blue;
+  }
+
+  .tobuild {
+    border-style: dotted;
+    border-width: 2px;
+    border-color: green;
+  }
 </style>
-
-
-<div bind:this={div} class="message-{message.id}" on:contextmenu={onRightClick}> 
-  {#if display}
-    {#if $showIndex}
-      {index}
-    {/if}
-    <MessageBalloon {chatInstance} {message} {preview} {scrollBottom} {chat}/>
-  {/if}
-</div>

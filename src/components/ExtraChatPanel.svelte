@@ -4,6 +4,8 @@
   import type { NotebookCommModel } from "../dataAPI/NotebookCommModel";
   import AutoCompleteInput from "./chat/AutoCompleteInput.svelte";
   import Chat from "./chat/Chat.svelte";
+  import Header from './header/Header.svelte';
+  import IconButton from "./IconButton.svelte";
 
   // ToDo: add wizardmod
 
@@ -75,7 +77,7 @@
   }
 
   function removeInstance() {
-    if (instanceName !== null) {
+    if ((instanceName !== null) && confirm(`Do you want to remove ${instanceName}?`)) {
       model.sendRemoveInstance(instanceName)
     }
   }
@@ -112,69 +114,79 @@
 
 </script>
 
-{ model.name }
-
 <div class="panel">
-
-<div>
-  <button on:click={refreshLoaders}>Refresh</button>
-  <label>
-    Chat mode:
-    <select bind:value={mode} on:change={selectMode}>
-      {#each Object.entries($chatInstances) as [key, instance] }
-        <option value="existing:{key}">Existing: {instance.mode} ({key})</option>
-      {/each}
-      {#each Object.keys($chatLoaders) as loader }
-        <option value="new:{loader}">Create: {loader}</option>
-      {/each}
-    </select>
-  </label>
-</div>
-
-{#if newForm }
-<form>
-  {#each Object.entries(newForm) as [key, [type, config]] (key)}
-    {#if type == "text"}
-      <label>{config.label || key}: <input bind:this={formElements[key]} type=text bind:value={formValues[key].value}></label>
-    {:else if type == "datalist"}
-      <label>{config.label || key}: <input bind:this={formElements[key]} list={key + unique} bind:value={formValues[key].value}>
-      <datalist id={key + unique}>
-        {#each config.options as option}
-          <option>{option}</option>
+  <div class="selector">
+    <label>
+      Chat mode:
+      <select bind:value={mode} on:change={selectMode}>
+        {#each Object.entries($chatInstances) as [key, instance] }
+          <option value="existing:{key}">Existing: {instance.mode} ({key})</option>
         {/each}
-      </datalist>
+        {#each Object.keys($chatLoaders) as loader }
+          <option value="new:{loader}">Create: {loader}</option>
+        {/each}
+      </select>
     </label>
-    {:else if type == "range"}
-      <label>{config.label || key}: <input bind:this={formElements[key]} type=range step={config.step} min={config.min} max={config.max} bind:value={formValues[key].value}>
-        <span> {formValues[key].value}</span></label>
-    {:else if type == "textarea"}
-      <label><div>{config.label || key}: </div>
-      <textarea rows={config.rows} bind:this={formElements[key]}  bind:value={formValues[key].value}></textarea></label>
-    {:else if type == "file"}
-      <label>{config.label || key}: <input bind:this={formElements[key]} type=file on:change={(e) => loadFile(e, key)}></label>
-    {:else}
-      <label>{config.label || key}: <input bind:this={formElements[key]} type=text bind:value={formValues[key].value}></label>
+    <IconButton
+      title="Refresh"
+      on:click={refreshLoaders}>↻</IconButton>
+
+    {#if chatInstance && (mode !== 'existing:base')}
+      <IconButton
+        title="Remove"
+        on:click={removeInstance}>❌</IconButton>
     {/if}
-  {/each}
-  <button on:click|preventDefault={createInstance}>Create</button>
-</form>
-{/if}
+  </div>
 
-
-{#if chatInstance}
-  {#if mode !== 'existing:base'}
-    <button on:click={removeInstance}>Remove</button>
+  {#if newForm }
+  <form>
+    {#each Object.entries(newForm) as [key, [type, config]] (key)}
+      {#if type == "text"}
+        <label>{config.label || key}: <input bind:this={formElements[key]} type=text bind:value={formValues[key].value}></label>
+      {:else if type == "datalist"}
+        <label>{config.label || key}: <input bind:this={formElements[key]} list={key + unique} bind:value={formValues[key].value}>
+        <datalist id={key + unique}>
+          {#each config.options as option}
+            <option>{option}</option>
+          {/each}
+        </datalist>
+      </label>
+      {:else if type == "range"}
+        <label>{config.label || key}: <input bind:this={formElements[key]} type=range step={config.step} min={config.min} max={config.max} bind:value={formValues[key].value}>
+          <span> {formValues[key].value}</span></label>
+      {:else if type == "textarea"}
+        <label><div>{config.label || key}: </div>
+        <textarea rows={config.rows} bind:this={formElements[key]}  bind:value={formValues[key].value}></textarea></label>
+      {:else if type == "file"}
+        <label>{config.label || key}: <input bind:this={formElements[key]} type=file on:change={(e) => loadFile(e, key)}></label>
+      {:else}
+        <label>{config.label || key}: <input bind:this={formElements[key]} type=text bind:value={formValues[key].value}></label>
+      {/if}
+    {/each}
+    <button on:click|preventDefault={createInstance}>Create</button>
+  </form>
   {/if}
-  <Chat {chatInstance}/>
-  <AutoCompleteInput {chatInstance}/>
-{/if}
 
+  {#if chatInstance}
+    <Header {chatInstance} title="{chatInstance.mode} - {model.name }" showConfigs={false}/>
+    <Chat {chatInstance}/>
+    <AutoCompleteInput {chatInstance}/>
+  {/if}
 </div>
 
 <style>
   .panel {
     height: 100%;
+  }
 
+  .selector {
+    padding: 1em;
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  form {
+    padding: 0 1em;
   }
 
   button {
