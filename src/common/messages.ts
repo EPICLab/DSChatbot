@@ -33,7 +33,8 @@ const TYPE_DEFS: { [key: string]: IMessagePartType } = {
   'text-panel': 'text-panel',
   'f': 'form',
   'form': 'form',
-  'm': 'metadata',
+  'md': 'markdown',
+  'markdown': 'markdown',
   'meta': 'metadata',
   'metadata': 'metadata'
 }

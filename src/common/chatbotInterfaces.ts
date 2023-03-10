@@ -80,7 +80,7 @@ export type IMessagePartType =
   'text' | 'html' 
   | 'web-panel' | 'text-panel' | 'html-panel'
   | 'ul' | 'ol' | 'ful' | 'fol' | 'form'
-  | 'code' | 'direct-code' | 'input' | 'metadata';
+  | 'code' | 'direct-code' | 'input' | 'metadata' | 'markdown';
 
 export interface IMessagePart {
   type: IMessagePartType;

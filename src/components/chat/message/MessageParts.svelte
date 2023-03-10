@@ -11,6 +11,7 @@
   import Text from "./message_parts/Text.svelte";
   import type { IChatInstance } from "../../../chatinstance";
   import Metadata from "./message_parts/Metadata.svelte";
+  import Markdown from "./message_parts/Markdown.svelte";
 
   export let chatInstance: IChatInstance;
   export let message: IChatMessage
@@ -41,6 +42,8 @@
     <Panel {messagePart} {message} {preview} type='html'/>
   {:else if messagePart.type == 'form'}
     <Form {chatInstance} {messagePart} {message}/>
+  {:else if messagePart.type == 'markdown'}
+    <Markdown {messagePart}/>
   {:else if messagePart.type == 'metadata'}
     <Metadata {chatInstance} {messagePart}/>
   {:else}
