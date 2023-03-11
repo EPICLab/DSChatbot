@@ -7,12 +7,17 @@
   import ExtraChatPanel from "../ExtraChatPanel.svelte";
   import WizardCellPanel from "../WizardCellPanel.svelte";
   import IconButton from "../IconButton.svelte";
+  import DynamicInput from "../jsonform/DynamicInput.svelte";
 
   export let chatInstance: IChatInstance;
   export let title: string;
   export let showConfigs: boolean = true;
+  export let showLoadConfig: boolean = false;
   
   let { processInKernel, enableAutoComplete, showReplied, showIndex, showTime, showBuildMessages, showKernelMessages, enableAutoLoading, loading, showMetadata, processBaseChatMessage } = chatInstance.config;
+  let loadInput: HTMLInputElement;
+  let loadInstancesData: any = null;
+  let loadForms: [string, {[id: string]: [string, any]}, {[id: string]: any}][] = [];
 
   function openExtraChat() {
     const model = $notebookCommModel;
@@ -33,8 +38,75 @@
     showConfigs = !showConfigs;
   }
 
+  function toggleLoadConfig() {
+    showLoadConfig = !showLoadConfig;
+  }
+
   const refresh = (): void => {
     $notebookCommModel?.refresh();
+  }
+
+  function findForms(data: any, currentKey: string) {
+    if (data == null) {
+      return
+    } else if (Array.isArray(data)) {
+      for (const [i, element] of data.entries()) {
+        findForms(element, `${currentKey}[${i}]`);
+      }
+    } else if (typeof data == "object") {
+      for (const [key, value] of Object.entries(data)) {
+        if (key == "!form") {
+          const formDef = structuredClone(value) as {[id: string]: [string, any]};
+          const valueAny: any = value as any;
+          for (const [formKey, formValue] of Object.entries(valueAny)) {
+            valueAny[formKey] = (formValue as any)[1].value;
+          }
+          loadForms = [...loadForms, [`${currentKey}.${key}`, formDef, valueAny]]
+        } else if (!key.startsWith('!!')) {
+          findForms(value, `${currentKey}.${key}`);
+        }
+      }
+    }
+  }
+
+  function prepareForms() {
+    const files = loadInput.files
+    if (files == null) {
+      loadInstancesData = null;
+      loadForms = [];
+      return;
+    }
+    const file = files[0];
+    if (file == null) {
+      loadInstancesData = null;
+      loadForms = [];
+      return;
+    }
+    const reader = new FileReader();
+    reader.addEventListener("load", function () {
+      try {
+        loadInstancesData = JSON.parse(reader.result as string);
+        loadForms = [];
+        findForms(loadInstancesData, '.')
+        console.log(loadForms)
+      } catch (e) {
+        console.log(e)
+        loadInstancesData = null;
+        loadForms = [];
+      }
+    });
+    reader.readAsText(file);
+  }
+
+  function loadInstances() {
+    $notebookCommModel?.sendLoadInstances(loadInstancesData);
+    loadForms = [];
+    loadInstancesData = null;
+    showLoadConfig = false;
+  }
+
+  function saveInstances() {
+    $notebookCommModel?.sendSaveInstances();
   }
   
 </script>
@@ -50,6 +122,18 @@
             on:click={toggleWizardConfigs}
             selected={showConfigs}
           >⚙️</IconButton>
+          {#if showConfigs}
+            <IconButton
+              title={showLoadConfig? "Close load intances form" : "Load instances from file"}
+              on:click={toggleLoadConfig}
+              selected={showLoadConfig}
+            >📂</IconButton>
+            <IconButton
+              title="Save instances"
+              on:click={saveInstances}
+            >💾</IconButton>
+          {/if}
+          
         {/if}
         {#if $loading}
           <span class="loading-icon">⌛️</span>
@@ -62,6 +146,19 @@
       </div>
     </div>
     {#if $wizardMode && showConfigs}
+      {#if showLoadConfig}
+        <div>
+          <input bind:this={loadInput} type=file on:change={prepareForms}> 
+          <div>
+            {#each loadForms as [formkey, configs, formdata] (formkey)}
+              {#each Object.entries(configs) as [key, [type, config]] (key)}
+               <DynamicInput {key} {type} {config} bind:value={formdata[key]}/>
+              {/each}
+            {/each}
+          </div>
+          <button on:click={loadInstances} disabled={loadInstancesData == null}>Load</button>
+        </div>
+      {/if}
       <div>
         <label>
           <input type=checkbox bind:checked={$processInKernel}>

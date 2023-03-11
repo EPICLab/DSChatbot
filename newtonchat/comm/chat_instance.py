@@ -24,7 +24,7 @@ def apply_partial(original: dict, update: dict):
 class ChatInstance:
     """Chat Instance handler"""
 
-    def __init__(self, comm: KernelComm, chat_name: str, mode="newton", data: dict=None):
+    def __init__(self, comm: KernelComm, chat_name: str, mode="newton"):
         self.mode = mode
         self.comm_ref = weakref.ref(comm)
         self.bot_loader = LOADERS[mode](comm)
@@ -49,7 +49,6 @@ class ChatInstance:
             "show_metadata": False,
         }
         self.checkpoints = {}
-        self.start_bot(data or {})
 
     @property
     def bot(self):
@@ -61,6 +60,7 @@ class ChatInstance:
         self.bot.start(self, data)
         for message in self.history:
             self.message_map[message['id']] = message
+        return self
 
     def sync_chat(self, operation):
         """Sends message with history and general config"""
@@ -70,6 +70,11 @@ class ChatInstance:
             "config": self.config,
         })
 
+    def refresh(self):
+        """Refreshes instance"""
+        self.bot.refresh(self)
+        self.sync_chat("refresh")
+
     def receive(self, data: dict):
         """Processes received requests"""
         try:
@@ -77,7 +82,7 @@ class ChatInstance:
             if operation == "message":
                 self.receive_message(data.get("message"))
             elif operation == "refresh":
-                self.bot.refresh(self)
+                self.refresh()
             elif operation == "autocomplete-query":
                 self.receive_autocomplete_query(
                     data.get('requestId'),
@@ -163,3 +168,26 @@ class ChatInstance:
             "operation": "reply",
             "message": message
         })
+
+    def save(self):
+        """Saves instance data"""
+        return {
+            "name": self.chat_name,
+            "mode": self.mode,
+            "bot": self.bot.save(),
+            "history": self.history,
+            "config": self.config
+        }
+
+    def load(self, data):
+        """Loads instance data"""
+        self.chat_name = data.get("name", self.chat_name)
+        self.mode = data.get("mode", self.mode)
+        if "bot" in data:
+            self.bot.load(data["bot"])
+        if "history" in data:
+            self.history = data["history"]
+            self.message_map = {}
+            for message in self.history:
+                self.message_map[message['id']] = message
+        self.config = {**self.config, **data.get("config", {})}

@@ -160,3 +160,21 @@ class GPTBot:
             "responseId": request_id,
             "items": [],
         })
+
+    def save(self):
+        """Saves bot"""
+        return {
+            "config": self.model_config,
+            "prompt": self.prompt,
+            "!form": {
+                "api_key": ("file", {"value": ""})
+            }
+        }
+
+    def load(self, data):
+        """Loads bot"""
+        if "config" in data:
+            self.model_config = {**self.model_config, **data["config"]}
+        self.prompt = data.get("prompt", self.prompt)
+        if form := data.get("!form", None):
+            self.api_key = form.get("api_key", "").strip()

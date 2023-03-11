@@ -18,8 +18,9 @@ class KernelComm:
         self.comm = None
 
         self.chat_instances = {
-            "base": ChatInstance(self, "base", mode)
+            "base": ChatInstance(self, "base", mode).start_bot({})
         }
+        self.dead_instances = []
 
     def register(self):
         """Registers comm"""
@@ -44,6 +45,35 @@ class KernelComm:
             },
         })
 
+    def save_instances(self):
+        """Saves instances and return a json to client"""
+        instances = {}
+        for name, instance in self.chat_instances.items():
+            instances[name] = instance.save()
+        self.comm.send({
+            "operation": "instances",
+            "instance": "<meta>",
+            "data": {
+                "instances": instances,
+                "!!dead_instances": self.dead_instances
+            }
+        })
+
+    def load_instances(self, data):
+        """Loads instances and syncs chat"""
+        base_mode = self.chat_instances["base"].mode
+        self.chat_instances = {}
+        for name, instance in data.get("instances", {}).items():
+            self.chat_instances[name] = ChatInstance(self, name, instance["mode"])
+            self.chat_instances[name].load(instance)
+            self.chat_instances[name].refresh()
+
+        if "base" not in self.chat_instances:
+            self.chat_instances["base"] = ChatInstance(self, "base", base_mode).start_bot({})
+
+        self.dead_instances = data.get("dead_instances", [])
+        self.sync_meta()
+
     def receive(self, msg):
         """Receives requests"""
         data = msg["content"]["data"]
@@ -53,15 +83,22 @@ class KernelComm:
                 operation = data.get("operation", "")
                 if operation == "new-instance":
                     chat_instance = self.chat_instances[data["name"]] = ChatInstance(
-                        self, data["name"], data.get("mode", "base"), data.get("data", {})
-                    )
+                        self, data["name"], data.get("mode", "base")
+                    ).start_bot(data.get("data", {}))
                     chat_instance.sync_chat("init")
                     self.sync_meta()
                 elif operation == "refresh":
                     self.sync_meta()
                 elif operation == "remove-instance":
+                    self.dead_instances.append(
+                        self.chat_instances[data["name"]].save()
+                    )
                     del self.chat_instances[data["name"]]
                     self.sync_meta()
+                elif operation == "save-instances":
+                    self.save_instances()
+                elif operation == "load-instances":
+                    self.load_instances(data["data"])
                 return
             instances = self.chat_instances.values()
             if instance != "<all>":

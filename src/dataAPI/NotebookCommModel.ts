@@ -7,6 +7,7 @@ import {
   connectionReady,
   errorHandler,
   kernelStatus,
+  wizardMode,
 } from '../stores';
 import { NotebookActions, type NotebookPanel } from '@jupyterlab/notebook';
 import type {
@@ -230,6 +231,28 @@ export class NotebookCommModel {
   }
 
   /**
+   * Send a save command to the kernel
+   */
+  public sendSaveInstances(): void {
+    this.send({
+      operation: 'save-instances',
+      instance: '<meta>'
+    });
+  }
+
+  /**
+   * Send a save command to the kernel
+   */
+  public sendLoadInstances(data: any): void {
+    this.send({
+      operation: 'load-instances',
+      instance: '<meta>',
+      data
+    });
+  }
+
+
+  /**
    * Send a refresh command to the kernel
    */
   public sendRefreshInstance(instance: string): void {
@@ -354,7 +377,6 @@ export class NotebookCommModel {
     msg: KernelMessage.ICommMsgMsg
   ): void | PromiseLike<void> {
     try {
-      console.log("MSG", msg.content.data);
       const operation = msg.content.data.operation;
       const instance = msg.content.data.instance as string;
 
@@ -364,13 +386,30 @@ export class NotebookCommModel {
           const instances = msg.content.data.instances as unknown as { [id: string]: string };
           this._loadInstances(instances);
         }
+        if (operation === 'instances') {
+          if (get(wizardMode)) {
+            const a = document.createElement('a');
+            const blob = new Blob([JSON.stringify(msg.content.data.data)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            a.setAttribute('href', url);
+            a.setAttribute('download', 'instances.json');
+            a.click();
+            a.remove();
+          }
+        }
         return;
       }
 
       const chatInstance = get(this.chatInstances)[instance];
 
       if (chatInstance === undefined) {
-        throw new Error("Invalid instance " + instance);
+        // On some operations, the client receives an update about an instance that it does not know about yet
+        // I saw it occur on loading the history, and on starting a new client
+        // Maybe we should treat it in a different way to prevent the error, 
+        // but I'm just sending a message to the kernel to check for updates for now
+        this.sendRefreshLoaders();
+        return;
+        //throw new Error("Invalid instance " + instance);
       }
       if (operation === 'init' || operation === 'refresh') {
         kernelStatus.setattr('hasKernel', true);

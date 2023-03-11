@@ -48,3 +48,11 @@ class DummyBot:
             "responseId": request_id,
             "items": [],
         })
+
+    def save(self):
+        """Saves bot"""
+        return {'format_str': self.format_str}
+    
+    def load(self, data):
+        """Loads bot"""
+        self.format_str = data.get('format_str', self.format_str)

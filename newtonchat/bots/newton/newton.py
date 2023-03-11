@@ -83,7 +83,6 @@ class NewtonBot:
     def refresh(self, instance: ChatInstance):
         """Refresh chatbot"""
         # pylint: disable=no-self-use
-        instance.sync_chat("refresh")
 
     def set_state(
         self,
@@ -181,5 +180,11 @@ class NewtonBot:
         """Processes user autocomplete query"""
         self.default_state.process_autocomplete(instance, request_id, query)
 
+    def save(self):
+        """Saves bot"""
+        # Nothing to save
+        return {}
 
-
+    def load(self, data):
+        """Loads bot"""
+        # Nothing to load
