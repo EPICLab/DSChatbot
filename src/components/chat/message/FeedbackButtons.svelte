@@ -3,7 +3,7 @@
   import ThumbsDown from "../../icons/fa-thumbs-down-solid.svelte";
   import type { IChatMessage } from "../../../common/chatbotInterfaces";
   import type { IChatInstance } from "../../../chatinstance";
-  import IconButton from "../../IconButton.svelte";
+  import IconButton from "../../generic/IconButton.svelte";
 
 
   export let chatInstance: IChatInstance;

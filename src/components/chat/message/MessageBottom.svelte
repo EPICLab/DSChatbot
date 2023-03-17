@@ -1,31 +1,38 @@
 <script type="ts">
   import type { IChatInstance } from "../../../chatinstance";
   import type { IChatMessage } from "../../../common/chatbotInterfaces";
-  import { sendMessageToBuild, sendMessageToWizardInput } from "../../../common/messages";
+  import { sendMessageToBuild, sendMessageToWizardInput, sendMessageToUser } from "../../../common/messages";
   import { wizardMode } from "../../../stores";
-  import IconButton from "../../IconButton.svelte";
+  import IconButton from "../../generic/IconButton.svelte";
   import FeedbackButtons from "./FeedbackButtons.svelte";
   import FeedbackForm from "./FeedbackForm.svelte";
   import Profile from "./Profile.svelte";
   import ReplyButtons from "./ReplyButtons.svelte";
+  import Digging from "../../icons/fa-digging.svelte";
+  import Title from "../../icons/title.svelte";
+  import ChatIcon from "../../icons/chaticon.svelte";
 
   export let chatInstance: IChatInstance;
   export let message: IChatMessage;
   export let index: number;
   export let viewReplied: boolean;
 
-  let { showTime, showIndex } = chatInstance.config;
+  let { showTime, showIndex, directSendToUser } = chatInstance.config;
   let timestamp = message.timestamp;
   if (!Number.isInteger(timestamp)) {
     timestamp = timestamp * 1000;
   }
 
   async function sendToBuild() {
-    await sendMessageToBuild(chatInstance, message);
+    await sendMessageToBuild(chatInstance, message, false);
   }
 
   async function sentToInput() {
-    await sendMessageToWizardInput(chatInstance, message);
+    await sendMessageToWizardInput(chatInstance, message, false);
+  }
+
+  async function sendToUser() {
+    await sendMessageToUser(chatInstance, message, false);
   }
 
 </script>
@@ -38,8 +45,11 @@
     {/if}
     <ReplyButtons {message} viewReplied={viewReplied} on:toggleViewReplied />
     {#if $wizardMode}
-      <IconButton title="To reply" on:click={sendToBuild}>↩️</IconButton>
-      <IconButton title="To input" on:click={sentToInput}>📝</IconButton>
+      <IconButton title="To reply" on:click={sendToBuild}><Digging/></IconButton>
+      <IconButton title="To input" on:click={sentToInput}><Title/></IconButton>
+      {#if $directSendToUser}
+        <IconButton title="To user" on:click={sendToUser}><ChatIcon/></IconButton>
+      {/if}
     {/if}
     {#if message.loading}
       <div class="loading" title="Processing message">⌛️</div>

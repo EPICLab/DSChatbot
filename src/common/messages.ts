@@ -219,13 +219,26 @@ async function createMetadata(chatInstance: IChatInstance, message: IChatMessage
   
 }
 
-export async function sendMessageToBuild(chatInstance: IChatInstance, message: IChatMessage) {
+async function cloneMessageWithMetadata(chatInstance: IChatInstance, message: IChatMessage, preview: boolean) {
   let newMessage = cloneMessage(message, messageTarget('user'))
-  newMessage.text = await createMetadata(chatInstance, message);
+  if (!preview) {
+    newMessage.text = await createMetadata(chatInstance, message);
+  }
+  return newMessage;
+}
+
+export async function sendMessageToBuild(chatInstance: IChatInstance, message: IChatMessage, preview: boolean) {
+  let newMessage = await cloneMessageWithMetadata(chatInstance, message, preview);
   wizardPreviewMessage.set([...get(wizardPreviewMessage), newMessage]);
 }
 
-export async function sendMessageToWizardInput(chatInstance: IChatInstance, message: IChatMessage) {
+export async function sendMessageToUser(chatInstance: IChatInstance, message: IChatMessage, preview: boolean) {
+  let newMessage = await cloneMessageWithMetadata(chatInstance, message, preview);
+  chatInstance.addNew(newMessage);
+}
+
+
+export async function sendMessageToWizardInput(chatInstance: IChatInstance, message: IChatMessage, preview: boolean) {
   wizardValue.set(await createMetadata(chatInstance, message))
 }
 

@@ -47,6 +47,7 @@ class ChatInstance:
             "show_build_messages": True,
             "show_kernel_messages": True,
             "show_metadata": False,
+            "direct_send_to_user": False,
         }
         self.checkpoints = {}
 

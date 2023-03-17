@@ -6,7 +6,7 @@
   import Above from "../../../icons/above.svelte";
   import Below from "../../../icons/below.svelte";
   import Bottom from "../../../icons/bottom.svelte";
-  import Copy from "../../../icons/copy.svelte";
+  import Copy from "../../../icons/fa-copy.svelte";
 
   export let messagePart: IMessagePart;
   export let scrollBottom: () => void;

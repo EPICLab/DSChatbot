@@ -6,15 +6,21 @@
   import type { IChatInstance } from "../../chatinstance";
   import ExtraChatPanel from "../ExtraChatPanel.svelte";
   import WizardCellPanel from "../WizardCellPanel.svelte";
-  import IconButton from "../IconButton.svelte";
+  import IconButton from "../generic/IconButton.svelte";
   import DynamicInput from "../jsonform/DynamicInput.svelte";
+  import ToggleButton from "../generic/ToggleButton.svelte";
+  import Robot from "../icons/fa-robot.svelte";
+  import Save from "../icons/fa-save.svelte";
+  import Load from "../icons/fa-load.svelte";
+  import Cog from "../icons/fa-cog.svelte";
+  import WizardCell from "../icons/wizardcell.svelte";
 
   export let chatInstance: IChatInstance;
   export let title: string;
   export let showConfigs: boolean = true;
   export let showLoadConfig: boolean = false;
   
-  let { processInKernel, enableAutoComplete, showReplied, showIndex, showTime, showBuildMessages, showKernelMessages, enableAutoLoading, loading, showMetadata, processBaseChatMessage } = chatInstance.config;
+  let { processInKernel, enableAutoComplete, showReplied, showIndex, showTime, showBuildMessages, showKernelMessages, enableAutoLoading, loading, showMetadata, processBaseChatMessage, directSendToUser } = chatInstance.config;
   let loadInput: HTMLInputElement;
   let loadInstancesData: any = null;
   let loadForms: [string, {[id: string]: [string, any]}, {[id: string]: any}][] = [];
@@ -121,17 +127,23 @@
             title={showConfigs? "Hide configs" : "Show configs"}
             on:click={toggleWizardConfigs}
             selected={showConfigs}
-          >⚙️</IconButton>
+          ><Cog/></IconButton>
           {#if showConfigs}
             <IconButton
               title={showLoadConfig? "Close load intances form" : "Load instances from file"}
               on:click={toggleLoadConfig}
               selected={showLoadConfig}
-            >📂</IconButton>
+            ><Load/></IconButton>
             <IconButton
               title="Save instances"
               on:click={saveInstances}
-            >💾</IconButton>
+            ><Save/></IconButton>
+            <IconButton
+              title="Open extra chat"
+              on:click={openExtraChat}><Robot/></IconButton>
+            <IconButton
+              title="Open wizard cell"
+              on:click={openWizardCell}><WizardCell/></IconButton>
           {/if}
           
         {/if}
@@ -160,56 +172,20 @@
         </div>
       {/if}
       <div>
-        <label>
-          <input type=checkbox bind:checked={$processInKernel}>
-          Message
-        </label>
-        <label>
-          <input type=checkbox bind:checked={$enableAutoComplete}>
-          Autocomplete
-        </label>
-        <label>
-          <input type=checkbox bind:checked={$enableAutoLoading}>
-          Auto Loading
-        </label>
-        <label>
-          <input type=checkbox bind:checked={$showTime}> 
-          Time
-        </label>
-        <label>
-          <input type=checkbox bind:checked={$processBaseChatMessage}>
-          Replicate base
-        </label>
+        <ToggleButton bind:checked={$processInKernel} title="Automatically process message in kernel">Message</ToggleButton>
+        <ToggleButton bind:checked={$enableAutoComplete} title="Display autocomplete toggle to user">Autocomplete</ToggleButton>
+        <ToggleButton bind:checked={$enableAutoLoading} title="Show loading icon in every received message">Auto Loading</ToggleButton>
+        <ToggleButton bind:checked={$showTime} title="Show message time">Time</ToggleButton>
+        <ToggleButton bind:checked={$processBaseChatMessage} title="Process user message from base chat">Replicate base</ToggleButton>
       </div>
       <div>
-        <label>
-          <input type=checkbox bind:checked={$loading}>
-          Loading
-        </label>
-        <label>
-          <input type=checkbox bind:checked={$showKernelMessages}> 
-          Kernel
-        </label>
-        <label>
-          <input type=checkbox bind:checked={$showBuildMessages}> 
-          Build
-        </label>
-        <label>
-          <input type=checkbox bind:checked={$showReplied}> 
-          Reply
-        </label>
-        <label>
-          <input type=checkbox bind:checked={$showIndex}> 
-          Index
-        </label>
-        <label>
-          <input type=checkbox bind:checked={$showMetadata}> 
-          Metadata
-        </label>
-      </div>
-      <div>
-        <button on:click={openExtraChat}>Extra Chat</button>
-        <button on:click={openWizardCell}>Wizard cell</button>
+        <ToggleButton bind:checked={$loading} title="Toggle global loading icon">Loading</ToggleButton>
+        <ToggleButton bind:checked={$showKernelMessages} title="Show kernel messages in wizard mode">Kernel</ToggleButton>
+        <ToggleButton bind:checked={$showBuildMessages} title="Show build messages in wizard mode">Build</ToggleButton>
+        <ToggleButton bind:checked={$showReplied} title="Show replied message in all messages">Reply</ToggleButton>
+        <ToggleButton bind:checked={$showIndex} title="Show message index">Index</ToggleButton>
+        <ToggleButton bind:checked={$showMetadata} title="Show message metadata">Metadata</ToggleButton>
+        <ToggleButton bind:checked={$directSendToUser} title="Display button to send message directly to user">Direct send</ToggleButton>
       </div>
     {/if}
   </header>

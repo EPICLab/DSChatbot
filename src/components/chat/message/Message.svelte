@@ -5,7 +5,7 @@
   import { wizardMode, replying, wizardPreviewMessage } from '../../../stores';
   import { ContextMenu } from '@lumino/widgets';
   import { CommandRegistry } from '@lumino/commands';
-  import { BOT_TARGETS, BOT_TYPES, checkTarget, cloneMessage, messageTarget, sendMessageToBuild, sendMessageToWizardInput } from "../../../common/messages";
+  import { BOT_TARGETS, BOT_TYPES, checkTarget, cloneMessage, messageTarget, sendMessageToBuild, sendMessageToUser, sendMessageToWizardInput } from "../../../common/messages";
 
   import { RankedMenu } from '@jupyterlab/ui-components';
   import MessageParts from "./MessageParts.svelte";
@@ -20,7 +20,7 @@
   export let chat: HTMLElement | null = null;
   export let preview: boolean = false;
 
-  let {showBuildMessages, showKernelMessages, showReplied } = chatInstance.config;
+  let {showBuildMessages, showKernelMessages, showReplied, directSendToUser } = chatInstance.config;
 
   let display: boolean = false;
   let reply: IChatMessage | null | undefined = null;
@@ -32,7 +32,7 @@
       commands.addCommand('add-reply', {
         label: 'Add to reply',
         execute: async () => {
-          await sendMessageToBuild(chatInstance, message);
+          await sendMessageToBuild(chatInstance, message, preview);
         }
       });
       contextMenu.addItem({
@@ -42,13 +42,26 @@
       commands.addCommand('load-input', {
         label: 'Load to input',
         execute: async () => {
-          await sendMessageToWizardInput(chatInstance, message);
+          await sendMessageToWizardInput(chatInstance, message, preview);
         }
       });
       contextMenu.addItem({
         command: 'load-input',
         selector: '*',
       });
+      
+      if ($directSendToUser) {
+        commands.addCommand('send-user', {
+          label: 'Send to user',
+          execute: async () => {
+            await sendMessageToUser(chatInstance, message, preview);
+          }
+        });
+        contextMenu.addItem({
+          command: 'send-user',
+          selector: '*',
+        });
+      }
       commands.addCommand('copy-clipboard', {
         label: 'Copy to clipboard',
         execute: () => {

@@ -2,9 +2,9 @@
   import type { IChatMessage } from "../../../common/chatbotInterfaces";
   import { replying, wizardMode } from "../../../stores";
   import Eye from "../../icons/eye.svelte";
-  import Reply from "../../icons/reply.svelte";
+  import Reply from "../../icons/fa-reply.svelte";
   import { createEventDispatcher } from 'svelte';
-  import IconButton from "../../IconButton.svelte";
+  import IconButton from "../../generic/IconButton.svelte";
 
   export let message: IChatMessage;
   export let viewReplied: boolean;

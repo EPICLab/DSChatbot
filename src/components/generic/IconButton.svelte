@@ -41,5 +41,9 @@
   button.selected :global(svg) {
     fill: var(--selected-color);
   }
+
+  button :global(svg) {
+    height: 1em;
+  }
 </style>
 

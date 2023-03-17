@@ -5,7 +5,7 @@
   import AutoCompleteInput from "./chat/AutoCompleteInput.svelte";
   import Chat from "./chat/Chat.svelte";
   import Header from './header/Header.svelte';
-  import IconButton from "./IconButton.svelte";
+  import IconButton from "./generic/IconButton.svelte";
   import DynamicInput from "./jsonform/DynamicInput.svelte";
 
   export let model: NotebookCommModel;

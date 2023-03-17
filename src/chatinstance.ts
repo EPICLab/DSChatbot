@@ -41,6 +41,7 @@ export function createChatInstance(model: NotebookCommModel, chatName: string, m
       showBuildMessages: createConfigVar("show_build_messages", true),
       showKernelMessages: createConfigVar("show_kernel_messages", true),
       showMetadata: createConfigVar("show_metadata", false),
+      directSendToUser: createConfigVar("direct_send_to_user", false),
     }
   
     let messageMap: { [key: string]: { position: number, message: IChatMessage} } = {};
