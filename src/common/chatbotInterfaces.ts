@@ -32,7 +32,7 @@ export type IMessageType = 'user' | 'bot' | 'error';
 export enum MessageDisplay {
   Default = 0,
   Hidden,
-  SupermodeInput
+  WizardModeInput
 }
 
 export enum KernelProcess {

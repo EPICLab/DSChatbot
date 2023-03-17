@@ -3,7 +3,7 @@
   import Chat from './chat/Chat.svelte';
   import AutoCompleteInput from './chat/AutoCompleteInput.svelte';
   import Header from './header/Header.svelte';
-  import SuperChat from './chat/SuperChat.svelte';
+  import WizardChat from './chat/WizardChat.svelte';
   import { get } from 'svelte/store';
   import type { IChatInstance } from '../chatinstance';
 
@@ -24,7 +24,7 @@
     <Chat {chatInstance}/>
     {#if $hasKernel}
       {#if $wizardMode}
-        <SuperChat {chatInstance}/>
+        <WizardChat {chatInstance}/>
       {:else}
         <AutoCompleteInput {chatInstance}/>
       {/if}

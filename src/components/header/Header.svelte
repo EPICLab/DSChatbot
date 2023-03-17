@@ -121,7 +121,7 @@
   <header>
     <div class="top">
       <div class="left">
-      <div class="title" class:supermode={$wizardMode} on:click={refresh} on:keypress={(e) => onKeyPress(refresh, e)} title="Click to refresh">{title}</div>
+      <div class="title" class:wizardmode={$wizardMode} on:click={refresh} on:keypress={(e) => onKeyPress(refresh, e)} title="Click to refresh">{title}</div>
         {#if $wizardMode}
           <IconButton
             title={showConfigs? "Hide configs" : "Show configs"}
@@ -227,7 +227,7 @@
     cursor: pointer;
   }
 
-  .supermode {
+  .wizardmode {
     color: red;
   }
 

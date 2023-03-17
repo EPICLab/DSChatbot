@@ -6,9 +6,9 @@
   function contextMenu(event: MouseEvent) {
     if (event.ctrlKey) {
       if ($wizardMode) {
-        alert("Supermode disabled!");
+        alert("Wizardmode disabled!");
         $wizardMode = false;
-      } else if (confirm("Do you want to enable Newton supermode?")) {
+      } else if (confirm("Do you want to enable Newton wizardmode?")) {
         $wizardMode = true;
       }
     }

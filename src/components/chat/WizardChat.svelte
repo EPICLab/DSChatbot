@@ -16,8 +16,8 @@
   let textarea: HTMLElement
   let bottomChat: BottomChat
 
-  let superModeType: IMessageType = 'bot'
-  let superModeTarget: IMessageTarget = 'user'
+  let wizardModeType: IMessageType = 'bot'
+  let wizardModeTarget: IMessageTarget = 'user'
 
   function createMessage(text: string): IChatMessage | null {
     text = text.trim()
@@ -27,7 +27,7 @@
     return {
       id: crypto.randomUUID(),
       text: text,
-      type: superModeType,
+      type: wizardModeType,
       timestamp: +new Date(),
       reply: $replying,
       feedback: {
@@ -36,7 +36,7 @@
         otherreason: ""
       },
       loading: false,
-      ...messageTarget(superModeTarget)
+      ...messageTarget(wizardModeTarget)
     }
   }
 
@@ -50,19 +50,19 @@
       })
       BOT_TARGETS.forEach((targetItem) => {
         if (targetItem.key === key) {
-          superModeTarget = targetItem.target
+          wizardModeTarget = targetItem.target
           textarea.focus()
         }
       })
       BOT_TYPES.forEach((typeItem) => {
         if (typeItem.key === key) {
-          superModeType = typeItem.type
+          wizardModeType = typeItem.type
           textarea.focus()
         }
       })
     }
     if ((document.activeElement == textarea) && (key === "Enter") && e.ctrlKey) {
-      await onSuperModeSend()
+      await onWizardModeSend()
     }
   }
 
@@ -74,7 +74,7 @@
     textarea.focus()
   }
 
-  async function onSuperModeSend() {
+  async function onWizardModeSend() {
     let timestamp = +new Date()
     $wizardPreviewMessage.forEach((message: IChatMessage) => {
       message.timestamp = timestamp
@@ -104,7 +104,7 @@
 
 
 <style>
-  .supermodetypes {
+  .wizardmodetypes {
     display: flex;
   }
 
@@ -131,25 +131,25 @@
   </div>
 </BottomChat>
 
-<div class="supermodetypes">
+<div class="wizardmodetypes">
   {#each BOT_TARGETS as targetItem}
     <label title="Key: {targetItem.key}">
-      <input type=radio bind:group={superModeTarget} name="messageTarget-{uniqueNameWithingComponent}" value={targetItem.target}>
+      <input type=radio bind:group={wizardModeTarget} name="messageTarget-{uniqueNameWithingComponent}" value={targetItem.target}>
       {targetItem.label}
     </label>
   {/each}
 </div>
-<div class="supermodetypes">
+<div class="wizardmodetypes">
   {#each BOT_TYPES as typeItem}
     <label title="Key: {typeItem.key}">
-      <input type=radio bind:group={superModeType} name="messageType-{uniqueNameWithingComponent}" value={typeItem.type}>
+      <input type=radio bind:group={wizardModeType} name="messageType-{uniqueNameWithingComponent}" value={typeItem.type}>
       {typeItem.label}
     </label>
   {/each}
 </div>
 
 
-<button on:click|preventDefault={onSuperModeSend}>Send Messages (ctrl + enter)</button>
+<button on:click|preventDefault={onWizardModeSend}>Send Messages (ctrl + enter)</button>
 {#each $wizardPreviewMessage as message, index (message.id)}
   <Message {chatInstance} bind:message={message} {index} preview={true}/>
 {/each}

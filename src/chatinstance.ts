@@ -56,7 +56,7 @@ export function createChatInstance(model: NotebookCommModel, chatName: string, m
       if ((get(wizardMode) != (newMessage.type != 'user')) && !['kernel', 'build'].includes(checkTarget(newMessage))) {
         replying.set(newMessage['id']);
       }
-      if (newMessage.display == MessageDisplay.SupermodeInput) {
+      if (newMessage.display == MessageDisplay.WizardModeInput) {
         let buildMessage = cloneMessage(newMessage, messageTarget('user'))
         wizardPreviewMessage.set([...get(wizardPreviewMessage), buildMessage]);
       }

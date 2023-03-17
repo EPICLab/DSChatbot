@@ -67,7 +67,7 @@ export function messageTarget(target: IMessageTarget): ITargetDefinition {
     return { 
       display: MessageDisplay.Hidden,
       kernelProcess: KernelProcess.Force,
-      kernelDisplay: MessageDisplay.SupermodeInput
+      kernelDisplay: MessageDisplay.WizardModeInput
     }
   } 
   // else if (target == 'bot') {

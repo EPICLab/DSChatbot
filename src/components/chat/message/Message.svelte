@@ -205,7 +205,7 @@
 
   $: {
     display = message.display === MessageDisplay.Default || $wizardMode
-    if ((message.display === MessageDisplay.SupermodeInput || message.kernelDisplay === MessageDisplay.SupermodeInput) && !$showBuildMessages) {
+    if ((message.display === MessageDisplay.WizardModeInput || message.kernelDisplay === MessageDisplay.WizardModeInput) && !$showBuildMessages) {
       display = false;
     } else if (message.display === MessageDisplay.Hidden && !$showKernelMessages) {
       display = false;
@@ -224,8 +224,8 @@
     <div class="outer {message.type}">
       <div 
         class:hidden={message.display == MessageDisplay.Hidden} 
-        class:build={message.display == MessageDisplay.SupermodeInput} 
-        class:tobuild={message.kernelDisplay == MessageDisplay.SupermodeInput} 
+        class:build={message.display == MessageDisplay.WizardModeInput} 
+        class:tobuild={message.kernelDisplay == MessageDisplay.WizardModeInput} 
         class="inner"
       >
         <div class="main">
