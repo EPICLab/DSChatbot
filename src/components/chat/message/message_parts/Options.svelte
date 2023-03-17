@@ -59,7 +59,7 @@
   }
   
   button:hover {
-    background-color: #D0FDFF;
+    background-color: var(--newton-message-user-color);
     cursor: pointer;
   }
 

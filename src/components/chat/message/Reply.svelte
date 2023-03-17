@@ -61,15 +61,15 @@
   }
   
   .user {
-    background-color: #D0FDFF;
+    background-color: var(--newton-message-user-color);
   }
 
   .bot {
-    background-color: #F2F2F2;
+    background-color: var(--newton-message-bot-color);
   }
   
   .error {
-    background-color: lightpink;
+    background-color: var(--newton-message-error-color);
   }
 
   .disable-click {

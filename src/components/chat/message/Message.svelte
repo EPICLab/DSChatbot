@@ -223,9 +223,9 @@
   {#if display}
     <div class="outer {message.type}">
       <div 
-        class:hidden={message.display == MessageDisplay.Hidden} 
-        class:build={message.display == MessageDisplay.WizardModeInput} 
-        class:tobuild={message.kernelDisplay == MessageDisplay.WizardModeInput} 
+        class:newton-message-target-hidden={message.display == MessageDisplay.Hidden} 
+        class:newton-message-target-build={message.display == MessageDisplay.WizardModeInput} 
+        class:newton-message-target-tobuild={message.kernelDisplay == MessageDisplay.WizardModeInput} 
         class="inner"
       >
         <div class="main">
@@ -269,54 +269,37 @@
   }
 
   .user .inner {
-    background-color: #D0FDFF;
+    background-color: var(--newton-message-user-color);
   }
 
   .bot .inner {
-    background-color: #F2F2F2;
+    background-color: var(--newton-message-bot-color);
   }
 
   .error .inner {
-    background-color: lightpink;
+    background-color: var(--newton-message-error-color);
   }
 
   .user .inner {
     margin-left: 4em;
     border-radius: 0.5rem 0.5rem 0 0.5rem;
+    background-color: var(--newton-message-user-color);
     flex-direction: row-reverse;
   }
 
   .bot .inner {
     margin-right: 4em;
-    background-color: #F2F2F2;
+    background-color: var(--newton-message-bot-color);
     border-radius: 0.5rem 0.5rem 0.5rem 0;
   }
 
   .error .inner {
     margin-right: 4em;
-    background-color: lightpink;
+    background-color: var(--newton-message-error-color);
     border-radius: 0.5rem 0.5rem 0.5rem 0;
   }
 
   .main {
     padding: 0.4em;
-  }
-
-  .hidden {
-    border-style: dotted;
-    border-width: 2px;
-    border-color: red;
-  }
-
-  .build {
-    border-style: dotted;
-    border-width: 2px;
-    border-color: blue;
-  }
-
-  .tobuild {
-    border-style: dotted;
-    border-width: 2px;
-    border-color: green;
   }
 </style>

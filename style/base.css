@@ -1,6 +1,9 @@
 :root {
   --newton-font-size1: var(--jp-ui-font-size1);
   --newton-title-font-size: var(--jp-ui-font-size0);
+  --newton-message-user-color: #D0FDFF;
+  --newton-message-bot-color: #F2F2F2;
+  --newton-message-error-color: lightpink;
 }
 
 .jp-NewtonChat {
@@ -16,4 +19,35 @@
   min-width: 400px;
   width: 99%;
   min-height: 200px;
+}
+
+.newton-message-target-hidden {
+  border-style: dotted !important;
+  border-width: 2px !important;
+  border-color: red !important;
+}
+
+.newtow-message-target-build {
+  border-style: dotted !important;
+  border-width: 2px !important;
+  border-color: blue !important;
+}
+
+.newton-message-target-tobuild {
+  border-style: dotted !important;
+  border-width: 2px !important;
+  border-color: green !important;
+}
+
+
+.newton-message-type-bot {
+  background-color: var(--newton-message-bot-color) !important;
+}
+
+.newton-message-type-user {
+  background-color: var(--newton-message-user-color) !important;
+}
+
+.newton-message-type-error {
+  background-color: var(--newton-message-error-color) !important;
 }

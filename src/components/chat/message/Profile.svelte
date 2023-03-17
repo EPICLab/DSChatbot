@@ -53,15 +53,15 @@
   }
 
   .user .profile-inner {
-    border: 15px solid #D0FDFF;
+    border: 15px solid var(--newton-message-user-color);
   }
 
   .bot .profile-inner{
-    border: 15px solid #F2F2F2;
+    border: 15px solid var(--newton-message-bot-color);
   }
 
   .error .profile-inner{
-    border: 15px solid lightpink;
+    border: 15px solid var(--newton-message-error-color);
   }
 
 </style>

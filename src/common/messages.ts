@@ -39,7 +39,6 @@ const TYPE_DEFS: { [key: string]: IMessagePartType } = {
   'metadata': 'metadata'
 }
 
-
 export function cloneMessage(message: IChatMessage, other?: Partial<IChatMessage>) {
   let newMessage = { ...message, ...other }
   newMessage.id = crypto.randomUUID(),
@@ -93,39 +92,26 @@ export interface ITargetItem {
   target: IMessageTarget;
   label: string;
   key: string;
+  style: string;
 }
 
 export const BOT_TARGETS: ITargetItem[] = [
-  {target: 'user', label: 'User', key: 's'},
-  {target: 'kernel', label: 'Kernel', key: 'k'},
-  {target: 'build', label: 'Build', key: 'b'},
+  {target: 'user', label: 'User', key: 's', style: 'newton-message-target-user'},
+  {target: 'kernel', label: 'Kernel', key: 'k', style: 'newton-message-target-hidden'},
+  {target: 'build', label: 'Build', key: 'b', style: 'newton-message-target-tobuild'},
 ]
 
 export interface ITypeItem {
   type: IMessageType;
   label: string;
   key: string;
+  style: string;
 }
 
 export const BOT_TYPES: ITypeItem[] = [
-  {type: 'bot', label: 'Newton', key: 'n'},
-  {type: 'user', label: 'User', key: 'u'},
-  {type: 'error', label: 'Error', key: 'e'},
-]
-
-export interface IEditorTypeItem {
-  label: string;
-  text: string;
-  key: string;
-}
-
-export const BOT_EDITOR_TYPES: IEditorTypeItem[] = [
-  {label: 'Text/A', text:'####text#:\n', key: 'a'},
-  {label: 'Ordered/O', text:'####fol#:\n', key: 'o'},
-  {label: 'Options/I', text:'####ful#:\n', key: 'i'},
-  {label: 'Continue/Y', text:'####fol#:\n- Continue', key: 'y'},
-  {label: 'Code/C', text:'####text#:\nCopy the following code to the notebook:\n####code#:\n', key: 'c'},
-  {label: 'Just Code/F', text:'####code#:\n', key: 'f'}
+  {type: 'bot', label: 'Newton', key: 'n', style: 'newton-message-type-bot'},
+  {type: 'user', label: 'User', key: 'u', style: 'newton-message-type-user'},
+  {type: 'error', label: 'Error', key: 'e', style: 'newton-message-type-error'},
 ]
 
 export function extractOptions(text: string, type: 'ul' | 'ol'): IOptionItem[] {

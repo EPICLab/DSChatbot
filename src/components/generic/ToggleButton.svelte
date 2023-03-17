@@ -24,7 +24,7 @@
   }
 
   .checked {
-    background-color: #bdbdbd;
+    filter: brightness(70%);
     border-color: #bdbdbd;
   }
 
