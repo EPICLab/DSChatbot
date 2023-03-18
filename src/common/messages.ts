@@ -225,7 +225,11 @@ export async function sendMessageToUser(chatInstance: IChatInstance, message: IC
 
 
 export async function sendMessageToWizardInput(chatInstance: IChatInstance, message: IChatMessage, preview: boolean) {
-  wizardValue.set(await createMetadata(chatInstance, message))
+  if (!preview) {
+    wizardValue.set(await createMetadata(chatInstance, message))
+  } else {
+    wizardValue.set(message.text);
+  }
 }
 
 export interface IFormElementItem {
