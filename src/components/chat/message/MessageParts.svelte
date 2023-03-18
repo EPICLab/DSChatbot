@@ -43,7 +43,7 @@
   {:else if messagePart.type == 'form'}
     <Form {chatInstance} {messagePart} {message}/>
   {:else if messagePart.type == 'markdown'}
-    <Markdown {messagePart}/>
+    <Markdown {messagePart} {scrollBottom}/>
   {:else if messagePart.type == 'metadata'}
     <Metadata {chatInstance} {messagePart}/>
   {:else}

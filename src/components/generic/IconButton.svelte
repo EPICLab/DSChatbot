@@ -3,6 +3,7 @@
   export let selected: boolean | null = null;
   export let hide: boolean = false;
   export let selectedColor: string = "green";
+  export let defaultColor: string = "#616161";
 </script>
 
 <button 
@@ -10,7 +11,7 @@
   class:selected={selected}
   class:hide={hide}
   on:click
-  style="--selected-color: {selectedColor}"
+  style="--selected-color: {selectedColor}; --default-color: {defaultColor};"
 ><slot/></button>
 
 <style>
@@ -20,7 +21,8 @@
     padding: 0!important;
     
     display: flex;
-       
+    fill: var(--default-color);
+
     align-items:center;
     justify-content:center;
     min-width: 25px;
